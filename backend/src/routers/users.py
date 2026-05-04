@@ -152,3 +152,61 @@ async def register_user(register_data: RegisterData, response: Response, credent
     session.commit()
 
     return Message(msg='Пользователь успешно зарегистрирован')
+
+@router.get(
+    '/me',
+    summary='Получить данные своего профиля'
+)
+async def user_me(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    authorized = await authorize_request(credentials, session)
+    if not authorized:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Пользователь не авторизован')
+    
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return False
+    
+    return UserData(
+        id=user.id,
+        student_id=user.student_id,
+        last_name=user.last_name,
+        first_name=user.first_name,
+        patronymic=user.patronymic,
+        role=user.role,
+        team_id=user.team_id,
+        is_captain=user.is_captain,
+        personal_rating=user.personal_rating,
+        is_blocked=user.is_blocked,
+        login=user.login,
+        created_at=user.created_at
+    )
+
+@router.post(
+    '/edit',
+    summary='Редактировать профиль'
+)
+async def user_edit(user_edit_data: UserEditData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    authorized = await authorize_request(credentials, session)
+    if not authorized:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Пользователь не авторизован')
+    
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return False
+    
+    if user_edit_data.last_name is not None:
+        user.last_name = user_edit_data.last_name
+    if user_edit_data.first_name is not None:
+        user.first_name = user_edit_data.first_name
+    if user_edit_data.patronymic is not None:
+        user.patronymic = user_edit_data.patronymic
+    
+    session.add(user)
+    session.commit()
+    return Message(msg='Данные сохранены')
