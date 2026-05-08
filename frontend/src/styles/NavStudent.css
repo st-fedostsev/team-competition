@@ -1,0 +1,30 @@
+.nav-student-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.nav {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden; 
+}
+
+.student-nav-button {
+  background: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  flex: 1;
+  transition: background 0.2s;
+}
+
+.student-nav-button.active {
+  background-color: #E2EBFF; 
+}
+
+
+
+

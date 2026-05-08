@@ -11,7 +11,7 @@ export function ChooseRolePage() {
         <h1 className="choose-role-title">Войти как</h1>
 
         <div className="choose-role-buttons">
-          <StudentButton onClick={() => navigate('/login-student')} />
+          <StudentButton onClick={() => navigate('/register-student')} />
           <AdminButton onClick={() => navigate('/register-admin')} />
         </div>
       </div>
