@@ -1,0 +1,61 @@
+
+
+.top-menu {
+  display: flex;
+  justify-content: space-between; /* Равномерное распределение элементов */
+  align-items: center;
+  padding: 10px 154px;
+  background-color: #fff;  /* Белый фон */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень */
+    margin: 0;
+  box-sizing: border-box; /* Чтобы padding не раздувал ширину */
+}
+
+.tabs {
+  display: flex;
+}
+
+.tab {
+  margin: 20px 0px;
+  background: transparent;
+  margin-right: 49px;
+  cursor: pointer;
+  background: none;  /* Убираем фон */
+  color: #000000;  /* Синий цвет текста */
+  text-decoration: none;  /* Убираем подчеркивание */
+  border: none;  /* Убираем обводку */
+  border-radius: 0;  /* Убираем скругления */
+}
+
+
+.user-settings {
+  display: flex;
+  align-items: center;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.user-button i {
+  font-size: 20px;
+  margin-left: 10px;
+}
+
+/* Иконки уведомлений и пользователя */
+.user-button .fas.fa-bell {
+  font-size: 20px;
+}
+
+.user-button .fas.fa-user-circle {
+  font-size: 25px;
+  border-radius: 50%;
+  padding: 5px;
+  background-color: #f70000;
+}
+

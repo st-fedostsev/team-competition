@@ -1,0 +1,37 @@
+.button { 
+    background: #FFD675; 
+    margin: 0; 
+    border: none; /* Убирает обводку */
+} 
+ 
+.button-big{ 
+    border-radius: 20px; 
+} 
+ 
+.button-small{ 
+    border-radius: 15px; 
+    width: 154px; 
+    display: inline-flex;     
+} 
+ 
+ 
+.button-text{ 
+    font-weight: 500; 
+    font-style: Medium; 
+    font-size: 20px; 
+    line-height: 100%; 
+    width: 499; 
+     margin: 0; 
+} 
+ 
+.button-text-big{ 
+    padding: 16px 0; 
+} 
+ 
+.button-text-small{ 
+    padding: 10px 0; 
+} 
+ 
+.drop-shadow{ 
+   box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.25); 
+}

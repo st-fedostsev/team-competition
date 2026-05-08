@@ -1,0 +1,41 @@
+ 
+@import url('https://googleapis.com'); 
+body { 
+  font-family: 'Raleway', sans-serif; 
+} 
+ 
+input, button, textarea, select { 
+  font-family: inherit; 
+} 
+ 
+/* Только для кнопок */ 
+/* button { 
+  background: none; 
+  border: none; 
+  padding: 0; 
+  font: inherit; 
+  cursor: pointer; 
+  outline: inherit; 
+}  */
+ 
+/* Только для ссылок */ 
+a { 
+  text-decoration: none; 
+  color: inherit; 
+  color: #007bff;  
+} 
+ 
+/* Только для списков */ 
+ul, ol { 
+  list-style: none; 
+  margin: 0; 
+  padding: 0; 
+} 
+ 
+/* Для всех полей ввода */ 
+input, textarea, select { 
+  border: none; 
+  outline: none; 
+  background: none; 
+  font: inherit; 
+}
