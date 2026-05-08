@@ -1,0 +1,22 @@
+.input {
+    background: #F6F7F8;
+    border: 1px solid #DADADA
+
+}
+
+
+.input-text {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+
+.admin-inputs {
+  display: grid;
+  grid-template-columns: 1fr; /* Один столбец */
+  gap: 20px; /* Отступы между инпутами */
+  width: 499px;
+}

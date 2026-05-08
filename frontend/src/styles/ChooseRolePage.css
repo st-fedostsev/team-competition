@@ -1,0 +1,27 @@
+.choose-role-page {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.choose-role-card {
+    width: 564;
+    height: 444;
+    top: 290px;
+    left: 438px;
+    border-radius: 10px;
+    opacity: 1;
+    box-shadow: 0px 4px 4px 0px #00000040;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.choose-role-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+}
