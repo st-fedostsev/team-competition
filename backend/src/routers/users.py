@@ -9,6 +9,7 @@ from auth.auth_handler import access_security, refresh_security
 from fastapi_jwt import JwtAuthorizationCredentials
 from datetime import timedelta, datetime
 from decouple import config
+from .utils import authorize_request
 
 router = APIRouter(
     prefix='/users',
@@ -38,24 +39,11 @@ router = APIRouter(
 
 pwd_context = PasswordHash.recommended()
 
-async def authorize_request(credentials: JwtAuthorizationCredentials, session: Session):
-    if not credentials:
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return False
-
-    q = select(User).where(User.id == credentials['id'])
-    user = session.exec(q).first()
-    if not user:
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return False
-    
-    return True
-
 @router.post(
     '/login_admin',
     summary='Аутентификация'
 )
-async def authenticate_user(login_data: LoginAdminData, session: Session = Depends(get_session)):
+async def login_admin(login_data: LoginAdminData, session: Session = Depends(get_session)):
     q = select(User).where(User.login == login_data.login)
     user = session.exec(q).first()
     if user is None:
@@ -79,7 +67,7 @@ async def authenticate_user(login_data: LoginAdminData, session: Session = Depen
     '/login',
     summary='Аутентификация'
 )
-async def authenticate_user(login_data: LoginData, session: Session = Depends(get_session)):
+async def login_user(login_data: LoginData, session: Session = Depends(get_session)):
     q = select(User).where(
         (User.first_name == login_data.first_name) &
         (User.last_name == login_data.last_name) &
@@ -167,7 +155,7 @@ async def user_me(response: Response, credentials: JwtAuthorizationCredentials =
     user = session.exec(q).first()
     if not user:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return False
+        return Message(msg='Пользователь не найден')
     
     return UserData(
         id=user.id,
@@ -198,7 +186,7 @@ async def user_edit(user_edit_data: UserEditData, response: Response, credential
     user = session.exec(q).first()
     if not user:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return False
+        return Message(msg='Пользователь не найден')
     
     if user_edit_data.last_name is not None:
         user.last_name = user_edit_data.last_name

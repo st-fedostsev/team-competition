@@ -5,7 +5,7 @@ from database.session import init_database, get_session_cm
 from models import *
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from routers import users
+from routers import users, team
 from pwdlib import PasswordHash
 
 app = FastAPI()
@@ -18,6 +18,7 @@ app.add_middleware(
     allow_headers=['*']
 )
 app.include_router(users.router)
+app.include_router(team.router)
 
 async def populate_defaults():
     with get_session_cm() as session:
