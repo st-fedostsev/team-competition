@@ -27,16 +27,16 @@ class TokenData(BaseModel):
 
 class UserData(BaseModel):
     id: int
-    student_id: int
+    student_id: Optional[int] = None
     last_name: str
     first_name: str
-    patronymic: str | None = None
+    patronymic: Optional[str] = None
     role: UserRole
-    team_id: int | None = None
+    team_id: Optional[int] = None
     is_captain: bool
     personal_rating: float
     is_blocked: bool
-    login: str | None = None
+    login: Optional[str] = None
     created_at: datetime
 
 class UserEditData(BaseModel):

@@ -4,12 +4,11 @@ from database.session import get_session
 from models import User, UserRole
 from pwdlib import PasswordHash
 from schemas.users import *
-from schemas.common import Message
+from schemas.common import *
 from auth.auth_handler import access_security, refresh_security
 from fastapi_jwt import JwtAuthorizationCredentials
 from datetime import timedelta, datetime
 from decouple import config
-from .utils import authorize_request
 
 router = APIRouter(
     prefix='/users',
@@ -106,16 +105,16 @@ async def refresh_token(credentials: JwtAuthorizationCredentials = Security(refr
     summary='Регистрация пользователя(вызывается администратором)'
 )
 async def register_user(register_data: RegisterData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
 
-    if credentials['role'] not in ('admin', 'tech_admin'):
+    if credentials['role'] != UserRole.technical_admin:
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Недостаточно прав для выполнения запроса')
 
-    if register_data.user_role in ('admin', 'tech_admin'):
+    if register_data.user_role in (UserRole.admin, UserRole.technical_admin):
         user = User(
             student_id=0,
             last_name=register_data.last_name,
@@ -146,10 +145,10 @@ async def register_user(register_data: RegisterData, response: Response, credent
     summary='Получить данные своего профиля'
 )
 async def user_me(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -177,10 +176,10 @@ async def user_me(response: Response, credentials: JwtAuthorizationCredentials =
     summary='Редактировать профиль'
 )
 async def user_edit(user_edit_data: UserEditData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -198,3 +197,41 @@ async def user_edit(user_edit_data: UserEditData, response: Response, credential
     session.add(user)
     session.commit()
     return Message(msg='Данные сохранены')
+
+@router.post(
+    '/leaderboard',
+    summary='Получить лидерборд рейтингов пользователей'
+)
+async def user_get_leaderboard(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
+    
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = (select(User).where(User.role == UserRole.student)
+                    .order_by(-User.personal_rating)
+                    .limit(paged_request_data.limit)
+                    .offset(paged_request_data.offset))
+    result = session.exec(q).all()
+    result = list(map(lambda x: UserData(
+                id=x.id,
+                last_name=x.last_name,
+                first_name=x.first_name,
+                patronymic=x.patronymic,
+                role=x.role,
+                team_id=x.team_id,
+                is_captain=x.is_captain,
+                personal_rating=x.personal_rating,
+                is_blocked=x.is_blocked,
+                created_at=x.created_at
+            ),
+            result
+        )
+    )
+    return result

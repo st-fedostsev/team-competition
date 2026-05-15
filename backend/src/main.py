@@ -1,12 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Security, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select, delete, and_
 from database.session import init_database, get_session_cm
 from models import *
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from routers import users, team
+from routers import users, team, technical_admin
 from pwdlib import PasswordHash
+from fastapi_jwt import JwtAuthorizationCredentials
+from auth.auth_handler import access_security, refresh_security
+from middlewares.auth import AuthMiddleware
+from middlewares.ban import BanMiddleware
 
 app = FastAPI()
 
@@ -19,6 +23,10 @@ app.add_middleware(
 )
 app.include_router(users.router)
 app.include_router(team.router)
+app.include_router(technical_admin.router)
+
+app.add_middleware(BanMiddleware)
+app.add_middleware(AuthMiddleware)
 
 async def populate_defaults():
     with get_session_cm() as session:
@@ -32,7 +40,7 @@ async def populate_defaults():
                     last_name='',
                     first_name='Администратор',
                     patronymic='',
-                    role=UserRole.admin,
+                    role=UserRole.technical_admin,
                     login='admin',
                     password_hash=pwd_context.hash('admin'),
                     created_at=datetime.now()

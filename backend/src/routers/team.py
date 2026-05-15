@@ -3,12 +3,12 @@ from sqlmodel import Session, select, column
 from database.session import get_session
 from models import User, UserRole, Team
 from schemas.team import *
-from schemas.common import Message
+from schemas.common import *
 from auth.auth_handler import access_security, refresh_security
 from fastapi_jwt import JwtAuthorizationCredentials
 from datetime import timedelta, datetime
 from decouple import config
-from .utils import authorize_request
+#from .utils import authorize_request
 
 router = APIRouter(
     prefix='/team',
@@ -42,10 +42,10 @@ router = APIRouter(
     summary='Создать команду'
 )
 async def create_team(team_create_data: TeamCreateData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -76,10 +76,10 @@ async def create_team(team_create_data: TeamCreateData, response: Response, cred
     summary='Получить информацию о своей команде'
 )
 async def get_my_team(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -111,10 +111,10 @@ async def get_my_team(response: Response, credentials: JwtAuthorizationCredentia
     summary='Сгенерировать новый код приглашения(доступно только капитану)'
 )
 async def regenerate_code_team(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -142,10 +142,10 @@ async def regenerate_code_team(response: Response, credentials: JwtAuthorization
     summary='Выйти из команды'
 )
 async def leave_team(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -180,10 +180,10 @@ async def leave_team(response: Response, credentials: JwtAuthorizationCredential
     summary='Присоединиться к команде'
 )
 async def join_team(join_team_data: JoinTeamData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -211,10 +211,10 @@ async def join_team(join_team_data: JoinTeamData, response: Response, credential
     summary='Поиск команды'
 )
 async def search_team(search_team_data: SearchTeamData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    authorized = await authorize_request(credentials, session)
-    if not authorized:
-        response.status_code = status.HTTP_403_FORBIDDEN
-        return Message(msg='Пользователь не авторизован')
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
     
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
@@ -229,17 +229,50 @@ async def search_team(search_team_data: SearchTeamData, response: Response, cred
     q = select(Team).filter(column('name').contains(search_team_data.query))
     teams = session.exec(q).all()
     
-    result = list(
-        map(lambda x: TeamData(
-                            id=x.id,
-                            name=x.name,
-                            crc=x.crc,
-                            league=x.league,
-                            captain_id=x.captain_id,
-                            created_at=x.created_at,
-                            secret_code=None
-                        ),
+    result = list(map(lambda x: TeamData(
+                id=x.id,
+                name=x.name,
+                crc=x.crc,
+                league=x.league,
+                captain_id=x.captain_id,
+                created_at=x.created_at,
+                secret_code=None
+            ),
             teams
+        )
+    )
+    return result
+
+@router.post(
+    '/leaderboard',
+    summary='Получить лидерборд рейтингов команд'
+)
+async def user_get_leaderboard(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    #authorized = await authorize_request(credentials, session)
+    #if not authorized:
+    #    response.status_code = status.HTTP_403_FORBIDDEN
+    #    return Message(msg='Пользователь не авторизован')
+    
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = (select(Team).order_by(-Team.crc)
+                    .limit(paged_request_data.limit)
+                    .offset(paged_request_data.offset))
+    result = session.exec(q).all()
+    result = list(map(lambda x: TeamData(
+                id=x.id,
+                name=x.name,
+                crc=x.crc,
+                league=x.league,
+                captain_id=x.captain_id,
+                created_at=x.created_at,
+                secret_code=None
+            ),
+            result
         )
     )
     return result
