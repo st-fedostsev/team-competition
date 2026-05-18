@@ -1,6 +1,3 @@
-
-
-
 import { useNavigate } from 'react-router';
 import { LoginButton } from '../../components/Button/Button';
 import '../../styles/LoginStudentPage.css';

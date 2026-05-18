@@ -1,13 +1,16 @@
 import { createBrowserRouter } from 'react-router';
 
-
 import { ChooseRolePage } from '../pages/ChooseRolePage/ChooseRolePage';
 import { LoginStudentPage } from '../pages/LoginStudentPage/LoginStudentPage';
-import { RegisterAdminPage } from '../pages/admin/admin'
-import { ProfilePage } from '../adminNav/ProfilePage'
-import { ProfileStudentPage } from '../studentNav/ProfileStudentPage'
+import { RegisterAdminPage } from '../pages/admin/admin';
+import { ProfilePage } from '../adminNav/ProfilePage';
+import { ProfileStudentPage } from '../studentNav/ProfileStudentPage';
 import { RegisterStudentPage } from '../pages/RegisterStudentPage/RegisterStudentPage';
 import { LoginStudent } from '../pages/LoginStudent/LoginStudent';
+import { LentaPage } from '../lentaNav/LentaPage';
+import { ChallengesPage } from '../lentaNav/ChallengesPage';
+import { KnowledgePage } from '../lentaNav/KnowledgePage';
+import { CalendarPage } from '../lentaNav/CalendarPage';
 
 export const router = createBrowserRouter([
   {
@@ -34,8 +37,24 @@ export const router = createBrowserRouter([
     path: '/register-student',
     element: <RegisterStudentPage />,
   },
-    {
+  {
     path: '/login-student',
     element: <LoginStudent />,
+  },
+  {
+    path: '/lenta',
+    element: <LentaPage />,
+  },
+  {
+    path: '/challenges',
+    element: <ChallengesPage />,
+  },
+  {
+    path: '/knowledge',
+    element: <KnowledgePage />,
+  },
+  {
+    path: '/calendar',
+    element: <CalendarPage />,
   },
 ]);

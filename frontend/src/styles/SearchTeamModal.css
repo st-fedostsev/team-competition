@@ -1,0 +1,127 @@
+/* Модальное окно поиска команды */
+
+.search-team-modal {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 32px 40px 28px 40px;
+  width: 800px;
+  max-width: 90vw;
+  position: relative;
+  box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Кнопка закрытия (крестик сверху справа — за пределами белого блока) */
+.search-team-close-btn {
+  position: absolute;
+  top: -40px;
+  right: -10px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #666;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.search-team-close-btn:hover {
+  color: #000;
+}
+
+/* Поле поиска */
+.search-team-input-wrapper {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.search-team-input {
+  width: 100%;
+  padding: 14px 44px 14px 20px;
+  border-radius: 50px;
+  border: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  font-size: 16px;
+  color: #333;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.search-team-input::placeholder {
+  color: #aaa;
+}
+
+.search-team-input:focus {
+  border-color: #FFD675;
+  background-color: #fff;
+}
+
+.search-team-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Список команд */
+.search-team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Карточка команды */
+.search-team-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.search-team-card-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Аватар команды */
+.search-team-avatar {
+  width: 44px;
+  height: 44px;
+  background-color: #e8e8e8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.search-team-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-team-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.search-team-members {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+}
+
+/* Кнопка внизу справа */
+.search-team-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}

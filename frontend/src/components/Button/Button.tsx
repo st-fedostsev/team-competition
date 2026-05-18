@@ -1,10 +1,12 @@
 
 import '../../styles/Button.css'
 
-export function NameButton() {
+export function NameButton({ onClick }: ButtonProps) { 
   return (
-    <button className="name-button">
-      Название
+    <button className="button button-midle" onClick={onClick}>
+      <p className='button-text button-text-small'>
+        Найти команду
+      </p>
     </button>
   );
 }
@@ -31,14 +33,15 @@ export function CreateButton({ onClick }: ButtonProps) {
   );
 }
 
-export function SendReportButton() {
+export function SendReportButton({ onClick }: ButtonProps) {
   return (
-    <button className="send-report-button">
-      Отправить отчёт
+    <button className="button button-small drop-shadow" onClick={onClick}>
+      <p className="button-text button-text-small">
+        Отправить отчёт
+      </p>
     </button>
   );
 }
-
 export function SendButton() {
   return (
     <button className="send-button">
@@ -147,18 +150,23 @@ export function CreateSletter({ onClick }: ButtonProps) {
   );
 }
 
-export function PostAnnouncementButton() {
+export function PostAnnouncementButton({ onClick }: ButtonProps) {
   return (
-    <button className="post-announcement-button">
-      Опубликовать объявление+
+    <button className="button button-midle drop-shadow" onClick={onClick}>
+      <p className="button-text button-text-small">
+        Опубликовать объявление +
+      </p>
     </button>
   );
 }
 
-export function ReplyButton() {
+
+export function ReplyButton({ onClick }: ButtonProps) {
   return (
-    <button className="reply-button">
-      Откликнуться
+    <button className="button button-small drop-shadow" onClick={onClick}>
+      <p className="button-text button-text-small">
+        Откликнуться
+      </p>
     </button>
   );
 }

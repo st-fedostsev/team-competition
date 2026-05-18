@@ -1,0 +1,82 @@
+.lenta-container {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f0f0f0;
+  min-height: 100vh;
+}
+
+.lenta-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Строка с фильтрами и кнопкой */
+.lenta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+/* Группа табов-фильтров */
+.lenta-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fff;
+  border-radius: 50px;
+  padding: 4px 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.lenta-tab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  color: #333;
+  padding: 8px 18px;
+  border-radius: 50px;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.lenta-tab.active {
+  background-color: #f0f0f0;
+  font-weight: 500;
+  border: 1px solid #ccc;
+}
+
+.lenta-tab:not(.active):hover {
+  background-color: #f7f7f7;
+}
+
+/* Список карточек */
+.lenta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Карточка мероприятия */
+.lenta-card {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  min-height: 140px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.lenta-card-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.lenta-card-description {
+  font-size: 15px;
+  color: #888;
+  margin: 0;
+}

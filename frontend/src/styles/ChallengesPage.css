@@ -1,0 +1,123 @@
+.challenges-container {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f0f0f0;
+  min-height: 100vh;
+}
+
+.challenges-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.challenges-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.challenges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.challenges-card {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  min-height: 140px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.challenges-card-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.challenges-card-description {
+  font-size: 15px;
+  color: #888;
+  margin: 0;
+  flex: 1;
+}
+
+.challenges-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* ── Модалка отчёта ── */
+
+.report-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 4px;
+  text-align: left;
+}
+
+.report-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.report-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.report-upload-btn:hover {
+  background-color: #e8e8e8;
+}
+
+.report-upload-icon {
+  font-size: 16px;
+}
+
+.report-textarea {
+  width: 100%;
+  height: 120px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.report-textarea:focus {
+  border-color: #FFD675;
+  background-color: #fff;
+}
+
+.report-footer {
+  display: flex;
+  justify-content: flex-end;
+}
