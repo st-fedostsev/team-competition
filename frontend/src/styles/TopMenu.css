@@ -1,14 +1,17 @@
-
+.top-menu-container {
+  width: 100%;
+}
 
 .top-menu {
   display: flex;
-  justify-content: space-between; /* Равномерное распределение элементов */
+  justify-content: space-between;
   align-items: center;
   padding: 10px 154px;
-  background-color: #fff;  /* Белый фон */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень */
-    margin: 0;
-  box-sizing: border-box; /* Чтобы padding не раздувал ширину */
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .tabs {
@@ -20,42 +23,35 @@
   background: transparent;
   margin-right: 49px;
   cursor: pointer;
-  background: none;  /* Убираем фон */
-  color: #000000;  /* Синий цвет текста */
-  text-decoration: none;  /* Убираем подчеркивание */
-  border: none;  /* Убираем обводку */
-  border-radius: 0;  /* Убираем скругления */
+  background: none;
+  color: #000000;
+  text-decoration: none;
+  border: none;
+  border-radius: 0;
+  font-size: 16px;
 }
 
+.tab:last-child {
+  margin-right: 0;
+}
 
 .user-settings {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
 .user-button {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   cursor: pointer;
   background: none;
   border: none;
+  padding: 0;
 }
 
-.user-button i {
-  font-size: 20px;
-  margin-left: 10px;
+.user-button svg {
+  display: block;
 }
-
-/* Иконки уведомлений и пользователя */
-.user-button .fas.fa-bell {
-  font-size: 20px;
-}
-
-.user-button .fas.fa-user-circle {
-  font-size: 25px;
-  border-radius: 50%;
-  padding: 5px;
-  background-color: #f70000;
-}
-

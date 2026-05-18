@@ -13,7 +13,12 @@
     width: 154px; 
     display: inline-flex;     
 } 
- 
+
+.button-midle{
+    border-radius: 15px; 
+    width: 200px; 
+    display: inline-flex;     
+}
  
 .button-text{ 
     font-weight: 500; 
