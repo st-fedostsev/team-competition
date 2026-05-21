@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { StudentButton, AdminButton } from '../../components/Button/Button';
 import '../../styles/ChooseRolePage.css';
 

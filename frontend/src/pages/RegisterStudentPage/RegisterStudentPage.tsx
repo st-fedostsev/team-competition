@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { RegisterButton } from '../../components/Button/Button';
 import '../../styles/AdminPage.css';
 import '../../styles/input.css';
