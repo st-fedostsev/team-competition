@@ -15,32 +15,34 @@ export function useStudentLogin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const setTokens = useAuthStore((state) => state.setTokens);
 
   return useMutation({
-    mutationFn: (credentials: StudentLoginCredentials) => 
+    mutationFn: (credentials: StudentLoginCredentials) =>
       authApi.loginStudent(credentials),
-    
+
     onSuccess: async (response) => {
       const { access_token, refresh_token } = response.data;
-      
+      setTokens(access_token, refresh_token);
+
       // Получаем данные пользователя
       try {
         const userResponse = await authApi.getCurrentUser();
         const user = userResponse.data;
-        
+
         // Сохраняем в store
         setAuth(user, access_token, refresh_token);
-        
+
         // Сохраняем в кеш React Query
         queryClient.setQueryData(authKeys.user, user);
-        
+
         // Редирект на профиль
         navigate('/ProfileStudentPage');
       } catch (error) {
         console.error('Ошибка получения пользователя:', error);
       }
     },
-    
+
     onError: (error: Error) => {
       console.error('Ошибка входа:', error.message);
       alert(error.message || 'Ошибка авторизации');
@@ -51,7 +53,6 @@ export function useStudentLogin() {
 // Хук для получения текущего пользователя
 export function useCurrentUser() {
   const accessToken = useAuthStore((state) => state.accessToken);
-  
   return useQuery({
     queryKey: authKeys.user,
     queryFn: async () => {
@@ -64,7 +65,7 @@ export function useCurrentUser() {
   });
 }
 
-// Хук для выхода
+// Хук для выхода - Сделалать после фикса бага на фронте с появлением иконки профиля
 export function useLogout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -72,13 +73,13 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () => authApi.logout(),
-    
+
     onSuccess: () => {
       clearAuth();
       queryClient.clear();
       navigate('/login-student');
     },
-    
+
     onError: () => {
       // Даже при ошибке очищаем локальные данные
       clearAuth();

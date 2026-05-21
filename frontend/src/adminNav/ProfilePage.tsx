@@ -6,7 +6,7 @@ import '../styles/ProfilePage.css';
 export function ProfilePage() {
   // Хук состояния для управления модальным окном
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  
   // Открытие модального окна
   const openModal = () => {
     setIsModalOpen(true);
