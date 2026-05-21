@@ -1,5 +1,4 @@
-import { createBrowserRouter } from 'react-router';
-
+import { createBrowserRouter } from 'react-router-dom';
 import { ChooseRolePage } from '../pages/ChooseRolePage/ChooseRolePage';
 import { LoginStudentPage } from '../pages/LoginStudentPage/LoginStudentPage';
 import { RegisterAdminPage } from '../pages/admin/admin';

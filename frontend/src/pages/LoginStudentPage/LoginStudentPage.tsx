@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { LoginButton } from '../../components/Button/Button';
 import '../../styles/LoginStudentPage.css';
 import '../../styles/input.css';

@@ -1,5 +1,4 @@
-import { useNavigate } from 'react-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TopMenu } from '../components/TopMenu/TopMenu'; // Импортируем TopMenu
 import { CreateSletter, CancelButton, CreateButton } from '../components/Button/Button';
 import '../styles/ProfilePage.css';
