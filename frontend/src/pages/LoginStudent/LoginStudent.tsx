@@ -64,8 +64,7 @@ export function LoginStudent() {
   return (
     <div className="login-student-page">
       <div className="login-student-card">
-        <h1 className="login-student-title">Вход</h1>
-        
+        <h1 className="login-student-title">Вход</h1>    
         <form onSubmit={handleSubmit}>
           <div className="admin-inputs">
             <input
