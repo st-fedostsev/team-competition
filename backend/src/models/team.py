@@ -1,8 +1,12 @@
-from sqlmodel import Field, Session, SQLModel, Relationship, Column, Enum
+from sqlmodel import Field, Session, SQLModel, Relationship, Column, Enum, select, column
 from sqlalchemy import BigInteger
 import enum
 from datetime import datetime
 import uuid
+from typing import Any
+from .user import User
+from .rescue_request import RescueRequest
+from .vote import Vote
 
 class League(str, enum.Enum):
     novice = 'novice'
@@ -17,3 +21,22 @@ class Team(SQLModel, table=True):
     captain_id: int = Field(foreign_key='user.id')
     created_at: datetime = Field()
     secret_code: uuid.UUID = Field(default_factory=uuid.uuid4)
+
+    def update_crc(self, session: Any):
+        q = select(User).where(User.team_id == self.id)
+        members = session.exec(q).all()
+        members_mean = sum(map(lambda x: x.personal_rating, members)) / len(members)
+
+        member_ids = list(map(lambda x: x.id, members))
+        q = select(Vote).where(column('target_id').in_(member_ids) & (Vote.team_id == self.id))
+        votes = session.exec(q).all()
+        unity = 0
+        if len(votes) > 0:
+            unity = sum(map(lambda x: x.score, votes)) / len(votes)
+
+        q = select(RescueRequest).where(RescueRequest.helper_team_id == self.id)
+        rescue_requests = session.exec(q).all()
+        bonus = sum(map(lambda x: x.bonus_points, rescue_requests))
+        self.crc = members_mean * 0.6 + unity * 0.3 + bonus # * 0.1 <---- UNCOMMENT LATER!!
+        session.add(self)
+        session.commit()

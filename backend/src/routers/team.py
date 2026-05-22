@@ -85,6 +85,8 @@ async def get_my_team(response: Response, credentials: JwtAuthorizationCredentia
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Команда не найдена')
     
+    team.update_crc(session)
+
     result = TeamData(
         id=team.id,
         name=team.name,
