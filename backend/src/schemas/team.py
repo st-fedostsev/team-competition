@@ -21,3 +21,5 @@ class JoinTeamData(BaseModel):
 
 class SearchTeamData(BaseModel):
     query: str
+    limit: int
+    offset: int

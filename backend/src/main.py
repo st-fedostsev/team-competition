@@ -5,7 +5,7 @@ from database.session import init_database, get_session_cm
 from models import *
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from routers import users, team, technical_admin
+from routers import users, team, technical_admin, events, knowledge_posts
 from pwdlib import PasswordHash
 from fastapi_jwt import JwtAuthorizationCredentials
 from auth.auth_handler import access_security, refresh_security
@@ -23,6 +23,8 @@ app.add_middleware(
 )
 app.include_router(users.router)
 app.include_router(team.router)
+app.include_router(events.router)
+app.include_router(knowledge_posts.router)
 app.include_router(technical_admin.router)
 
 app.add_middleware(BanMiddleware)

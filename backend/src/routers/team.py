@@ -221,12 +221,8 @@ async def search_team(search_team_data: SearchTeamData, response: Response, cred
     if not user:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
-    
-    if len(search_team_data.query) < 3:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        return Message(msg='Длина запроса должна быть больше, чем 3 символа')
 
-    q = select(Team).filter(column('name').contains(search_team_data.query))
+    q = select(Team).filter(column('name').icontains(search_team_data.query)).limit(search_team_data.limit).offset(search_team_data.offset)
     teams = session.exec(q).all()
     
     result = list(map(lambda x: TeamData(

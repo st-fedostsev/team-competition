@@ -1,7 +1,7 @@
 from .achievement import Achievement
 from .challenge_report import ChallengeReport
 from .challenge import Challenge
-from .event import Event
+from .event import Event, EventFormat
 from .knowledge_post import KnowledgePost, KnowledgePostType
 from .moderation_status import ModerationStatus
 from .rescue_request import RescueRequest, RequestStatus
@@ -14,6 +14,7 @@ __all__ = [
     'ChallengeReport',
     'Challenge',
     'Event',
+    'EventFormat',
     'KnowledgePost', 
     'KnowledgePostType',
     'ModerationStatus',
