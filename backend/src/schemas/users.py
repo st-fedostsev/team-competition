@@ -43,3 +43,9 @@ class UserEditData(BaseModel):
     last_name: Optional[str]
     first_name: Optional[str]
     patronymic: Optional[str]
+
+class AchievementData(BaseModel):
+    user_id: int
+    title: str
+    description: str
+    earned_at: datetime
