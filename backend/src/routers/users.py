@@ -128,7 +128,8 @@ async def register_user(register_data: RegisterData, response: Response, credent
             first_name=register_data.first_name,
             patronymic=register_data.patronymic,
             role=register_data.user_role,
-            created_at=datetime.now()
+            created_at=datetime.now(),
+            personal_rating=register_data.personal_rating
         )
 
     session.add(user)

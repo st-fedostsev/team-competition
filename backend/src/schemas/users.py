@@ -11,6 +11,7 @@ class RegisterData(BaseModel):
     user_role: UserRole
     login: Optional[str] = None
     password: Optional[str] = None
+    personal_rating: float = 0
 
 class LoginAdminData(BaseModel):
     login: str
