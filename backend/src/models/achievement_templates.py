@@ -1,5 +1,9 @@
-from .achievement import Achievement
+from pydantic import BaseModel
+
+class AchievementTemplate(BaseModel):
+    title: str
+    description: str
 
 ACHIEVEMENTS = {
-    'my_first_team': lambda session, user_id: Achievement.give(session, user_id, 'Моя первая команда', 'Создайте или вступите в команду')
+    'my_first_team': AchievementTemplate(title='Моя первая команда', description='Создайте или вступите в команду')
 }

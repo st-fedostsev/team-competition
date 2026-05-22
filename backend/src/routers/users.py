@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select
 from database.session import get_session
 from models import User, UserRole, Achievement
+from models.achievement_templates import ACHIEVEMENTS
 from pwdlib import PasswordHash
 from schemas.users import *
 from schemas.common import *
@@ -241,3 +242,16 @@ async def my_achievements(response: Response, credentials: JwtAuthorizationCrede
     ))
 
     return result
+
+@router.get(
+    '/all_achievements',
+    summary='Получить список всех достижений'
+)
+async def all_achievements(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    return ACHIEVEMENTS

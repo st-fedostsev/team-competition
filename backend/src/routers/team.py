@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Team
+from models import User, UserRole, Team, Achievement
 from models.achievement_templates import ACHIEVEMENTS
 from schemas.team import *
 from schemas.common import *
@@ -64,7 +64,7 @@ async def create_team(team_create_data: TeamCreateData, response: Response, cred
     session.add(user)
     session.commit()
 
-    ACHIEVEMENTS['my_first_team'](session, user.id)
+    Achievement.give(session, user.id, ACHIEVEMENT_TEMPLATES['my_first_team'])
 
     return Message(msg='Команда создана')
 
@@ -182,7 +182,7 @@ async def join_team(join_team_data: JoinTeamData, response: Response, credential
     session.add(user)
     session.commit()
 
-    ACHIEVEMENTS['my_first_team'](session, user.id)
+    Achievement.give(session, user.id, ACHIEVEMENT_TEMPLATES['my_first_team'])
 
     return Message(msg='Вы успешно присоединились к команде')
 
