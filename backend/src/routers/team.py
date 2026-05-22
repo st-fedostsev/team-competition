@@ -64,7 +64,7 @@ async def create_team(team_create_data: TeamCreateData, response: Response, cred
     session.add(user)
     session.commit()
 
-    Achievement.give(session, user.id, ACHIEVEMENT_TEMPLATES['my_first_team'])
+    Achievement.give(session, user.id, ACHIEVEMENTS['my_first_team'])
 
     return Message(msg='Команда создана')
 
@@ -182,7 +182,7 @@ async def join_team(join_team_data: JoinTeamData, response: Response, credential
     session.add(user)
     session.commit()
 
-    Achievement.give(session, user.id, ACHIEVEMENT_TEMPLATES['my_first_team'])
+    Achievement.give(session, user.id, ACHIEVEMENTS['my_first_team'])
 
     return Message(msg='Вы успешно присоединились к команде')
 
