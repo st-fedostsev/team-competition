@@ -80,8 +80,9 @@ export function ProfileStudentPage() {
           </p>
           
           <div className="name-button">
-           Команда: <NameButton onClick={() => setIsSearchTeamOpen(true)} />
-        </div>
+            <span className="team-label">Команда:</span>
+            <NameButton onClick={() => setIsSearchTeamOpen(true)} />
+          </div>
         </div>
       </div>
 

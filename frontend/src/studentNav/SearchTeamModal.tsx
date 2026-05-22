@@ -1,39 +1,67 @@
-import React, { useState } from 'react';
+// pages/TeamPage/SearchTeamModal.tsx
+import React, { useState, useEffect } from 'react';
+import { useSearchTeam, useJoinTeam } from '../hooks/useTeam';
 import { JoinButton, CreatePlusButton } from '../components/Button/Button';
 import '../styles/SearchTeamModal.css';
 
-interface Team {
-  id: number;
-  name: string;
-  membersCount: number;
-}
-
 interface SearchTeamModalProps {
   closeModal: () => void;
+  onSuccess?: () => void;
+  onOpenCreateModal?: () => void;
 }
 
-const mockTeams: Team[] = [
-  { id: 1, name: 'Название', membersCount: 3 },
-  { id: 2, name: 'Название', membersCount: 3 },
-  { id: 3, name: 'Название', membersCount: 3 },
-];
-
-export function SearchTeamModal({ closeModal }: SearchTeamModalProps) {
+export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: SearchTeamModalProps) {
   const [searchValue, setSearchValue] = useState('');
+  const { mutate: searchTeam, data: searchResponse, isPending: isSearching } = useSearchTeam();
+  const { mutate: joinTeam, isPending: isJoining } = useJoinTeam();
 
-  const filteredTeams = mockTeams.filter((team) =>
-    team.name.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  // Загружаем все команды при открытии модалки
+  useEffect(() => {
+    searchTeam({ query: '' });
+  }, [searchTeam]);
+
+  // Поиск при изменении значения (с debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchTeam({ query: searchValue });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, searchTeam]);
+
+  const handleJoinTeam = (inviteCode: string) => {
+    joinTeam(
+      { invite_code: inviteCode },
+      {
+        onSuccess: () => {
+          onSuccess?.();
+          closeModal();
+        },
+      }
+    );
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      searchTeam({ query: searchValue });
+    }
+  };
+
+  const handleCreateTeam = () => {
+    closeModal();
+    onOpenCreateModal?.();
+  };
+
+  // Достаём массив команд из ответа API
+  const teams = searchResponse?.data || [];
 
   return (
     <div className="modal-overlay" onClick={closeModal}>
       <div className="search-team-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Кнопка закрытия */}
         <button className="search-team-close-btn" onClick={closeModal}>
           ⊗
         </button>
 
-        {/* Поле поиска */}
         <div className="search-team-input-wrapper">
           <input
             type="text"
@@ -41,6 +69,8 @@ export function SearchTeamModal({ closeModal }: SearchTeamModalProps) {
             className="search-team-input"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isSearching}
           />
           <span className="search-team-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -50,12 +80,20 @@ export function SearchTeamModal({ closeModal }: SearchTeamModalProps) {
           </span>
         </div>
 
-        {/* Список команд */}
         <div className="search-team-list">
-          {filteredTeams.map((team) => (
+          {isSearching && (
+            <div className="search-team-loading">Поиск команд...</div>
+          )}
+          
+          {!isSearching && teams.length === 0 && (
+            <div className="search-team-empty">
+              <p>Команды не найдены</p>
+            </div>
+          )}
+
+          {teams.map((team) => (
             <div key={team.id} className="search-team-card">
               <div className="search-team-card-left">
-                {/* Иконка аватара */}
                 <div className="search-team-avatar">
                   <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
                     <circle cx="18" cy="14" r="6" stroke="#999" strokeWidth="1.5" />
@@ -69,17 +107,20 @@ export function SearchTeamModal({ closeModal }: SearchTeamModalProps) {
                 </div>
                 <div className="search-team-info">
                   <p className="search-team-name">{team.name}</p>
-                  <p className="search-team-members">{team.membersCount} участника</p>
+                  <p className="search-team-members">{team.members?.length || 0} участника</p>
                 </div>
               </div>
-
-              {/* Кнопка Вступить */}
-              <JoinButton />
+              {/* Ниже добавить обработчики после добавления с дизайн-макетов */}
+               {/* Добавить onClick={() => handleJoinTeam(team.invite_code)}   disabled={isJoining} */}
+              <JoinButton 
+                
+               
+              />
             </div>
           ))}
         </div>
-
-        {/* Кнопка Создать */}
+        
+         {/* Добавить onClick={handleCreateTeam}  */}
         <div className="search-team-footer">
           <CreatePlusButton />
         </div>

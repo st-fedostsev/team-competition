@@ -1,5 +1,12 @@
 // types/auth.types.ts
 
+export enum UserRole {
+  STUDENT = 'student',
+  CONTENT_MANAGER = 'content_manager',
+  GAME_ADMIN = 'game_admin',
+  TECH_ADMIN = 'tech_admin',
+}
+
 // Креденшелы для входа студента
 export interface StudentLoginCredentials {
   last_name: string;
@@ -7,20 +14,32 @@ export interface StudentLoginCredentials {
   student_id: number;
 }
 
-// Ответ от сервера при успешном входе (как в вашем API)
+// Ответ от сервера при успешном входе
 export interface AuthResponse {
-  access_token: string;  // ← обратите внимание: snake_case
-  refresh_token: string; // ← как в ответе сервера
+  access_token: string;
+  refresh_token: string;
 }
 
-// Пользователь (после получения данных)
+// ✅ Исправленный тип User под реальный ответ сервера
 export interface User {
-  id: string;
+  id: number; 
+  student_id: number;
   last_name: string;
   first_name: string;
-  student_id: number;
+  patronymic: string | null;
   role: 'student' | 'content_manager' | 'game_admin' | 'tech_admin';
-  email?: string;
-  isActive: boolean;
-  createdAt: string;
+  team_id: number | null;             
+  is_captain: boolean;    
+  personal_rating: number;
+  is_blocked: boolean;    
+  login: string | null;
+  created_at: string;            
+}
+
+// Для Zustand store
+export interface AuthState {
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
 }

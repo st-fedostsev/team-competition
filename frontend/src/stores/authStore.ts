@@ -1,18 +1,8 @@
 // stores/authStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { User } from '../types/auth.types';
 
-// Типы для пользователя (можно вынести в отдельный файл)
-export interface User {
-  id: string;
-  last_name: string;
-  first_name: string;
-  student_id: number;
-  role: 'student' | 'content_manager' | 'game_admin' | 'tech_admin';
-  email?: string;
-  isActive: boolean;
-  createdAt: string;
-}
 
 interface AuthState {
   user: User | null;
