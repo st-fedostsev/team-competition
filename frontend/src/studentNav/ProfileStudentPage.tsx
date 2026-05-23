@@ -1,17 +1,71 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TopMenu } from '../components/TopMenu/TopMenu';
 import { NavStudent } from '../components/NavStudent/NavStudent';
 import { NameButton } from '../components/Button/Button';
 import { SearchTeamModal } from './SearchTeamModal';
+import { useCurrentUser } from '../hooks/useAuth';
 import '../styles/ProfilePage.css';
 
 export function ProfileStudentPage() {
+  const navigate = useNavigate();
   const [isSearchTeamOpen, setIsSearchTeamOpen] = useState(false);
+  
+  // Получаем данные пользователя из React Query (с кешированием)
+  const { data: user, isLoading, isError, error, refetch } = useCurrentUser();
+
+
+   // Хук для выхода
+   // Временно закомментировано, пока нет кнопки выхода
+  //   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  //  Обработчик для выхода
+  //   const handleLogout = () => {
+  //   if (confirm('Вы уверены, что хотите выйти?')) {
+  //     logout();
+  //   }
+  // };
+
+
+  // Показываем загрузку
+  if (isLoading) {
+    return (
+      <div className="profile-container">
+        <TopMenu />
+        <div className="profile-card">
+          <div className="loading">Загрузка профиля...</div>
+        </div>
+        <NavStudent />
+      </div>
+    );
+  }
+
+  // Показываем ошибку
+  if (isError) {
+    return (
+      <div className="profile-container">
+        <TopMenu />
+        <div className="profile-card">
+          <div className="error">
+            <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
+            <button onClick={() => refetch()}>Повторить</button>
+          </div>
+        </div>
+        <NavStudent />
+      </div>
+    );
+  }
+
+  // Если нет пользователя
+  if (!user) {
+    navigate('/login-student', { replace: true });
+    return null;
+  }
 
   return (
     <div className="profile-container">
       <TopMenu />
 
+      {/* Карточка профиля с реальными данными */}
       <div className="profile-card">
         <div className="profile-avatar">
           <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
@@ -21,20 +75,19 @@ export function ProfileStudentPage() {
           </svg>
         </div>
         <div className="profile-info">
-          <p className="profile-name">Фамилия Имя Отчество</p>
-          <p className="profile-role">Студенческий билет № 00000000</p>
-          <div className="profile-team-row">
-            <span className="profile-team-label">Команда:</span>
+          {/* данные из API */}
+          <p className="profile-name">
+            {user.last_name} {user.first_name}
+          </p>
+          <p className="profile-role">
+            Студенческий билет № {user.student_id}
+          </p>
+          
+          <div className="name-button">
+            <span className="team-label">Команда:</span>
             <NameButton onClick={() => setIsSearchTeamOpen(true)} />
           </div>
         </div>
-        {/* Карандаш — просто декоративный, без действия */}
-        <button className="profile-edit-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-        </button>
       </div>
 
       <NavStudent />

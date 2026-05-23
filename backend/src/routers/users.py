@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select
 from database.session import get_session
-from models import User, UserRole
+from models import User, UserRole, Achievement
+from models.achievement_templates import ACHIEVEMENTS
 from pwdlib import PasswordHash
 from schemas.users import *
 from schemas.common import *
@@ -105,11 +106,6 @@ async def refresh_token(credentials: JwtAuthorizationCredentials = Security(refr
     summary='Регистрация пользователя(вызывается администратором)'
 )
 async def register_user(register_data: RegisterData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    #authorized = await authorize_request(credentials, session)
-    #if not authorized:
-    #    response.status_code = status.HTTP_403_FORBIDDEN
-    #    return Message(msg='Пользователь не авторизован')
-
     if credentials['role'] != UserRole.technical_admin:
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Недостаточно прав для выполнения запроса')
@@ -132,7 +128,8 @@ async def register_user(register_data: RegisterData, response: Response, credent
             first_name=register_data.first_name,
             patronymic=register_data.patronymic,
             role=register_data.user_role,
-            created_at=datetime.now()
+            created_at=datetime.now(),
+            personal_rating=register_data.personal_rating
         )
 
     session.add(user)
@@ -145,11 +142,6 @@ async def register_user(register_data: RegisterData, response: Response, credent
     summary='Получить данные своего профиля'
 )
 async def user_me(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    #authorized = await authorize_request(credentials, session)
-    #if not authorized:
-    #    response.status_code = status.HTTP_403_FORBIDDEN
-    #    return Message(msg='Пользователь не авторизован')
-    
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
     if not user:
@@ -176,11 +168,6 @@ async def user_me(response: Response, credentials: JwtAuthorizationCredentials =
     summary='Редактировать профиль'
 )
 async def user_edit(user_edit_data: UserEditData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    #authorized = await authorize_request(credentials, session)
-    #if not authorized:
-    #    response.status_code = status.HTTP_403_FORBIDDEN
-    #    return Message(msg='Пользователь не авторизован')
-    
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
     if not user:
@@ -203,11 +190,6 @@ async def user_edit(user_edit_data: UserEditData, response: Response, credential
     summary='Получить лидерборд рейтингов пользователей'
 )
 async def user_get_leaderboard(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    #authorized = await authorize_request(credentials, session)
-    #if not authorized:
-    #    response.status_code = status.HTTP_403_FORBIDDEN
-    #    return Message(msg='Пользователь не авторизован')
-    
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
     if not user:
@@ -235,3 +217,42 @@ async def user_get_leaderboard(paged_request_data: PagedRequestData, response: R
         )
     )
     return result
+
+@router.get(
+    '/my_achievements',
+    summary='Получить список своих достижений'
+)
+async def my_achievements(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Achievement).where(Achievement.user_id == user.id)
+    achievements = session.exec(q).all()
+
+    result = list(map(lambda x: AchievementData(
+            id=x.id,
+            user_id=x.user_id,
+            title=x.title,
+            description=x.description,
+            earned_at=x.earned_at
+        ), 
+        achievements
+    ))
+
+    return result
+
+@router.get(
+    '/all_achievements',
+    summary='Получить список всех достижений'
+)
+async def all_achievements(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    return ACHIEVEMENTS

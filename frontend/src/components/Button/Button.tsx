@@ -1,12 +1,57 @@
-
+import { useNavigate } from 'react-router-dom';
+import { useMyTeam } from '../../hooks/useTeam';
+import { useCurrentUser } from '../../hooks/useAuth';
 import '../../styles/Button.css'
 
-export function NameButton({ onClick }: ButtonProps) { 
+interface NameButtonProps {
+  onClick?: () => void;
+}
+
+export function NameButton({ onClick }: NameButtonProps) {
+  const navigate = useNavigate();
+  const { data: user, isLoading: isUserLoading } = useCurrentUser();
+   const { data: team, isLoading: isTeamLoading } = useMyTeam();
+
+  // Ждем загрузку пользователя
+  if (isUserLoading) {
+    return (
+      <button className="button button-midle" disabled>
+        <p className="button-text button-text-small">Загрузка...</p>
+      </button>
+    );
+  }
+
+  // Нет пользователя - не показываем кнопку
+  if (!user) {
+    return null;
+  }
+
+  // Если у пользователя есть team_id - запрашиваем команду
+  const hasTeam = user.team_id !== null && user.team_id !== undefined;
+  
+
+  // Если есть team_id, но команда еще грузится
+  if (hasTeam && isTeamLoading) {
+    return (
+      <button className="button button-midle" disabled>
+        <p className="button-text button-text-small">Загрузка...</p>
+      </button>
+    );
+  }
+
+  // Если есть команда - показываем название
+  if (hasTeam && team) {
+    return (
+      <button className="button button-midle" onClick={() => navigate('/team')}>
+        <p className="button-text button-text-small">{team.name}</p>
+      </button>
+    );
+  }
+
+  // Нет команды (team_id === null) - показываем "Найти команду"
   return (
     <button className="button button-midle" onClick={onClick}>
-      <p className='button-text button-text-small'>
-        Найти команду
-      </p>
+      <p className="button-text button-text-small">Найти команду</p>
     </button>
   );
 }
@@ -176,9 +221,14 @@ export function ReplyButton({ onClick }: ButtonProps) {
   );
 }
 
-export function PublishButton() {
+interface PublishButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+export function PublishButton({ onClick, disabled }: PublishButtonProps) {
   return (
-    <button className="publish-button">
+    <button className="publish-button" onClick={onClick} disabled={disabled}>
       Опубликовать
     </button>
   );

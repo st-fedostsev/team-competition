@@ -10,6 +10,8 @@ class KnowledgePostType(str, enum.Enum):
 
 class KnowledgePost(SQLModel, table=True):
     id: int = Field(primary_key=True)
+    team_id: int = Field()
+    type: KnowledgePostType = Field(default=KnowledgePostType.request, sa_column=Column(Enum(KnowledgePostType)))
     title: str = Field()
     description: str | None = None
     tags: str | None = None

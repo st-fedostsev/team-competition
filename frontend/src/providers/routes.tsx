@@ -12,7 +12,7 @@ import { KnowledgePage } from '../lentaNav/KnowledgePage';
 import { CalendarPage } from '../lentaNav/CalendarPage';
 import { TeamProfilePage } from '../studentNav/TeamProfilePage';
 import { ProfileTechAdmin } from '../pages/TechAdmin/ProfileTechAdmin';
-
+import { ProtectedRoute } from './ProtectedRoute';
 
 export const router = createBrowserRouter([
   {
@@ -33,7 +33,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/ProfileStudentPage',
-    element: <ProfileStudentPage />,
+    element: (
+      <ProtectedRoute>
+          <ProfileStudentPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/register-student',
@@ -45,19 +49,35 @@ export const router = createBrowserRouter([
   },
   {
     path: '/lenta',
-    element: <LentaPage />,
+    element: (
+      <ProtectedRoute>
+           <LentaPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/challenges',
-    element: <ChallengesPage />,
+    element: (
+      <ProtectedRoute>
+           <ChallengesPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/knowledge',
-    element: <KnowledgePage />,
+    element: (
+      <ProtectedRoute>
+           <KnowledgePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/calendar',
-    element: <CalendarPage />,
+    element:(
+      <ProtectedRoute>
+          <CalendarPage />
+      </ProtectedRoute>
+    ),
   },
   { 
     path: '/team-profile', 

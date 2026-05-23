@@ -11,6 +11,7 @@ class RegisterData(BaseModel):
     user_role: UserRole
     login: Optional[str] = None
     password: Optional[str] = None
+    personal_rating: float = 0
 
 class LoginAdminData(BaseModel):
     login: str
@@ -43,3 +44,9 @@ class UserEditData(BaseModel):
     last_name: Optional[str]
     first_name: Optional[str]
     patronymic: Optional[str]
+
+class AchievementData(BaseModel):
+    user_id: int
+    title: str
+    description: str
+    earned_at: datetime
