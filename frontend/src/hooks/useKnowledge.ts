@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { knowledgeApi } from '../api/knowledge';
-import type { CreateKnowledgePostData } from '../types/knowledge.types'; //
+import type { CreateKnowledgePostData } from '../types/knowledge.types';
 import type { ApiErrorData } from '../types/error.types';
 import { AxiosError } from 'axios';
 
@@ -23,10 +23,24 @@ export function useKnowledgePosts() {
         offset: pageParam,
         limit: 5,
       });
+      
+      // ✅ API возвращает массив, а не объект с полем posts
+      const data = response.data;
+      
+      // Если вернулся массив
+      if (Array.isArray(data)) {
+        return {
+          posts: data,
+          hasMore: data.length === 5,
+          total: data.length,
+        };
+      }
+      
+      // Если вернулся объект с полями
       return {
-        posts: response.data.posts,
-        hasMore: response.data.has_more,
-        total: response.data.total,
+        posts: data.posts || [],
+        hasMore: data.has_more || false,
+        total: data.total || 0,
       };
     },
     initialPageParam: 0,
@@ -58,7 +72,11 @@ export function useCreateKnowledgePost() {
       // Пробуем разные варианты получения сообщения
       if (error.response?.data?.msg) {
         msg = error.response.data.msg;
-      } 
+      } else if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (error.response?.data?.detail) {
+        msg = error.response.data.detail;
+      }
       
       console.error('Сообщение для пользователя:', msg);
       alert(msg);

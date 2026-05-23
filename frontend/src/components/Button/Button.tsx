@@ -42,7 +42,7 @@ export function NameButton({ onClick }: NameButtonProps) {
   // Если есть команда - показываем название
   if (hasTeam && team) {
     return (
-      <button className="button button-midle" onClick={() => navigate('/team')}>
+      <button className="button button-midle" onClick={() => navigate('/team-profile')}>
         <p className="button-text button-text-small">{team.name}</p>
       </button>
     );
