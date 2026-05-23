@@ -10,6 +10,9 @@ import { LentaPage } from '../lentaNav/LentaPage';
 import { ChallengesPage } from '../lentaNav/ChallengesPage';
 import { KnowledgePage } from '../lentaNav/KnowledgePage';
 import { CalendarPage } from '../lentaNav/CalendarPage';
+import { TeamProfilePage } from '../studentNav/TeamProfilePage';
+import { ProfileTechAdmin } from '../pages/TechAdmin/ProfileTechAdmin';
+
 
 export const router = createBrowserRouter([
   {
@@ -55,5 +58,13 @@ export const router = createBrowserRouter([
   {
     path: '/calendar',
     element: <CalendarPage />,
+  },
+  { 
+    path: '/team-profile', 
+    element: <TeamProfilePage /> 
+  },
+  { 
+    path: '/ProfileTechAdmin', 
+    element: <ProfileTechAdmin /> 
   },
 ]);

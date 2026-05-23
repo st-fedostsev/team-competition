@@ -26,7 +26,7 @@ export function LoginStudentPage() {
         </div>
 
         <div className="login-student-buttons">
-            <LoginButton onClick={() => navigate('/ProfilePage')} />
+            <LoginButton onClick={() => navigate('/ProfileTechAdmin')} />
         </div>
 
         <p className="login-link">
