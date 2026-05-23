@@ -17,13 +17,13 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
 
   // Загружаем все команды при открытии модалки
   useEffect(() => {
-    searchTeam({ query: '' });
+    searchTeam({ query: '', limit: 20, offset: 0 });
   }, [searchTeam]);
 
   // Поиск при изменении значения (с debounce)
   useEffect(() => {
     const timer = setTimeout(() => {
-      searchTeam({ query: searchValue });
+      searchTeam({ query: searchValue, limit: 20, offset: 0  });
     }, 500);
 
     return () => clearTimeout(timer);
@@ -43,7 +43,7 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      searchTeam({ query: searchValue });
+      searchTeam({ query: searchValue, limit: 20, offset: 0 });
     }
   };
 

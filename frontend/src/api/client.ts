@@ -1,5 +1,6 @@
 // api/client.ts
 import { useAuthStore } from '../stores/authStore';
+import { ApiError } from '../types/error.types';
 
 const BASE_URL = '';
 
@@ -37,7 +38,7 @@ class ApiClient {
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
     const { requiresAuth = true, headers: customHeaders = {} } = config;
-
+    
     const accessToken = requiresAuth
       ? useAuthStore.getState().accessToken
       : null;
@@ -73,12 +74,16 @@ class ApiClient {
         window.location.href = '/login-student';
       }
 
-      const errorResponse = data as { message?: string; detail?: string };
-      throw new Error(
-        errorResponse.message ||
-          errorResponse.detail ||
-          `Ошибка ${response.status}`,
-      );
+      const errorData = data as { message?: string; msg?: string; detail?: string };
+      const errorMessage = errorData.message || errorData.msg || errorData.detail || `Ошибка ${response.status}`;
+      
+      
+      const error = new ApiError(errorMessage, {
+        data: errorData,
+        status: response.status,
+      });
+      
+      throw error;
     }
 
     return { data, status: response.status };

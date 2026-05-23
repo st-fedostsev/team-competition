@@ -31,6 +31,8 @@ export interface JoinTeamData {
 
 export interface SearchTeamData {
   query: string;
+  limit: number;
+  offset: number;
 }
 
 export interface LeaderboardEntry {

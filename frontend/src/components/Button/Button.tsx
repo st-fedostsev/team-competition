@@ -169,9 +169,9 @@ export function ApplicationSentButton() {
   );
 }
 
-export function CreateEventButton() {
+export function CreateEventButton({ onClick }: ButtonProps) {
   return (
-    <button className="create-event-button">
+    <button className="create-event-button" onClick={onClick}>
       Создать мероприятие+
     </button>
   );
@@ -216,9 +216,14 @@ export function ReplyButton({ onClick }: ButtonProps) {
   );
 }
 
-export function PublishButton() {
+interface PublishButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+export function PublishButton({ onClick, disabled }: PublishButtonProps) {
   return (
-    <button className="publish-button">
+    <button className="publish-button" onClick={onClick} disabled={disabled}>
       Опубликовать
     </button>
   );
