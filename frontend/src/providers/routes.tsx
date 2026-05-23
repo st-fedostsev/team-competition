@@ -1,17 +1,15 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { ChooseRolePage } from '../pages/ChooseRolePage/ChooseRolePage';
-import { LoginStudentPage } from '../pages/LoginStudentPage/LoginStudentPage';
-import { RegisterAdminPage } from '../pages/admin/admin';
-import { ProfilePage } from '../adminNav/ProfilePage';
-import { ProfileStudentPage } from '../studentNav/ProfileStudentPage';
-import { RegisterStudentPage } from '../pages/RegisterStudentPage/RegisterStudentPage';
-import { LoginStudent } from '../pages/LoginStudent/LoginStudent';
-import { LentaPage } from '../lentaNav/LentaPage';
-import { ChallengesPage } from '../lentaNav/ChallengesPage';
-import { KnowledgePage } from '../lentaNav/KnowledgePage';
-import { CalendarPage } from '../lentaNav/CalendarPage';
-import { TeamProfilePage } from '../studentNav/TeamProfilePage';
-import { ProfileTechAdmin } from '../pages/TechAdmin/ProfileTechAdmin';
+import { ChooseRolePage } from '../pages/Login/ChooseRolePage';
+import { LoginAdminPage } from '../pages/Login/LoginAdminPage';
+// import { ProfilePage } from '../pages/Content Manager/Profile/ProfileContentManagerPage';
+import { ProfileStudentPage } from '../pages/Student/Profile/ProfileStudentPage';
+import { LoginStudent } from '../pages/Login/LoginStudentPage';
+import { LentaPage } from '../pages/Student/HeaderNav/Event feed/EventsPage';
+import { ChallengesPage } from '../pages/Student/HeaderNav/Event feed/ChallengesPage';
+import { KnowledgePage } from '../pages/Student/HeaderNav/KnowledgePage';
+import { CalendarPage } from '../pages/Student/HeaderNav/CalendarPage';
+import { TeamProfilePage } from '../pages/Student/Profile/ProfileTeam/TeamProfilePage';
+import { ProfileTechAdmin } from '../pages/Tech Admin/Profile/ProfileTechAdminPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -21,16 +19,12 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login-admin',
-    element: <LoginStudentPage />,
+    element: <LoginAdminPage />,
   },
-  {
-    path: '/register-admin',
-    element: <RegisterAdminPage />,
-  },
-  {
-    path: '/ProfilePage',
-    element: <ProfilePage />,
-  },
+  // {
+  //   path: '/ProfilePage',
+  //   element: <ProfilePage />,
+  // },
   {
     path: '/ProfileStudentPage',
     element: (
@@ -38,10 +32,6 @@ export const router = createBrowserRouter([
           <ProfileStudentPage />
       </ProtectedRoute>
     ),
-  },
-  {
-    path: '/register-student',
-    element: <RegisterStudentPage />,
   },
   {
     path: '/login-student',

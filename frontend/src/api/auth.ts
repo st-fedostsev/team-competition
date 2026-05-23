@@ -11,6 +11,12 @@ export const authApi = {
   loginStudent: (credentials: StudentLoginCredentials) =>
     apiClient.post<AuthResponse>('/api/users/login', credentials),
 
+  // Вход администратора (не требует авторизации)
+  loginAdmin: (credentials: { login: string; password: string }) =>
+    apiClient.post<AuthResponse>('/api/users/admin_login', credentials, {
+      requiresAuth: false,
+    }),
+
   // Получение информации о пользователе (требует авторизации - токен добавится автоматически)
   getCurrentUser: () => apiClient.get<User>('/api/users/me'),
 

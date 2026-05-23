@@ -50,6 +50,54 @@ export function useStudentLogin() {
   });
 }
 
+// Хук для входа администратора
+export function useAdminLogin() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const setTokens = useAuthStore((state) => state.setTokens);
+
+  return useMutation({
+    mutationFn: (credentials: { login: string; password: string }) =>
+      authApi.loginAdmin(credentials),
+
+    onSuccess: async (response) => {
+      const { access_token, refresh_token } = response.data;
+      setTokens(access_token, refresh_token);
+
+      try {
+        const userResponse = await authApi.getCurrentUser();
+        const user = userResponse.data;
+
+        setAuth(user, access_token, refresh_token);
+        queryClient.setQueryData(authKeys.user, user);
+
+        // Редирект в зависимости от роли
+        switch (user.role) {
+          case 'content_manager':
+            navigate('/ProfilePage');
+            break;
+          case 'game_admin':
+            navigate('/ProfilePage');
+            break;
+          case 'technical_admin':
+            navigate('/ProfilePage');
+            break;
+          default:
+            navigate('/ProfilePage');
+        }
+      } catch (error) {
+        console.error('Ошибка получения пользователя:', error);
+      }
+    },
+
+    onError: (error: Error) => {
+      console.error('Ошибка входа:', error.message);
+      alert(error.message || 'Ошибка авторизации');
+    },
+  });
+}
+
 // Хук для получения текущего пользователя
 export function useCurrentUser() {
   const accessToken = useAuthStore((state) => state.accessToken);
