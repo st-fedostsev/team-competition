@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { useAchievementsWithStatus } from '../../hooks/useAchievements';
+import { useUserRatingPosition } from '../../hooks/useRating';
+import { useCurrentUser } from '../../hooks/useAuth';
 import '../../styles/NavStudent.css';
 
 export function NavStudent() {
   const [activeTab, setActiveTab] = useState<'achievements' | 'rating'>('achievements');
   
-  // Получаем достижения со статусом
+  // Получаем достижения
   const { data: achievements, isLoading: achievementsLoading } = useAchievementsWithStatus();
+  
+  // Получаем рейтинг и позицию пользователя
+  const { position, total, rating, isLoading: ratingLoading } = useUserRatingPosition();
+  const { data: user } = useCurrentUser();
 
-  // Разделяем на полученные и неполученные
   const receivedAchievements = achievements?.filter(a => a.is_received) || [];
   const notReceivedAchievements = achievements?.filter(a => !a.is_received) || [];
 
@@ -91,22 +96,36 @@ export function NavStudent() {
       )}
 
       {/* Рейтинг */}
-      {activeTab === 'rating' && (
-        <div className="raiting-card">
-          <div className="reiting-position">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFD675" strokeWidth="2" strokeLinecap="round" style={{marginRight: 6, verticalAlign: 'middle'}}>
-              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-            </svg>
-            Позиция
-            <p className="reiting-value">Скоро будет доступно</p>
-          </div>
-          <div className="reiting-divider" />
-          <div className="reiting-number">
-            <span className="reiting-label">Общий балл</span>
-            <p className="reiting-value">—</p>
-          </div>
-        </div>
+{activeTab === 'rating' && (
+  <div className="raiting-card">
+    <div className="reiting-position">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFD675" strokeWidth="2" strokeLinecap="round" style={{marginRight: 6, verticalAlign: 'middle'}}>
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Позиция
+      {ratingLoading ? (
+        <p className="reiting-value">Загрузка...</p>
+      ) : position ? (
+        <p className="reiting-value">{position}/{total}</p>
+      ) : (
+        <p className="reiting-value">—</p>
       )}
+    </div>
+    <div className="reiting-divider" />
+    <div className="reiting-number">
+      <span className="reiting-label">Средний балл</span>
+      {ratingLoading ? (
+        <p className="reiting-value">Загрузка...</p>
+      ) : (rating || user?.personal_rating) ? (
+        <p className="reiting-value">{rating || user?.personal_rating}</p>
+      ) : (
+        <p className="reiting-value">—</p>
+      )}
+    </div>
+  </div>
+)}
     </div>
   );
 }

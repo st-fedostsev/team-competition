@@ -4,7 +4,7 @@ export enum UserRole {
   STUDENT = 'student',
   CONTENT_MANAGER = 'content_manager',
   GAME_ADMIN = 'game_admin',
-  TECH_ADMIN = 'tech_admin',
+  TECH_ADMIN = 'technical_admin', 
 }
 
 // Креденшелы для входа студента
@@ -20,26 +20,18 @@ export interface AuthResponse {
   refresh_token: string;
 }
 
-// ✅ Исправленный тип User под реальный ответ сервера
+// Обновленный тип User под реальный ответ сервера
 export interface User {
-  id: number; 
+  id: number;
   student_id: number;
   last_name: string;
   first_name: string;
   patronymic: string | null;
-  role: 'student' | 'content_manager' | 'game_admin' | 'tech_admin';
-  team_id: number | null;             
-  is_captain: boolean;    
+  role: 'student' | 'content_manager' | 'game_admin' | 'technical_admin';
+  team_id: number | null;
+  is_captain: boolean;
   personal_rating: number;
-  is_blocked: boolean;    
+  is_blocked: boolean;
   login: string | null;
-  created_at: string;            
-}
-
-// Для Zustand store
-export interface AuthState {
-  user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  isAuthenticated: boolean;
+  created_at: string;
 }
