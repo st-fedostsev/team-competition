@@ -18,23 +18,23 @@ export function NavStudent() {
   const notReceivedAchievements = achievements?.filter(a => !a.is_received) || [];
 
   return (
-    <div className="nav-student-container">
-      {/* Навигация */}
-      <div className="nav">
-        <div
-          className={`student-nav-button ${activeTab === 'achievements' ? 'active' : ''}`}
-          onClick={() => setActiveTab('achievements')}
-        >
-          Достижения
-        </div>
+    <div className="nav-student-outer">
+      <div className="nav-student-container">
 
-        <div
-          className={`student-nav-button ${activeTab === 'rating' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rating')}
-        >
-          Рейтинг
+        <div className="nav">
+          <div
+            className={`student-nav-button ${activeTab === 'achievements' ? 'active' : ''}`}
+            onClick={() => setActiveTab('achievements')}
+          >
+            Достижения
+          </div>
+          <div
+            className={`student-nav-button ${activeTab === 'rating' ? 'active' : ''}`}
+            onClick={() => setActiveTab('rating')}
+          >
+            Рейтинг
+          </div>
         </div>
-      </div>
 
       {/* Достижения */}
       {activeTab === 'achievements' && (

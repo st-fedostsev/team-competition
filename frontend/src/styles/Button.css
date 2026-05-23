@@ -8,6 +8,12 @@
     border-radius: 20px; 
 } 
  
+.button-big-event{
+    border-radius: 20px;  
+    width: 300px; 
+    display: inline-flex;     
+}
+
 .button-small{ 
     border-radius: 15px; 
     width: 154px; 

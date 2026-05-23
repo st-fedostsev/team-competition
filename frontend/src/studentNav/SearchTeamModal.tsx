@@ -1,7 +1,9 @@
 // pages/TeamPage/SearchTeamModal.tsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { JoinButton, CreatePlusButton, CreateButton } from '../components/Button/Button';
+import { Modal } from '../components/cards/card';
 import { useSearchTeam, useJoinTeam } from '../hooks/useTeam';
-import { JoinButton, CreatePlusButton } from '../components/Button/Button';
 import '../styles/SearchTeamModal.css';
 
 interface SearchTeamModalProps {
@@ -9,6 +11,7 @@ interface SearchTeamModalProps {
   onSuccess?: () => void;
   onOpenCreateModal?: () => void;
 }
+
 
 export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: SearchTeamModalProps) {
   const [searchValue, setSearchValue] = useState('');
@@ -54,6 +57,14 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
 
   // Достаём массив команд из ответа API
   const teams = searchResponse?.data || [];
+
+  function handleCreateTeam() {
+    if (teamName.trim()) {
+      setIsCreateTeamOpen(false);
+      closeModal();
+      navigate('/team-profile');
+    }
+  }
 
   return (
     <div className="modal-overlay" onClick={closeModal}>
@@ -109,12 +120,13 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
                   <p className="search-team-name">{team.name}</p>
                   <p className="search-team-members">{team.members?.length || 0} участника</p>
                 </div>
+                <JoinButton />
               </div>
               {/* Ниже добавить обработчики после добавления с дизайн-макетов */}
                {/* Добавить onClick={() => handleJoinTeam(team.invite_code)}   disabled={isJoining} */}
               <JoinButton 
                 
-               
+ 
               />
             </div>
           ))}
@@ -125,6 +137,26 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
           <CreatePlusButton />
         </div>
       </div>
-    </div>
+
+      {/* Модалка создания команды поверх */}
+      {isCreateTeamOpen && (
+        <Modal closeModal={() => setIsCreateTeamOpen(false)}>
+          <div className="create-team-body">
+            <p className="create-team-label">Введите название команды</p>
+            <input
+              type="text"
+              className="create-team-input"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateTeam()}
+              autoFocus
+            />
+            <div className="create-team-footer">
+              <CreateButton onClick={handleCreateTeam} />
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }

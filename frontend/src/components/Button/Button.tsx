@@ -56,18 +56,17 @@ export function NameButton({ onClick }: NameButtonProps) {
   );
 }
 
-export function CreatePlusButton() { 
-  return ( 
-    <div> 
-      <button className="button button-small"> 
-      <span className='button-text button-text-small'>  
-        Создать + 
-      </span> 
-    </button> 
-    </div> 
-  ); 
+export function CreatePlusButton({ onClick }: ButtonProps) {
+  return (
+    <div>
+      <button className="button button-small" onClick={onClick}>
+        <span className='button-text button-text-small'>
+          Создать +
+        </span>
+      </button>
+    </div>
+  );
 }
-
 export function CreateButton({ onClick }: ButtonProps) { 
   return (
     <button className="button button-small drop-shadow" onClick={onClick}> 
@@ -105,10 +104,12 @@ export function CancelButton({ onClick }: ButtonProps) {
   );
 }
 
-export function CheckInButton() {
+export function CheckInButton({ onClick }: ButtonProps) { 
   return (
-    <button className="check-in-button">
+    <button className="button button-small drop-shadow" onClick={onClick}> 
+    <p className='button-text button-text-small'> 
       Check-in
+    </p>
     </button>
   );
 }
@@ -169,18 +170,22 @@ export function ApplicationSentButton() {
   );
 }
 
-export function CreateEventButton({ onClick }: ButtonProps) {
+export function CreateEventButton({ onClick }: ButtonProps) { 
   return (
-    <button className="create-event-button" onClick={onClick}>
+    <button className="button button-big-event drop-shadow"onClick={onClick}>
+    <p className='button-text button-text-big'> 
       Создать мероприятие+
+    </p>
     </button>
   );
 }
 
-export function CreateChallengeButton() {
+export function CreateChallengeButton({ onClick }: ButtonProps) { 
   return (
-    <button className="create-challenge-button">
+    <button className="button button-big-event drop-shadow"onClick={onClick}>
+    <p className='button-text button-text-big'> 
       Создать челлендж+
+    </p>
     </button>
   );
 }

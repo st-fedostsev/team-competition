@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useStudentLogin } from '../../hooks/useAuth';
 import '../../styles/LoginStudentPage.css';
 import '../../styles/input.css';
+import { LoginButton } from '../../components/Button/Button';
+import '../../styles/Button.css';
 
 export function LoginStudent() {
   const [fullName, setFullName] = useState('');
@@ -105,8 +107,8 @@ export function LoginStudent() {
               {apiError.message || 'Ошибка входа. Проверьте данные'}
             </div>
           )}
-
           <div className="login-student-buttons">
+            <LoginButton />
             <button 
               type="submit"
               className="login-button"
