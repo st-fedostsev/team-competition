@@ -55,7 +55,7 @@ async def create_team(team_create_data: TeamCreateData, response: Response, cred
     team = Team(
         name=team_create_data.name,
         captain_id=user.id,
-        created_at=datetime.now()
+        created_at=datetime.utcnow()
     )
     session.add(team)
     session.commit()
@@ -87,13 +87,19 @@ async def get_my_team(response: Response, credentials: JwtAuthorizationCredentia
     
     team.update_crc(session)
 
+    q = select(User).where(User.team_id == team.id)
+    members = session.exec(q).all()
+
+    members_ids = list(map(lambda x: x.id, members))
+
     result = TeamData(
         id=team.id,
         name=team.name,
         crc=team.crc,
         league=team.league,
         captain_id=team.captain_id,
-        created_at=team.created_at
+        created_at=team.created_at,
+        members=members_ids
     )
     if user.is_captain:
         result.secret_code = team.secret_code
@@ -245,3 +251,46 @@ async def user_get_leaderboard(paged_request_data: PagedRequestData, response: R
         )
     )
     return result
+
+@router.post(
+    '/kick',
+    summary='Исключить пользователя из команды'
+)
+async def kick_user(kick_user_data: KickUserData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if not user.is_captain:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Недостаточно прав')
+    
+    q = select(Team).where(Team.id == user.team_id)
+    team = session.exec(q).first()
+    if not team:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Команда не найдена')
+    
+    q = select(User).where(User.id == kick_user_data.id)
+    target_user = session.exec(q).first()
+    if not target_user:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь не найден')
+    
+    if target_user.team_id != user.team_id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь не состоит в вашей команде')
+    
+    if target_user.id == user.id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Нельзя исключить самого себя')
+
+    target_user.team_id = None
+    target_user.is_captain = False
+
+    session.add(target_user)
+    session.commit()
+
+    return Message(msg='Пользователь исключен из команды')

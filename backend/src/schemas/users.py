@@ -50,3 +50,6 @@ class AchievementData(BaseModel):
     title: str
     description: str
     earned_at: datetime
+
+class UserGetData(BaseModel):
+    id: int

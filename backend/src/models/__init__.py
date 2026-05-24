@@ -8,11 +8,13 @@ from .rescue_request import RescueRequest, RequestStatus
 from .team import Team, League
 from .user import User, UserRole
 from .vote import Vote
+from .news import News
 
 __all__ = [
     'Achievement',
     'ChallengeReport',
     'Challenge',
+    'News',
     'Event',
     'EventFormat',
     'KnowledgePost', 

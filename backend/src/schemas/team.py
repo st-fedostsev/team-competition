@@ -15,6 +15,7 @@ class TeamData(BaseModel):
     captain_id: int
     created_at: datetime
     secret_code: Optional[uuid.UUID] = None
+    members: list[int]
 
 class JoinTeamData(BaseModel):
     secret_code: uuid.UUID
@@ -23,3 +24,6 @@ class SearchTeamData(BaseModel):
     query: str
     limit: int
     offset: int
+
+class KickUserData(BaseModel):
+    id: int

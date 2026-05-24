@@ -13,13 +13,13 @@ class Achievement(SQLModel, table=True):
 
     @staticmethod
     def give(session: Any, user_id: int, template: AchievementTemplate):
-        q = select(Achievement).where((Achievement.user_id == AchievementTemplate.user_id) & (Achievement.title == template.title))
+        q = select(Achievement).where((Achievement.user_id == user_id) & (Achievement.title == template.title))
         if len(session.exec(q).all()) > 0:
             return
         session.add(Achievement(
             user_id=user_id,
             title=template.title,
             description=template.description,
-            earned_at=datetime.now()
+            earned_at=datetime.utcnow()
         ))
         session.commit()

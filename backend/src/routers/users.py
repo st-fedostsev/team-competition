@@ -110,14 +110,14 @@ async def register_user(register_data: RegisterData, response: Response, credent
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Недостаточно прав для выполнения запроса')
 
-    if register_data.user_role in (UserRole.admin, UserRole.technical_admin):
+    if register_data.user_role in (UserRole.admin, UserRole.technical_admin, UserRole.content_manager):
         user = User(
             student_id=0,
             last_name=register_data.last_name,
             first_name=register_data.first_name,
             patronymic=register_data.patronymic,
             role=register_data.user_role,
-            created_at=datetime.now(),
+            created_at=datetime.utcnow(),
             login=register_data.login,
             password_hash=pwd_context.hash(register_data.password)
         )
@@ -128,7 +128,7 @@ async def register_user(register_data: RegisterData, response: Response, credent
             first_name=register_data.first_name,
             patronymic=register_data.patronymic,
             role=register_data.user_role,
-            created_at=datetime.now(),
+            created_at=datetime.utcnow(),
             personal_rating=register_data.personal_rating
         )
 
@@ -256,3 +256,33 @@ async def all_achievements(response: Response, credentials: JwtAuthorizationCred
         return Message(msg='Пользователь не найден')
     
     return ACHIEVEMENTS
+
+@router.post(
+    '/get',
+    summary='Получить пользователя'
+)
+async def get_user(user_get_data: UserGetData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(User).where(User.id == user_get_data.id)
+    result = session.exec(q).first()
+    if result is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Пользователь не найден')
+
+    return UserData(
+        id=result.id,
+        last_name=result.last_name,
+        first_name=result.first_name,
+        patronymic=result.patronymic,
+        role=result.role,
+        team_id=result.team_id,
+        is_captain=result.is_captain,
+        personal_rating=result.personal_rating,
+        is_blocked=result.is_blocked,
+        created_at=result.created_at
+    )
