@@ -1,0 +1,32 @@
+.nav-rating-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fff;
+  border-radius: 50px;
+  padding: 4px 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.nav-rating-tab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  color: #333;
+  padding: 8px 18px;
+  border-radius: 50px;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.nav-rating-tab.active {
+  background-color: #f0f0f0;
+  font-weight: 500;
+  border: 1px solid #ccc;
+}
+
+.nav-rating-tab:not(.active):hover {
+  background-color: #f7f7f7;
+}

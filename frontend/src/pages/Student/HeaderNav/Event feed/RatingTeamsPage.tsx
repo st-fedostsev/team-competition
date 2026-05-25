@@ -1,29 +1,24 @@
-import React, { useState } from 'react';
-import { HeaderStudent } from '../../../components/Header/HeaderStudent';
-import { NavRating } from '../../../components/Nav/NavRating';
-import { SendReportButton } from '../../../components/Buttons';
-import { Modal } from '../../../components/ModalWindowComponent';
-import { RATING_TABS } from '../../../constants';
+// pages/Student/HeaderNav/RatingTeamsPage.tsx
 
-import '../../../styles/RatingPage.css';
+import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
+import { NavRating } from '../../../../components/Nav/NavRating';
+import { RATING_TABS } from '../../../../constants';
+import '../../../../styles/RatingPage.css';
 
-
-
-export function RatingPage() {
+export function RatingTeamsPage() {
   return (
     <div className="rating-page">
       <HeaderStudent />
 
       <main className="rating-main">
         <div className="rating-switch">
-          <NavRating 
-          tabs={RATING_TABS}/>
+          <NavRating tabs={RATING_TABS} />
         </div>
 
         <div className="rating-search">
           <input
             className="rating-search-input"
-            placeholder="Введите студента или команду"
+            placeholder="Введите команду или лигу"
           />
         </div>
 
@@ -35,28 +30,28 @@ export function RatingPage() {
         <div className="rating-table">
           <div className="rating-row rating-header">
             <div>Позиция</div>
-            <div>ФИО</div>
             <div>Команда</div>
+            <div>Лига</div>
             <div>Балл</div>
           </div>
 
           <div className="rating-row">
             <div>1</div>
-            <div>Иванов Иван Иванович</div>
+            <div>Название</div>
             <div>Название</div>
             <div>1</div>
           </div>
 
           <div className="rating-row">
             <div></div>
-            <div>Иванов Иван Иванович</div>
+            <div>Название</div>
             <div>Название</div>
             <div>1</div>
           </div>
 
           <div className="rating-row">
             <div></div>
-            <div>Иванов Иван Иванович</div>
+            <div>Название</div>
             <div>Название</div>
             <div>1</div>
           </div>

@@ -11,6 +11,9 @@ import { CalendarPage } from '../pages/Student/HeaderNav/CalendarPage';
 import { TeamProfilePage } from '../pages/Student/Profile/ProfileTeam/TeamProfilePage';
 import { ProfileTechAdmin } from '../pages/Tech Admin/Profile/ProfileTechAdminPage';
 import { ProtectedRoute } from './ProtectedRoute';
+import { AnnouncementsPage } from '../pages/Student/HeaderNav/Event feed/AnnouncementsPage';
+import { RatingPage } from '../pages/Student/HeaderNav/RatingPage';
+import { RatingTeamsPage } from '../pages/Student/HeaderNav/Event feed/RatingTeamsPage';
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +56,14 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+    {
+    path: '/announcements',
+    element: (
+      <ProtectedRoute>
+           <AnnouncementsPage />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: '/knowledge',
     element: (
@@ -77,4 +88,16 @@ export const router = createBrowserRouter([
     path: '/ProfileTechAdmin', 
     element: <ProfileTechAdmin /> 
   },
+  {
+  path: '/rating',
+  element: <RatingPage />,
+  },
+  {
+    path: '/rating/teams',
+    element: (
+      <ProtectedRoute>
+          <RatingTeamsPage />
+      </ProtectedRoute>
+    ),
+  }, 
 ]);
