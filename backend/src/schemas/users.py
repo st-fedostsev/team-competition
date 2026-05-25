@@ -53,3 +53,18 @@ class AchievementData(BaseModel):
 
 class UserGetData(BaseModel):
     id: int
+
+class ChangeCredentialsData(BaseModel):
+    new_login: Optional[str] = None
+    old_password: str
+    new_password: Optional[str] = None
+
+class NotificationData(BaseModel):
+    id: int
+    title: str
+    body: str
+    dismissed: bool
+    created_at: datetime
+
+class DismissNotificationData(BaseModel):
+    id: int
