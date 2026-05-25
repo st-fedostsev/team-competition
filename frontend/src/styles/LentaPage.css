@@ -80,3 +80,153 @@
   color: #888;
   margin: 0;
 }
+
+
+/* LentaPage.css — стили для AnnouncementsPage */
+
+.announcements-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f2f2f2;
+}
+
+.announcements-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.announcements-header {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 24px;
+    display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.announcements-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 28px 32px 60px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.announcements-card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0 0 6px 0;
+}
+
+.announcements-card-description {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b6b6b;
+  margin: 0;
+}
+
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 38px 42px 34px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+.modal-content h2 {
+  margin: 0 0 24px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-input,
+.modal-textarea,
+.modal-select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #f7f7f8;
+}
+
+.modal-textarea {
+  resize: none;
+  min-height: 100px;
+}
+
+.modal-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cancel-button {
+  background: #fff;
+  border: 1px solid #ffd675;
+  border-radius: 8px;
+  padding: 10px 22px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.create-button {
+  background: #ffd675;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 34px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+.create-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

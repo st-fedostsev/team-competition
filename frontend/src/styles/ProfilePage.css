@@ -87,6 +87,12 @@
   margin-top: 8px;
 }
 
+.name-button{
+    display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .profile-team-label {
   font-size: 15px;
   color: #333;

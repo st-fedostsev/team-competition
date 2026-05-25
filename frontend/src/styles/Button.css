@@ -6,7 +6,8 @@
  
 .button-big{ 
     border-radius: 20px; 
-} 
+    width: 100%;
+}
  
 .button-big-event{
     border-radius: 20px;  
@@ -16,24 +17,32 @@
 
 .button-small{ 
     border-radius: 15px; 
-    width: 154px; 
-    display: inline-flex;     
+    min-width: 154px; 
+    display: inline-flex; 
+    justify-content: center;    
 } 
 
 .button-midle{
     border-radius: 15px; 
-    width: 200px; 
-    display: inline-flex;     
+    align-items: center;
+    padding: 0 32px;
+    min-width: 158px;
+    display: inline-flex;  
+    justify-content: center;   
 }
  
 .button-text{ 
     font-weight: 500; 
-    font-style: Medium; 
     font-size: 20px; 
     line-height: 100%; 
-    width: 499; 
-     margin: 0; 
+    margin: 0; 
+    white-space: nowrap;  
 } 
+
+p.button-text{
+     display: inline-flex;
+     justify-content: center;
+}
  
 .button-text-big{ 
     padding: 16px 0; 

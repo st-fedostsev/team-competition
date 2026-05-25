@@ -123,8 +123,19 @@
 .reiting-position {
   display: flex;
   flex-direction: column;
+  gap: 4px;
   font-size: 14px;
   color: #555;
+}
+
+.reiting-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reiting-value {
+  margin: 0;
 }
 
 .reiting-number {
