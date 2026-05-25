@@ -1,23 +1,17 @@
 // types/team.types.ts
 
-export interface TeamMember {
-  id: number;
-  user_id: number;
-  last_name: string;
-  first_name: string;
-  patronymic?: string;
-  role: 'captain' | 'member';
-  rating?: number;
-}
-
 export interface Team {
   id: number;
   name: string;
   description?: string;
   invite_code: string;
-  members: TeamMember[];
+  secret_code?: string;     
+  members: number[];
   created_at: string;
   captain_id: number;
+  crc?: number;                 // рейтинг команды (Competitive Rating Coefficient)
+  league?: 'novice' | 'amateur' | 'pro' | 'legend';  // лига команды
+  total_rating?: number;       // общий балл команды
 }
 
 export interface CreateTeamData {

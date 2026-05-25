@@ -7,14 +7,8 @@
 .button-big{ 
     border-radius: 20px; 
     width: 100%;
-}
+} 
  
-.button-big-event{
-    border-radius: 20px;  
-    width: 300px; 
-    display: inline-flex;     
-}
-
 .button-small{ 
     border-radius: 15px; 
     min-width: 154px; 
@@ -22,7 +16,7 @@
     justify-content: center;    
 } 
 
-.button-midle{
+.button-middle{
     border-radius: 15px; 
     align-items: center;
     padding: 0 32px;

@@ -19,13 +19,9 @@ export const RATING_TABS = [
 ];
 
 export const TABS = [
-    { label: 'Все', path: '/lenta' },
-    { label: 'Челленджи', path: '/challenges' },
-    { label: 'Анонсы', path: '/announcements' },
-  ];
-
+  { label: 'Мероприятия', path: '/lenta' },
+  { label: 'Челленджи', path: '/challenges' },
+  { label: 'Новости', path: '/announcements' },
+];
 
 export const DAYS = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
-
-
-

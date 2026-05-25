@@ -1,5 +1,9 @@
 // hooks/useEvents.ts
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { eventsApi } from '../api/events';
 import type { CreateEventData } from '../types/event.types';
 
@@ -17,10 +21,10 @@ export function useEventsList() {
         offset: pageParam,
         limit: 5,
       });
-      
+
       // API возвращает массив
       const eventsData = response.data;
-      
+
       // Если вернулся массив
       if (Array.isArray(eventsData)) {
         return {
@@ -29,7 +33,7 @@ export function useEventsList() {
           total: eventsData.length,
         };
       }
-      
+
       // Если вернулся объект с полями
       return {
         events: eventsData.events || [],

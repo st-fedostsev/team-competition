@@ -9,7 +9,7 @@ interface ApiResponse<T = void> {
   status: number;
 }
 
-// Расширяем тип, чтобы принимать любые объекты
+// Расширяем тип, чтобы принимать любые объекты и FormData
 type RequestData =
   | Record<string, unknown>
   | unknown[]
@@ -17,7 +17,8 @@ type RequestData =
   | number
   | boolean
   | null
-  | object;
+  | object
+  | FormData;
 
 interface RequestConfig {
   requiresAuth?: boolean;
@@ -44,7 +45,11 @@ class ApiClient {
       : null;
 
     const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
+
+    // Если body это FormData - не устанавливаем Content-Type (браузер сам добавит boundary)
+    if (!(body instanceof FormData)) {
+      headers.set('Content-Type', 'application/json');
+    }
 
     Object.entries(customHeaders).forEach(([key, value]) => {
       headers.set(key, value);
@@ -54,10 +59,18 @@ class ApiClient {
       headers.set('Authorization', `Bearer ${accessToken}`);
     }
 
+    // Подготовка body: FormData не нужно строкифицировать
+    let requestBody: BodyInit | undefined;
+    if (body instanceof FormData) {
+      requestBody = body;
+    } else if (body !== undefined) {
+      requestBody = JSON.stringify(body);
+    }
+
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: requestBody,
       credentials: 'omit',
     });
 
@@ -76,7 +89,6 @@ class ApiClient {
 
       const errorData = data as { message?: string; msg?: string; detail?: string };
       const errorMessage = errorData.message || errorData.msg || errorData.detail || `Ошибка ${response.status}`;
-      
       
       const error = new ApiError(errorMessage, {
         data: errorData,

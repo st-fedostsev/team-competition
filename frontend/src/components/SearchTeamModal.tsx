@@ -1,22 +1,21 @@
-// pages/TeamPage/SearchTeamModal.tsx
 import React, { useState, useEffect } from 'react';
 import { JoinButton, CreatePlusButton, CreateButton } from './Buttons';
 import { Modal } from './ModalWindowComponent';
-import { useSearchTeam, useJoinTeam } from '../hooks/useTeam';
+import { useSearchTeam, useJoinTeam, useCreateTeam } from '../hooks/useTeam';
 import '../styles/SearchTeamModal.css';
 
 interface SearchTeamModalProps {
   closeModal: () => void;
   onSuccess?: () => void;
-  onOpenCreateModal?: () => void;
 }
 
-export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: SearchTeamModalProps) {
+export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps) {
   const [searchValue, setSearchValue] = useState('');
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [teamName, setTeamName] = useState('');
   const { mutate: searchTeam, data: searchResponse, isPending: isSearching } = useSearchTeam();
   const { mutate: joinTeam, isPending: isJoining } = useJoinTeam();
+  const { mutate: createTeam, isPending: isCreating } = useCreateTeam();
 
   // Загружаем все команды при открытии модалки
   useEffect(() => {
@@ -52,9 +51,16 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
 
   const handleCreateTeam = () => {
     if (teamName.trim()) {
-      setIsCreateTeamOpen(false);
-      closeModal();
-      onOpenCreateModal?.();
+      createTeam(
+        { name: teamName, description: undefined },
+        {
+          onSuccess: () => {
+            setIsCreateTeamOpen(false);
+            closeModal();
+            onSuccess?.();
+          },
+        }
+      );
     }
   };
 
@@ -143,9 +149,10 @@ export function SearchTeamModal({ closeModal, onSuccess, onOpenCreateModal }: Se
               onChange={(e) => setTeamName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateTeam()}
               autoFocus
+              disabled={isCreating}
             />
             <div className="create-team-footer">
-              <CreateButton onClick={handleCreateTeam} />
+              <CreateButton onClick={handleCreateTeam} disabled={isCreating} />
             </div>
           </div>
         </Modal>

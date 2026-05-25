@@ -1,17 +1,60 @@
 import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
 import { CheckInButton } from '../../../../components/Buttons';
 import { NavTeam } from '../../../../components/Nav/NavTeam';
+import { useMyTeam } from '../../../../hooks/useTeam';
 import '../../../../styles/TeamProfilePage.css';
 
-
 export function TeamProfilePage() {
+  const { data: team, isLoading, isError, error } = useMyTeam();
+
+  if (isLoading) {
+    return (
+      <div className="team-profile-container">
+        <HeaderStudent />
+        <div className="team-profile-content">
+          <div className="loading">Загрузка команды...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="team-profile-container">
+        <HeaderStudent />
+        <div className="team-profile-content">
+          <div className="error">
+            <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
+            <button onClick={() => window.location.reload()}>Повторить</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="team-profile-container">
+        <HeaderStudent />
+        <div className="team-profile-content">
+          <div className="no-team">
+            <p>Вы не состоите в команде</p>
+            <button onClick={() => window.location.href = '/ProfileStudentPage'}>
+              Вернуться назад
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="team-profile-container">
-      <HeaderStudent/>
+      <HeaderStudent />
 
       <div className="team-profile-content">
 
-        {/* Карточка команды */}
+          {/* Карточка команды */}
         <div className="team-card">
           <div className="team-card-left">
             <div className="team-avatar">
@@ -21,7 +64,9 @@ export function TeamProfilePage() {
                 <path d="M14 80c0-17 13.88-31 31-31s31 14 31 31" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
-            <p className="team-name">Название команды</p>
+            <div>
+              <p className="team-name">{team.name}</p>
+            </div>
           </div>
           <div className="team-card-right">
             <button className="team-menu-btn">
@@ -34,7 +79,7 @@ export function TeamProfilePage() {
         </div>
 
         {/* Нижняя часть: участники + рейтинг */}
-        <NavTeam />
+        <NavTeam team={team} />
       </div>
     </div>
   );
