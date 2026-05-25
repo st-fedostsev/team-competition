@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select
 from database.session import get_session
-from models import User, UserRole, Achievement
+from models import User, UserRole, Achievement, Notification
 from models.achievement_templates import ACHIEVEMENTS
 from pwdlib import PasswordHash
 from schemas.users import *
@@ -286,3 +286,84 @@ async def get_user(user_get_data: UserGetData, response: Response, credentials: 
         is_blocked=result.is_blocked,
         created_at=result.created_at
     )
+
+@router.post(
+    '/change_credentials',
+    summary='Изменить данные для входа(только для администраторов и контент-менеджеров)'
+)
+async def user_change_credentials(change_credentials_data: ChangeCredentialsData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if user.role == UserRole.student:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Недостаточно прав')
+    
+    if not pwd_context.verify(change_credentials_data.old_password, user.password_hash):
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Неправильно указан старый пароль')
+    
+    if change_credentials_data.new_login is not None:
+        user.login = change_credentials_data.new_login
+
+    if change_credentials_data.new_password is not None:
+        user.password_hash = pwd_context.hash(change_credentials_data.new_password)
+
+    session.add(user)
+    session.commit()
+
+    return Message(msg='Данные изменены')
+
+@router.post(
+    '/get_notifications',
+    summary='Получить уведомления'
+)
+async def user_get_notifications(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Notification).where(Notification.user_id == user.id).order_by(Notification.created_at).limit(paged_request_data.limit).offset(paged_request_data.offset)
+    notifications = session.exec(q).all()
+    notifications = list(map(lambda x: NotificationData(
+            id=x.id,
+            title=x.title,
+            body=x.body,
+            dismissed=x.dismissed,
+            created_at=x.created_at
+        ), notifications
+    ))
+
+    return notifications
+
+@router.post(
+    '/dismiss_notification',
+    summary='Отметить уведомление как просмотренное'
+)
+async def user_dismiss_notification(dismiss_notification_data: DismissNotificationData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Notification).where(Notification.id == dismiss_notification_data.id)
+    notification = session.exec(q).first()
+    if not notification:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Уведомление не найдено')
+    
+    if notification.user_id != user.id:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    notification.dismissed = True
+    session.add(notification)
+    session.commit()
+
+    return Message(msg='Уведомление отмечено как просмотренное')

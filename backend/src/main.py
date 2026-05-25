@@ -5,7 +5,7 @@ from database.session import init_database, get_session_cm
 from models import *
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from routers import users, team, technical_admin, events, knowledge_posts, challenges, news
+from routers import users, team, technical_admin, events, knowledge_posts, challenges, news, content_manager
 from pwdlib import PasswordHash
 from fastapi_jwt import JwtAuthorizationCredentials
 from auth.auth_handler import access_security, refresh_security
@@ -28,13 +28,14 @@ app.include_router(challenges.router)
 app.include_router(news.router)
 app.include_router(knowledge_posts.router)
 app.include_router(technical_admin.router)
+app.include_router(content_manager.router)
 
 app.add_middleware(BanMiddleware)
 app.add_middleware(AuthMiddleware)
 
 async def populate_defaults():
     with get_session_cm() as session:
-        q = select(User).where(User.login == 'admin')
+        q = select(User).where(User.role == UserRole.technical_admin)
         user = session.exec(q).first()
         if user is None:
             pwd_context = PasswordHash.recommended()
@@ -51,7 +52,7 @@ async def populate_defaults():
                 )
                 session.add(user)
                 session.commit()
-        print('Admin account created')
+            print('Admin account created')
 
 @app.on_event('startup')
 async def on_startup():

@@ -1,4 +1,4 @@
-from .achievement import Achievement
+from .achievement import Achievement, AchievementTemplate
 from .challenge_report import ChallengeReport
 from .challenge import Challenge
 from .event import Event, EventFormat
@@ -9,6 +9,7 @@ from .team import Team, League
 from .user import User, UserRole
 from .vote import Vote
 from .news import News
+from .notification import Notification, NotificationTemplate
 
 __all__ = [
     'Achievement',
@@ -26,5 +27,8 @@ __all__ = [
     'League',
     'User',
     'UserRole',
-    'Vote'
+    'Vote',
+    'Notification',
+    'AchievementTemplate',
+    'NotificationTemplate'
 ]
