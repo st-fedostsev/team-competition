@@ -113,3 +113,9 @@
   max-width: 800px;
   margin: 0 auto;
 }
+
+.name-button{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

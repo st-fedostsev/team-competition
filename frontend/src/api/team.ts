@@ -34,4 +34,8 @@ export const teamApi = {
   // Получить лидерборд
   getLeaderboard: () =>
     apiClient.post<LeaderboardEntry[]>('/api/team/leaderboard'),
+
+  // Для капитана кикнуть участника
+  kickMember: (userId: number) =>
+  apiClient.post('/api/team/kick', { user_id: userId }),
 };

@@ -20,7 +20,7 @@ export function NameButton({ onClick }: NameButtonProps) {
   // Ждем загрузку пользователя
   if (isUserLoading) {
     return (
-      <button className="button button-midle" disabled>
+      <button className="button button-middle" disabled>
         <p className="button-text button-text-small">Загрузка...</p>
       </button>
     );
@@ -38,7 +38,7 @@ export function NameButton({ onClick }: NameButtonProps) {
   // Если есть team_id, но команда еще грузится
   if (hasTeam && isTeamLoading) {
     return (
-      <button className="button button-midle" disabled>
+      <button className="button button-middle" disabled>
         <p className="button-text button-text-small">Загрузка...</p>
       </button>
     );
@@ -47,7 +47,7 @@ export function NameButton({ onClick }: NameButtonProps) {
   // Если есть команда - показываем название
   if (hasTeam && team) {
     return (
-      <button className="button button-midle" onClick={() => navigate('/team-profile')}>
+      <button className="button button-middle" onClick={() => navigate('/team-profile')}>
         <p className="button-text button-text-small">{team.name}</p>
       </button>
     );
@@ -55,7 +55,7 @@ export function NameButton({ onClick }: NameButtonProps) {
 
   // Нет команды (team_id === null) - показываем "Найти команду"
   return (
-    <button className="button button-midle" onClick={onClick}>
+    <button className="button button-middle" onClick={onClick}>
       <p className="button-text button-text-small">Найти команду</p>
     </button>
   );
@@ -190,9 +190,19 @@ export function ApplicationSentButton() {
   );
 }
 
+export function PostAnnouncementButton({ onClick }: ButtonProps) {
+  return (
+    <button className="button button-middle drop-shadow" onClick={onClick}>
+      <p className='button-text button-text-big'> 
+        Опубликовать объявление +
+      </p>
+    </button>
+  );
+}
+
 export function CreateEventButton({ onClick }: ButtonProps) { 
   return (
-    <button className="button button-big-event drop-shadow"onClick={onClick}>
+    <button className="button button-middle drop-shadow"onClick={onClick}>
     <p className='button-text button-text-big'> 
       Создать мероприятие+
     </p>
@@ -202,8 +212,8 @@ export function CreateEventButton({ onClick }: ButtonProps) {
 
 export function CreateChallengeButton({ onClick }: ButtonProps) { 
   return (
-    <button className="button button-big-event drop-shadow"onClick={onClick}>
-    <p className='button-text button-text-big'> 
+    <button className="button button-middle drop-shadow"onClick={onClick}>
+    <p className='button-text button-text-small'> 
       Создать челлендж+
     </p>
     </button>
@@ -220,15 +230,6 @@ export function CreateSletter({ onClick }: ButtonProps) {
   );
 }
 
-export function PostAnnouncementButton({ onClick }: ButtonProps) {
-  return (
-    <button className="button button-midle drop-shadow" onClick={onClick}>
-      <p className="button-text button-text-small">
-        Опубликовать объявление +
-      </p>
-    </button>
-  );
-}
 
 
 export function ReplyButton({ onClick }: ButtonProps) {

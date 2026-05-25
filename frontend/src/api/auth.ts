@@ -13,7 +13,7 @@ export const authApi = {
 
   // Вход администратора (не требует авторизации)
   loginAdmin: (credentials: { login: string; password: string }) =>
-    apiClient.post<AuthResponse>('/api/users/admin_login', credentials, {
+    apiClient.post<AuthResponse>('/api/users/login_admin', credentials, {
       requiresAuth: false,
     }),
 

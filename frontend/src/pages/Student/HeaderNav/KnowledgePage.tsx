@@ -44,7 +44,6 @@ export function KnowledgePage() {
     <div className="knowledge-container">
       <HeaderStudent
       />
-
       <div className="knowledge-content">
         <div className="knowledge-header">
           <PostAnnouncementButton onClick={() => setIsPublishModalOpen(true)} />

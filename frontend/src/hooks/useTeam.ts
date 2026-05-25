@@ -10,6 +10,7 @@ import type {
   SearchTeamData,
   Team,
 } from '../types/team.types';
+import { useNavigate } from 'react-router-dom';
 
 export const teamKeys = {
   all: ['team'] as const,
@@ -56,11 +57,14 @@ export function useCreateTeam() {
 export function useLeaveTeam() {
   const queryClient = useQueryClient();
   const { refetch: refetchUser } = useCurrentUser();
+  const navigate = useNavigate();
+
   return useMutation({
     mutationFn: () => teamApi.leaveTeam(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamKeys.my });
       refetchUser();
+      navigate('/ProfileStudentPage');
     },
   });
 }
@@ -78,7 +82,7 @@ export function useJoinTeam() {
   });
 }
 
-// Хук для регенерации кода приглашения (исправленный)
+// Хук для регенерации кода приглашения
 export function useRegenerateCode() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -111,6 +115,20 @@ export function useLeaderboard() {
     queryFn: async () => {
       const response = await teamApi.getLeaderboard();
       return response.data;
+    },
+  });
+}
+
+// Хук для кика участника (только капитан)
+export function useKickMember() {
+  const queryClient = useQueryClient();
+  const { refetch: refetchUser } = useCurrentUser();
+
+  return useMutation({
+    mutationFn: (userId: number) => teamApi.kickMember(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.my });
+      refetchUser();
     },
   });
 }
