@@ -10,4 +10,7 @@ export const eventsApi = {
   // Получить список мероприятий
   getEventsList: (params: EventsListRequest) =>
     apiClient.post<EventsListResponse>('/api/events/list', params),
+  
+   getAllEvents: () =>
+    apiClient.post<Event[]>('/api/events/list', { offset: 0, limit: 1000 }),
 };

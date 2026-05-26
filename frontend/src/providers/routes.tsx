@@ -11,7 +11,7 @@ import { CalendarPage } from '../pages/Student/HeaderNav/CalendarPage';
 import { TeamProfilePage } from '../pages/Student/Profile/ProfileTeam/TeamProfilePage';
 import { ProfileTechAdmin } from '../pages/Tech Admin/Profile/ProfileTechAdminPage';
 import { ProtectedRoute } from './ProtectedRoute';
-import { AnnouncementsPage } from '../pages/Student/HeaderNav/Event feed/AnnouncementsPage';
+import { AnnouncementsPage } from '../pages/Student/HeaderNav/Event feed/NewsPage';
 import { RatingPage } from '../pages/Student/HeaderNav/RatingPage';
 import { RatingTeamsPage } from '../pages/Student/HeaderNav/Event feed/RatingTeamsPage';
 

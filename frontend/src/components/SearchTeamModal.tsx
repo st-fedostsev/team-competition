@@ -33,7 +33,7 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
 
   const handleJoinTeam = (inviteCode: string) => {
     joinTeam(
-      { invite_code: inviteCode },
+      { secret_code: inviteCode },
       {
         onSuccess: () => {
           onSuccess?.();
@@ -124,7 +124,7 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
                   </div>
                 </div>
                 <JoinButton 
-                  onClick={() => handleJoinTeam(team.invite_code)}
+                  onClick={() => handleJoinTeam(team.secret_code)}
                   disabled={isJoining}
                 />
               </div>

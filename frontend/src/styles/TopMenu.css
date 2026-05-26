@@ -39,29 +39,6 @@
   display: flex;
   align-items: center;
   gap: 16px;
-}
-
-.user-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-.user-button svg {
-  display: block;
-}
-
-
-
-.user-settings {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   position: relative;
 }
 
@@ -71,6 +48,17 @@
   border: none;
   padding: 0;
   cursor: pointer;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.user-button svg {
+  display: block;
 }
 
 .user-menu-wrapper {
@@ -90,13 +78,42 @@
   z-index: 100;
 }
 
+/* Общие стили для Link и button */
 .user-dropdown-item {
   display: block;
+  width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
   color: #222;
   text-decoration: none;
   font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  
+  /* Отключаем все браузерные стили для button */
+  background: none;
+  border: none;
+  margin: 0;
+  font-family: inherit;
+  font-weight: normal;
+  line-height: normal;
+  
+  /* Убираем outline и дефолтные эффекты */
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Убираем пунктирную рамку в Firefox */
+.user-dropdown-item::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* Убираем синий фон при клике на мобильных */
+.user-dropdown-item {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .user-dropdown-item:hover {

@@ -1,29 +1,44 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { HeaderStudent } from '../../../components/Header/HeaderStudent';
 import { NavStudent } from '../../../components/Nav/NavStudent';
 import { NameButton } from '../../../components/Buttons';
 import { SearchTeamModal } from '../../../components/SearchTeamModal';
+import { Modal } from '../../../components/ModalWindowComponent';
 import { useCurrentUser } from '../../../hooks/useAuth';
+import { useJoinTeam } from '../../../hooks/useTeam';
 import '../../../styles/ProfilePage.css';
+
 export function ProfileStudentPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isSearchTeamOpen, setIsSearchTeamOpen] = useState(false);
   
-  // Получаем данные пользователя из React Query (с кешированием)
+  // Получаем данные пользователя
   const { data: user, isLoading, isError, error, refetch } = useCurrentUser();
+  const { mutate: joinTeam, isPending: isJoining } = useJoinTeam();
 
+  // Проверяем наличие secret_code в URL
+  const codeFromUrl = searchParams.get('code');
+  const isJoinModalOpen = !!codeFromUrl && !user?.team_id;
 
-   // Хук для выхода
-   // Временно закомментировано, пока нет кнопки выхода
-  //   const { mutate: logout, isPending: isLoggingOut } = useLogout();
-  //  Обработчик для выхода
-  //   const handleLogout = () => {
-  //   if (confirm('Вы уверены, что хотите выйти?')) {
-  //     logout();
-  //   }
-  // };
+  const handleJoinTeam = () => {
+    if (!codeFromUrl) return;
+    
+    joinTeam(
+      { secret_code: codeFromUrl },
+      {
+        onSuccess: () => {
+          setSearchParams({});
+          refetch();
+        },
+      }
+    );
+  };
 
+  const handleCancelJoin = () => {
+    setSearchParams({});
+  };
 
   // Показываем загрузку
   if (isLoading) {
@@ -93,6 +108,31 @@ export function ProfileStudentPage() {
 
       {isSearchTeamOpen && (
         <SearchTeamModal closeModal={() => setIsSearchTeamOpen(false)} />
+      )}
+
+      {/* Модальное окно подтверждения вступления по ссылке */}
+      {isJoinModalOpen && (
+        <Modal closeModal={handleCancelJoin}>
+          <div className="join-team-modal-body">
+            <h2>Вступление в команду</h2>
+            <p>Вы хотите вступить в команду?</p>
+            <div className="join-team-modal-buttons">
+              <button 
+                className="cancel-join-btn" 
+                onClick={handleCancelJoin}
+              >
+                Отмена
+              </button>
+              <button 
+                className="confirm-join-btn" 
+                onClick={handleJoinTeam}
+                disabled={isJoining}
+              >
+                {isJoining ? 'Вступление...' : 'Вступить'}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

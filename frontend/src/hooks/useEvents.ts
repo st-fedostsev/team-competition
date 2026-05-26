@@ -2,6 +2,7 @@
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { eventsApi } from '../api/events';
@@ -63,5 +64,16 @@ export function useCreateEvent() {
     onSuccess: () => {
       queryClient.resetQueries({ queryKey: eventsKeys.list });
     },
+  });
+}
+
+export function useAllEvents() {
+  return useQuery({
+    queryKey: ['events', 'all'],
+    queryFn: async () => {
+      const response = await eventsApi.getAllEvents();
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 5,
   });
 }

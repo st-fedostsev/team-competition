@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { HeaderStudent } from '../../../components/Header/HeaderStudent';
 import { PostAnnouncementButton, ReplyButton, PublishButton } from '../../../components/Buttons';
 import { Modal } from '../../../components/ModalWindowComponent';

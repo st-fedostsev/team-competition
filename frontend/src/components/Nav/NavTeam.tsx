@@ -24,6 +24,18 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
 
   const isCaptain = team?.captain_id === currentUser?.id;
 
+  // Сортируем участников: капитан первый, остальные по порядку (по id)
+ const sortedMembers = (() => {
+  if (!team) return [];
+  return [...membersList]
+    .filter((member): member is NonNullable<typeof member> => member !== null && member !== undefined)
+    .sort((a, b) => {
+      if (a.id === team.captain_id) return -1;
+      if (b.id === team.captain_id) return 1;
+      return a.id - b.id;
+    });
+})();
+
   // Обработчик выхода из команды
   const handleLeaveTeam = () => {
     if (confirm('Вы уверены, что хотите покинуть команду?')) {
@@ -46,11 +58,13 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
     }
   };
 
-  // Функция для копирования кода приглашения
-  const handleCopyInviteCode = () => {
-    if (team?.secret_code) {
-      navigator.clipboard.writeText(team.secret_code);
-      alert('Код приглашения скопирован!');
+  // Функция для копирования ссылки-приглашения
+  const handleCopyInviteLink = () => {
+    const inviteCode = team?.secret_code;
+    if (inviteCode) {
+      const inviteLink = `${window.location.origin}/ProfileStudentPage?code=${inviteCode}`;
+      navigator.clipboard.writeText(inviteLink);
+      alert('Ссылка-приглашение скопирована!');
     }
   };
 
@@ -94,20 +108,24 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
         </div>
 
         {activeTab === 'members' && (
-          <div className="nav-team-members">
-            <button className="nav-team-invite-btn" onClick={handleCopyInviteCode}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD675" strokeWidth="1.5" strokeLinecap="round">
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                <path d="M19 8v6M16 11h6"/>
-              </svg>
-              Пригласить участников
-            </button>
+  <div className="nav-team-members">
+    {/* Кнопка только для капитана */}
+    {isCaptain && (
+      <button className="nav-team-invite-btn" onClick={handleCopyInviteLink}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD675" strokeWidth="1.5" strokeLinecap="round">
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+          <path d="M19 8v6M16 11h6"/>
+        </svg>
+        Пригласить участников
+      </button>
+    )}
 
-            {membersList.map((member) => {
+            {sortedMembers.map((member) => {
               if (!member) return null;
-              const isCurrentUser = member?.id === currentUser?.id;
+              const isCurrentUser = member.id === currentUser?.id;
               const showRemoveButton = isCaptain || isCurrentUser;
+              const isCaptainMember = member.id === team.captain_id;
 
               return (
                 <div key={member.id} className="nav-team-member-row">
@@ -123,9 +141,10 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
                       <p className="nav-team-member-name">
                         {member.last_name} {member.first_name} {member.patronymic || ''}
                       </p>
-                      {member.id === team.captain_id && (
-                        <p className="nav-team-member-role">Капитан</p>
-                      )}
+                      {/* Показываем роль: Капитан или Участник */}
+                      <p className="nav-team-member-role">
+                        {isCaptainMember ? 'Капитан' : 'Участник'}
+                      </p>
                     </div>
                   </div>
                   

@@ -1,5 +1,5 @@
 // hooks/useRating.ts
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { ratingApi } from '../api/rating';
 import { useCurrentUser } from './useAuth';
 
@@ -23,6 +23,48 @@ interface LeaderboardUser {
   created_at: string;
 }
 
+interface LeaderboardPage {
+  users: LeaderboardUser[];
+  hasMore: boolean;
+  total: number;
+}
+
+// Хук для бесконечной загрузки лидерборда
+export function useLeaderboard(search?: string) {
+  return useInfiniteQuery<LeaderboardPage>({
+    queryKey: [...ratingKeys.leaderboard, search],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await ratingApi.getLeaderboard({
+        offset: pageParam as number,
+        limit: 20,
+        search: search || undefined,
+      });
+      
+      const users = response.data as unknown as LeaderboardUser[];
+      
+      const usersWithPosition = users.map((user, index) => ({
+        ...user,
+        position: (pageParam as number) + index + 1,
+      }));
+      
+      return {
+        users: usersWithPosition,
+        hasMore: users.length === 20,
+        total: usersWithPosition.length,
+      };
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.hasMore) {
+        return allPages.length * 20;
+      }
+      return undefined;
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}
+
+// Хук для получения позиции текущего пользователя
 export function useUserRatingPosition() {
   const { data: user } = useCurrentUser();
   
@@ -30,13 +72,10 @@ export function useUserRatingPosition() {
     queryKey: ratingKeys.leaderboard,
     queryFn: async () => {
       const response = await ratingApi.getLeaderboard({ offset: 0, limit: 1000 });
-      // response.data - это массив пользователей
       const users = response.data as unknown as LeaderboardUser[];
       
-      // Сортируем по personal_rating (по убыванию)
       const sorted = [...users].sort((a, b) => b.personal_rating - a.personal_rating);
       
-      // Находим позицию текущего пользователя
       const userPosition = sorted.findIndex(u => u.id === user?.id) + 1;
       
       return {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/TopMenu.css';
 
 interface TabItem {
@@ -7,14 +7,37 @@ interface TabItem {
   path: string;
 }
 
-export function TopMenu(props: { tabs: TabItem[] }) {
+interface UserMenuItem {
+  label: string;
+  path?: string;
+  onClick?: () => void;
+  icon?: React.ReactNode;
+}
+
+interface TopMenuProps {
+  tabs: TabItem[];
+  userMenuItems: UserMenuItem[];
+  userAvatar?: string;
+}
+
+export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleMenuItemClick = (item: UserMenuItem) => {
+    if (item.onClick) {
+      item.onClick();
+    } else if (item.path) {
+      navigate(item.path);
+    }
+    setIsUserMenuOpen(false);
+  };
 
   return (
     <div className="top-menu-container">
       <div className="top-menu">
         <div className="tabs">
-          {props.tabs.map((tab) => (
+          {tabs.map((tab) => (
             <Link key={tab.path} to={tab.path} className="tab">
               {tab.label}
             </Link>
@@ -34,21 +57,40 @@ export function TopMenu(props: { tabs: TabItem[] }) {
               className="user-button"
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-              </svg>
+              {userAvatar ? (
+                <img src={userAvatar} alt="User" className="user-avatar" />
+              ) : (
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+              )}
             </button>
 
             {isUserMenuOpen && (
               <div className="user-dropdown">
-                <Link to="/ProfileStudentPage" className="user-dropdown-item">
-                  Профиль
-                </Link>
-
-                <Link to="/settings" className="user-dropdown-item">
-                  Настройки
-                </Link>
+                {userMenuItems.map((item, index) => (
+                  item.path ? (
+                    <Link
+                      key={index}
+                      to={item.path}
+                      className="user-dropdown-item"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <button
+                      key={index}
+                      className="user-dropdown-item"
+                      onClick={() => handleMenuItemClick(item)}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  )
+                ))}
               </div>
             )}
           </div>

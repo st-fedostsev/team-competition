@@ -23,10 +23,9 @@ export function useKnowledgePosts() {
         offset: pageParam,
         limit: 5,
       });
-      
-      // ✅ API возвращает массив, а не объект с полем posts
+
       const data = response.data;
-      
+
       // Если вернулся массив
       if (Array.isArray(data)) {
         return {
@@ -35,7 +34,7 @@ export function useKnowledgePosts() {
           total: data.length,
         };
       }
-      
+
       // Если вернулся объект с полями
       return {
         posts: data.posts || [],
@@ -68,7 +67,7 @@ export function useCreateKnowledgePost() {
     },
     onError: (error: AxiosError<ApiErrorData>) => {
       let msg = 'Ошибка создания объявления';
-      
+
       // Пробуем разные варианты получения сообщения
       if (error.response?.data?.msg) {
         msg = error.response.data.msg;
@@ -77,7 +76,7 @@ export function useCreateKnowledgePost() {
       } else if (error.response?.data?.detail) {
         msg = error.response.data.detail;
       }
-      
+
       console.error('Сообщение для пользователя:', msg);
       alert(msg);
     },

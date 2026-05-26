@@ -18,7 +18,7 @@ export const teamApi = {
 
   // Сгенерировать новый код приглашения (только капитан)
   regenerateCode: () =>
-    apiClient.post<{ invite_code: string }>('/api/team/regenerate_code'),
+    apiClient.post<{ secret_code: string }>('/api/team/regenerate_code'),
 
   // Выйти из команды
   leaveTeam: () => apiClient.post('/api/team/leave'),
@@ -37,5 +37,5 @@ export const teamApi = {
 
   // Для капитана кикнуть участника
   kickMember: (userId: number) =>
-  apiClient.post('/api/team/kick', { user_id: userId }),
+    apiClient.post('/api/team/kick', { id: userId }),
 };

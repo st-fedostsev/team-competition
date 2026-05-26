@@ -7,6 +7,6 @@ import type {
 
 export const ratingApi = {
   // Получить лидерборд
-  getLeaderboard: (params: LeaderboardRequest) =>
+  getLeaderboard: (params: LeaderboardRequest & { search?: string; top_only?: boolean }) =>
     apiClient.post<LeaderboardResponse>('/api/users/leaderboard', params),
 };

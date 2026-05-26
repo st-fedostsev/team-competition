@@ -4,8 +4,7 @@ export interface Team {
   id: number;
   name: string;
   description?: string;
-  invite_code: string;
-  secret_code?: string;     
+  secret_code: string;  
   members: number[];
   created_at: string;
   captain_id: number;
@@ -20,7 +19,7 @@ export interface CreateTeamData {
 }
 
 export interface JoinTeamData {
-  invite_code: string;
+  secret_code: string;
 }
 
 export interface SearchTeamData {

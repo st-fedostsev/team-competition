@@ -92,7 +92,7 @@ export function useRegenerateCode() {
         if (oldData) {
           return {
             ...oldData,
-            invite_code: response.data.invite_code,
+            secret_code: response.data.secret_code,
           };
         }
         return oldData;
