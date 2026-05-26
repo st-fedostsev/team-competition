@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Team, Achievement
+from models import User, UserRole, Team, Achievement, get_league_by_partial_name
 from models.achievement_templates import ACHIEVEMENTS
 from schemas.team import *
 from schemas.common import *
@@ -270,48 +270,81 @@ async def search_team(search_team_data: SearchTeamData, response: Response, cred
 
     q = select(Team).filter(column('name').icontains(search_team_data.query)).limit(search_team_data.limit).offset(search_team_data.offset)
     teams = session.exec(q).all()
-    
-    result = list(map(lambda x: TeamData(
-                id=x.id,
-                name=x.name,
-                crc=x.crc,
-                league=x.league,
-                captain_id=x.captain_id,
-                created_at=x.created_at,
-                secret_code=None
-            ),
-            teams
-        )
-    )
+
+
+    result = []
+    for team in teams:
+        q = select(User).where(User.team_id == team.id)
+        members = session.exec(q).all()
+        members_ids = list(map(lambda x: x.id, members))
+
+        result.append(TeamData(
+                        id=team.id,
+                        name=team.name,
+                        crc=team.crc,
+                        league=team.league,
+                        captain_id=team.captain_id,
+                        created_at=team.created_at,
+                        secret_code=None,
+                        members=members_ids
+                    ))
+
     return result
 
 @router.post(
     '/leaderboard',
     summary='Получить лидерборд рейтингов команд'
 )
-async def user_get_leaderboard(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+async def team_get_leaderboard(paged_request_query_data: PagedRequestQueryData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
     if not user:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = (select(Team).order_by(-Team.crc)
-                    .limit(paged_request_data.limit)
-                    .offset(paged_request_data.offset))
-    result = session.exec(q).all()
-    result = list(map(lambda x: TeamData(
-                id=x.id,
-                name=x.name,
-                crc=x.crc,
-                league=x.league,
-                captain_id=x.captain_id,
-                created_at=x.created_at,
-                secret_code=None
-            ),
-            result
-        )
-    )
+    q = (select(Team).where(column('name').ilike(f'%{paged_request_query_data.query}%'))
+                    .order_by(-Team.crc))
+    teams = session.exec(q).all()
+
+    result = []
+    for team in teams:
+        q = select(User).where(User.team_id == team.id)
+        members = session.exec(q).all()
+        members_ids = list(map(lambda x: x.id, members))
+
+        result.append(TeamData(
+                        id=team.id,
+                        name=team.name,
+                        crc=team.crc,
+                        league=team.league,
+                        captain_id=team.captain_id,
+                        created_at=team.created_at,
+                        secret_code=None,
+                        members=members_ids
+                    ))
+    
+    if len(paged_request_query_data.query) > 0:
+        league = get_league_by_partial_name(paged_request_query_data.query)
+        if league is not None:
+            q = select(Team).where(Team.league == league)
+            teams = session.exec(q).all()
+            for team in teams:
+                q = select(User).where(User.team_id == team.id)
+                members = session.exec(q).all()
+                members_ids = list(map(lambda x: x.id, members))
+                data = TeamData(
+                            id=team.id,
+                            name=team.name,
+                            crc=team.crc,
+                            league=team.league,
+                            captain_id=team.captain_id,
+                            created_at=team.created_at,
+                            secret_code=None,
+                            members=members_ids
+                        )
+                if data not in result:
+                    result.append(data)
+
     return result
 
 @router.post(

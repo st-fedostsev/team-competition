@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
-from sqlmodel import Session, select
+from sqlmodel import Session, select, column, or_
 from database.session import get_session
-from models import User, UserRole, Achievement, Notification
+from models import User, UserRole, Achievement, Notification, Team
 from models.achievement_templates import ACHIEVEMENTS
 from pwdlib import PasswordHash
 from schemas.users import *
@@ -189,17 +189,31 @@ async def user_edit(user_edit_data: UserEditData, response: Response, credential
     '/leaderboard',
     summary='Получить лидерборд рейтингов пользователей'
 )
-async def user_get_leaderboard(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+async def user_get_leaderboard(paged_request_query_data: PagedRequestQueryData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
     if not user:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = (select(User).where(User.role == UserRole.student)
-                    .order_by(-User.personal_rating)
-                    .limit(paged_request_data.limit)
-                    .offset(paged_request_data.offset))
+    q = (select(User).where((User.role == UserRole.student) & 
+                        (column('last_name').ilike(f'%{paged_request_query_data.query}%') | 
+                        column('first_name').ilike(f'%{paged_request_query_data.query}%') | 
+                        column('patronymic').ilike(f'%{paged_request_query_data.query}%')))
+                    .order_by(-User.personal_rating))
+    if ' ' in paged_request_query_data.query:
+        full_name = list(filter(lambda x: len(x) > 0, paged_request_query_data.query.split(' ', maxsplit=3)))
+        if len(full_name) == 2:
+            q = (select(User).where((User.role == UserRole.student) & 
+                                (column('last_name').ilike(f'%{full_name[0]}%') &
+                                column('first_name').ilike(f'%{full_name[1]}%')))
+                            .order_by(-User.personal_rating))
+        elif len(full_name) == 3:
+            q = (select(User).where((User.role == UserRole.student) & 
+                                (column('last_name').ilike(f'%{full_name[0]}%') &
+                                column('first_name').ilike(f'%{full_name[1]}%') &
+                                column('patronymic').ilike(f'%{full_name[2]}%')))
+                            .order_by(-User.personal_rating))
     result = session.exec(q).all()
     result = list(map(lambda x: UserData(
                 id=x.id,
@@ -216,7 +230,34 @@ async def user_get_leaderboard(paged_request_data: PagedRequestData, response: R
             result
         )
     )
-    return result
+
+    if len(paged_request_query_data.query) > 0:
+        q = select(Team).where(column('name').ilike(f'%{paged_request_query_data.query}%'))
+        result_teams = session.exec(q).all()
+        
+        for team in result_teams:
+            q = select(User).where(User.team_id == team.id)
+            team_members = session.exec(q).all()
+            for member in team_members:
+                data = UserData(
+                    id=member.id,
+                    last_name=member.last_name,
+                    first_name=member.first_name,
+                    patronymic=member.patronymic,
+                    role=member.role,
+                    team_id=member.team_id,
+                    is_captain=member.is_captain,
+                    personal_rating=member.personal_rating,
+                    is_blocked=member.is_blocked,
+                    created_at=member.created_at
+                )
+                if data not in result:
+                    result.append(data)
+
+    if len(result) <= paged_request_query_data.offset:
+        return []
+
+    return sorted(result[paged_request_query_data.offset:paged_request_query_data.offset + paged_request_query_data.limit], key=lambda x: -x.personal_rating)
 
 @router.get(
     '/my_achievements',

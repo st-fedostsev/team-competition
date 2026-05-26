@@ -6,3 +6,8 @@ class Message(BaseModel):
 class PagedRequestData(BaseModel):
     offset: int
     limit: int
+
+class PagedRequestQueryData(BaseModel):
+    query: str
+    offset: int
+    limit: int

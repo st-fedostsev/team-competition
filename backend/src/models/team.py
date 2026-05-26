@@ -8,6 +8,7 @@ from .user import User
 from .rescue_request import RescueRequest
 from .vote import Vote
 
+
 class League(str, enum.Enum):
     novice = 'novice'
     pro = 'pro'
@@ -40,3 +41,15 @@ class Team(SQLModel, table=True):
         self.crc = members_mean * 0.6 + unity * 0.3 + bonus # * 0.1 <---- UNCOMMENT LATER!!
         session.add(self)
         session.commit()
+
+# required for search
+LEAGUES_LOCALIZED = {
+    'новички': League.novice,
+    'профи': League.pro,
+    'легенды': League.legend
+}
+def get_league_by_partial_name(name: str) -> League:
+    for k in LEAGUES_LOCALIZED.keys():
+        if k.startswith(name.lower()):
+            return LEAGUES_LOCALIZED[k]
+    return None

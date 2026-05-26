@@ -5,7 +5,7 @@ from .event import Event, EventFormat
 from .knowledge_post import KnowledgePost, KnowledgePostType
 from .moderation_status import ModerationStatus
 from .rescue_request import RescueRequest, RequestStatus
-from .team import Team, League
+from .team import Team, League, LEAGUES_LOCALIZED, get_league_by_partial_name
 from .user import User, UserRole
 from .vote import Vote
 from .news import News
@@ -30,5 +30,7 @@ __all__ = [
     'Vote',
     'Notification',
     'AchievementTemplate',
-    'NotificationTemplate'
+    'NotificationTemplate',
+    'LEAGUES_LOCALIZED',
+    'get_league_by_partial_name'
 ]
