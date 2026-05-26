@@ -53,7 +53,7 @@ team-competition/
 ```
 
 # Архитектура базы данных сервиса
-[База данных.png](https://drive.google.com/file/d/1FuJgHm436JB7hE8Qy6iltuQyUqLheDuS/view?usp=sharing)
+![База данных](https://drive.google.com/uc?export=download&id=1FuJgHm436JB7hE8Qy6iltuQyUqLheDuS)
 
 # Документация API
 
