@@ -27,3 +27,9 @@ class SearchTeamData(BaseModel):
 
 class KickUserData(BaseModel):
     id: int
+
+class GetTeamByIdData(BaseModel):
+    id: int
+
+class GetTeamByCodeData(BaseModel):
+    secret_code: uuid.UUID

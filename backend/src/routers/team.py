@@ -107,6 +107,68 @@ async def get_my_team(response: Response, credentials: JwtAuthorizationCredentia
     return result
 
 @router.post(
+    '/get_by_id',
+    summary='Получить команду по id'
+)
+async def get_team_by_id(get_team_by_id_data: GetTeamByIdData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Team).where(Team.id == get_team_by_id_data.id)
+    team = session.exec(q).first()
+    if not team:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Команда не найдена')
+    
+    q = select(User).where(User.team_id == team.id)
+    members = session.exec(q).all()
+    members_ids = list(map(lambda x: x.id, members))
+
+    return TeamData(
+        id=team.id,
+        name=team.name,
+        crc=team.crc,
+        league=team.league,
+        captain_id=team.captain_id,
+        created_at=team.created_at,
+        members=members_ids
+    )
+
+@router.post(
+    '/get_by_code',
+    summary='Получить команду по секретному коду'
+)
+async def get_team_by_code(get_team_by_code_data: GetTeamByCodeData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Team).where(Team.secret_code == get_team_by_code_data.secret_code)
+    team = session.exec(q).first()
+    if not team:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Команда не найдена')
+    
+    q = select(User).where(User.team_id == team.id)
+    members = session.exec(q).all()
+    members_ids = list(map(lambda x: x.id, members))
+
+    return TeamData(
+        id=team.id,
+        name=team.name,
+        crc=team.crc,
+        league=team.league,
+        captain_id=team.captain_id,
+        created_at=team.created_at,
+        members=members_ids
+    )
+
+@router.post(
     '/regenerate_code',
     summary='Сгенерировать новый код приглашения(доступно только капитану)'
 )
