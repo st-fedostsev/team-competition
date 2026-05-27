@@ -50,6 +50,105 @@ team-competition/
 │           ├── technical_admin.py
 │           └── users.py
 └── frontend/
+    ├── public/
+    │   └── favicon.png - иконка сайта
+    └── src/
+        ├── api/ - файлы для работы с API
+        │   ├── achievements.ts
+        │   ├── auth.ts
+        │   ├── client.ts
+        │   ├── events.ts
+        │   ├── knowledge.ts
+        │   ├── rating.ts
+        │   └── team.ts
+        ├── components/ - переиспользуемые компоненты
+        │   ├── Header/ - компоненты шапки
+        │   │   ├── HeaderComponent.tsx
+        │   │   ├── HeaderStudent.tsx
+        │   │   └── HeaderTechAdmin.tsx
+        │   ├── Nav/ - компоненты навигации
+        │   │   ├── NavEvents.tsx
+        │   │   ├── NavRating.tsx
+        │   │   ├── NavStudent.tsx
+        │   │   └── NavTeam.tsx
+        │   ├── Buttons.tsx - общие кнопки
+        │   ├── ModalWindowComponent.tsx - компонент модального окна
+        │   └── SearchTeamModal.tsx - модальное окно поиска команды
+        ├── hooks/ - кастомные React-хуки
+        │   ├── useAchievements.ts
+        │   ├── useAuth.ts
+        │   ├── useEvents.ts
+        │   ├── useKnowledge.ts
+        │   ├── useRating.ts
+        │   └── useTeam.ts
+        ├── pages/ - страницы приложения
+        │   ├── Content Manager/
+        │   │   └── Profile/
+        │   │       └── ProfileContentManagerPage.tsx
+        │   ├── Login/
+        │   │   ├── ChooseRolePage.tsx
+        │   │   ├── LoginAdminPage.tsx
+        │   │   └── LoginStudentPage.tsx
+        │   ├── Student/
+        │   │   ├── HeaderNav/
+        │   │   │   ├── Event feed/
+        │   │   │   │   ├── AnnouncementsPage.tsx
+        │   │   │   │   ├── ChallengesPage.tsx
+        │   │   │   │   └── EventsPage.tsx
+        │   │   │   ├── CalendarPage.tsx
+        │   │   │   ├── KnowledgePage.tsx
+        │   │   │   ├── RatingPage.tsx
+        │   │   │   └── RatingTeamsPage.tsx
+        │   │   └── Profile/
+        │   │       ├── ProfileTeam/
+        │   │       │   └── TeamProfilePage.tsx
+        │   │       └── ProfileStudentPage.tsx
+        │   ├── Tech Admin/
+        │   │   └── Profile/
+        │   │       └── ProfileTechAdminPage.tsx
+        │   └── UnauthorizedPage.tsx
+        ├── providers/ - провайдеры и роутинг
+        │   ├── ProtectedRoute.tsx
+        │   ├── queryClient.ts
+        │   ├── QueryProvider.tsx
+        │   └── routes.tsx
+        ├── stores/ - состояния приложения
+        │   └── authStore.ts
+        ├── styles/ - CSS стили
+        │   ├── AdminPage.css
+        │   ├── Buttons.css
+        │   ├── CalendarPage.css
+        │   ├── ChallengesPage.css
+        │   ├── ChooseRolePage.css
+        │   ├── colours.css
+        │   ├── CreateSletter.css
+        │   ├── input.css
+        │   ├── KnowledgePage.css
+        │   ├── LentaPage.css
+        │   ├── LoginStudentPage.css
+        │   ├── main.css
+        │   ├── Modal.css
+        │   ├── NavLenta.css
+        │   ├── NavRating.css
+        │   ├── NavStudent.css
+        │   ├── NavTeam.css
+        │   ├── ProfilePage.css
+        │   ├── RatingPage.css
+        │   ├── SearchTeamModal.css
+        │   ├── TeamProfilePage.css
+        │   ├── TopMenu.css
+        │   └── TopMenuAdmin.css
+        ├── types/ - TypeScript-типы
+        │   ├── achievement.types.ts
+        │   ├── auth.types.ts
+        │   ├── error.types.ts
+        │   ├── event.types.ts
+        │   ├── knowledge.types.ts
+        │   ├── rating.types.ts
+        │   ├── roles.types.ts
+        │   └── team.types.ts
+        ├── index.tsx - точка входа
+        └── constants.ts - константы приложения
 ```
 
 # Архитектура базы данных сервиса
