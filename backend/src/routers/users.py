@@ -72,7 +72,7 @@ async def login_user(login_data: LoginData, session: Session = Depends(get_sessi
         (User.first_name == login_data.first_name) &
         (User.last_name == login_data.last_name) &
         (User.student_id == login_data.student_id) &
-        (~User.role.in_([UserRole.admin, UserRole.technical_admin]))
+        (~User.role.in_([UserRole.game_admin, UserRole.technical_admin]))
     )
     user = session.exec(q).first()
     if user is None:
@@ -110,7 +110,7 @@ async def register_user(register_data: RegisterData, response: Response, credent
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Недостаточно прав для выполнения запроса')
 
-    if register_data.user_role in (UserRole.admin, UserRole.technical_admin, UserRole.content_manager):
+    if register_data.user_role in (UserRole.game_admin, UserRole.technical_admin, UserRole.content_manager):
         user = User(
             student_id=0,
             last_name=register_data.last_name,

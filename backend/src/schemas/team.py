@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from models import UserRole, Team, League
+from models import UserRole, Team, League, RequestStatus
 from datetime import datetime
 import uuid
 
@@ -33,3 +33,10 @@ class GetTeamByIdData(BaseModel):
 
 class GetTeamByCodeData(BaseModel):
     secret_code: uuid.UUID
+
+class RequestJoinData(BaseModel):
+    id: int
+
+class RequestReviewData(BaseModel):
+    id: int
+    new_status: RequestStatus

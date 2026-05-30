@@ -6,7 +6,7 @@ from datetime import datetime
 class UserRole(str, enum.Enum):
     student = 'student'
     content_manager = 'content_manager'
-    admin = 'admin'
+    game_admin = 'game_admin'
     technical_admin = 'technical_admin'
 
 class User(SQLModel, table=True):

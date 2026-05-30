@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Team, Achievement, get_league_by_partial_name
+from models import User, UserRole, Team, Achievement, get_league_by_partial_name, JoinTeamRequest, RequestStatus
 from models.achievement_templates import ACHIEVEMENTS
 from schemas.team import *
 from schemas.common import *
@@ -389,3 +389,143 @@ async def kick_user(kick_user_data: KickUserData, response: Response, credential
     session.commit()
 
     return Message(msg='Пользователь исключен из команды')
+
+@router.post(
+    '/request_join',
+    summary='Отправить запрос на вступление'
+)
+async def request_join(request_join_data: RequestJoinData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if user.team_id is not None:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Вы уже состоите в команде')
+    
+    q = select(Team).where(Team.id == request_join_data.id)
+    team = session.exec(q).first()
+    if not team:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Команда не найдена')
+    
+    q = select(User).where(User.id == Team.captain_id)
+    captain = session.exec(q).first()
+    if not captain:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Капитан не найден')
+    
+    q = select(JoinTeamRequest).where((JoinTeamRequest.from_id == user.id) & (JoinTeamRequest.status == RequestStatus.awaiting))
+    requests = session.exec(q).all()
+    if len(requests) > 0:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Одновременно можно отправить только одну заявку')
+
+    request = JoinTeamRequest(
+        team_id=team.id,
+        from_id=user.id,
+        created_at=datetime.utcnow()
+    )
+
+    session.add(request)
+    session.commit()
+
+    return Message(msg='Заявка отправлена')
+
+@router.post(
+    '/cancel_request',
+    summary='Отменить текущую заявку'
+)
+async def cancel_request(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(JoinTeamRequest).where((JoinTeamRequest.from_id == user.id) & (JoinTeamRequest.status == RequestStatus.awaiting))
+    request = session.exec(q).first()
+    if not request:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Заявок не найдено')
+    
+    session.delete(request)
+    session.commit()
+
+    return Message(msg='Заявка отменена')
+
+@router.post(
+    '/get_my_requests',
+    summary='Получить отправленные заявки'
+)
+async def get_my_requests(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = (select(JoinTeamRequest).where(JoinTeamRequest.from_id == user.id)
+                                .limit(paged_request_data.limit)
+                                .offset(paged_request_data.offset))
+    request = session.exec(q).all()
+    return request
+
+@router.get(
+    '/get_requests',
+    summary='Получить заявки на вступление в команду'
+)
+async def get_requests(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if not user.is_captain:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Заявки доступны к просмотру только капитану команды')
+
+    q = select(JoinTeamRequest).where(JoinTeamRequest.team_id == user.team_id)
+    requests = session.exec(q).all()
+    return requests
+
+@router.post(
+    '/review_request',
+    summary='Рассмотреть заявку на вступление в команду'
+)
+async def review_request(request_review_data: RequestReviewData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if not user.is_captain:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Заявки доступны к просмотру только капитану команды')
+    
+    q = select(JoinTeamRequest).where((JoinTeamRequest.id == request_review_data.id) & (JoinTeamRequest.team_id == user.team_id) & (JoinTeamRequest.status == RequestStatus.awaiting))
+    request = session.exec(q).first()
+    if not request:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Запрос не найден')
+    
+    request.status = request_review_data.new_status
+    session.add(request)
+    if request.status == RequestStatus.approved:
+        q = select(User).where(User.id == request.from_id)
+        from_user = session.exec(q).first()
+        if from_user:
+            if from_user.team_id is not None:
+                response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+                session.commit()
+                return Message(msg='Пользователь уже состоит в команде')
+            from_user.team_id = request.team_id
+            session.add(from_user)
+        
+    session.commit()
+
+    return Message(msg='Статус заявки изменен')

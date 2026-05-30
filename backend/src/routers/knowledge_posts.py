@@ -90,3 +90,37 @@ async def list_posts(post_list_data: PagedRequestData, response: Response, crede
     ))
     
     return result
+
+@router.post(
+    '/list_my',
+    summary='Получить объявлений своей команды'
+)
+async def list_posts(post_list_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if not user.team_id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь не состоит в команде')
+
+    q = (select(KnowledgePost).where(KnowledgePost.team_id == user.team_id)
+                            .limit(post_list_data.limit)
+                            .offset(post_list_data.offset))
+    posts = session.exec(q).all()
+
+    result = list(map(lambda x: KnowledgePostData(
+            id=x.id,
+            team_id=x.team_id,
+            type=x.type,
+            title=x.title,
+            description=x.description,
+            tags=x.tags,
+            status=x.status
+        ), 
+        posts
+    ))
+    
+    return result

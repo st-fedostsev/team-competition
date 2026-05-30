@@ -3,7 +3,7 @@ from sqlalchemy import BigInteger
 from datetime import datetime
 import enum
 
-class RequestStatus(str, enum.Enum):
+class RescueRequestStatus(str, enum.Enum):
     awaiting = 'awaiting'
     working = 'working'
     approved = 'approved'
@@ -14,5 +14,5 @@ class RescueRequest(SQLModel, table=True):
     requester_team_id: int = Field(foreign_key='team.id')
     helper_team_id: int = Field(foreign_key='team.id', nullable=True, default=None)
     description: str = Field()
-    status: RequestStatus = Field(default=RequestStatus.awaiting, sa_column=Column(Enum(RequestStatus)))
+    status: RescueRequestStatus = Field(default=RescueRequestStatus.awaiting, sa_column=Column(Enum(RescueRequestStatus)))
     bonus_points: int | None = None
