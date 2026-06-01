@@ -119,6 +119,16 @@ export function CheckInButton({ onClick }: ButtonProps) {
   );
 }
 
+export function Import({ onClick }: ButtonProps) { 
+  return (
+    <button className="button button-small drop-shadow" onClick={onClick}> 
+    <p className='button-text button-text-small'> 
+      Импорт
+    </p>
+    </button>
+  );
+}
+
 export function StudentButton({ onClick }: ButtonProps) { 
   return ( 
     <button className="button button-big drop-shadow" onClick={onClick}> 

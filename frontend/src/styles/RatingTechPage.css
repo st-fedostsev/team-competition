@@ -1,0 +1,186 @@
+.tech-rating-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+}
+
+.tech-rating-main {
+  width: 912px;
+  margin: 92px auto 0;
+}
+
+.tech-rating-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.tech-rating-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+}
+
+.tech-rating-tab {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 5px 12px;
+  color: #000;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tech-rating-tab.active {
+  background: #e2e2e2;
+}
+
+.tech-rating-analytics-button {
+  min-width: 181px;
+  min-height: 48px;
+  padding: 8px 18px;
+  border: 2px solid #ffd675;
+  border-radius: 8px;
+  background: #fff;
+  color: #000;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.tech-rating-search {
+  position: relative;
+}
+
+.tech-rating-search-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 66px 0 22px;
+  border: 1px solid #d0d0d0;
+  border-radius: 18px;
+  outline: none;
+  background: transparent;
+  color: #000;
+  font-size: 20px;
+}
+
+.tech-rating-search-input::placeholder {
+  color: #5e5e5e;
+}
+
+.tech-rating-search-button {
+  position: absolute;
+  top: 50%;
+  right: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.tech-rating-top-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 0 31px;
+  color: #000;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.tech-rating-top-checkbox input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  appearance: none;
+  border: 1.5px solid #000;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tech-rating-top-checkbox input:checked {
+  border: 5px solid #000;
+}
+
+.tech-rating-table {
+  min-height: 544px;
+  margin-top: 24px;
+  padding: 18px 32px;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.tech-rating-row {
+  display: grid;
+  align-items: center;
+  min-height: 73px;
+  border-bottom: 1px solid #000;
+  color: #000;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.tech-rating-students-row {
+  grid-template-columns: 160px 1.4fr 1fr 120px 32px;
+}
+
+.tech-rating-teams-row {
+  grid-template-columns: 160px 1.4fr 1fr 120px 32px;
+}
+
+.tech-rating-header {
+  min-height: 44px;
+  font-size: 22px;
+}
+
+.tech-rating-row > div:first-child,
+.tech-rating-row > div:nth-child(4),
+.tech-rating-row > div:last-child {
+  text-align: center;
+}
+
+.tech-rating-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #000;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .tech-rating-main {
+    width: calc(100% - 32px);
+  }
+
+  .tech-rating-control-row {
+    gap: 16px;
+  }
+
+  .tech-rating-table {
+    overflow-x: auto;
+  }
+
+  .tech-rating-row {
+    min-width: 840px;
+  }
+}

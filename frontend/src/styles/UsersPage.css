@@ -1,0 +1,244 @@
+.users-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+}
+
+.users-main {
+  width: 792px;
+  margin: 60px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Строка фильтр + кнопка Создать */
+.users-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+/* Фильтр-переключатель */
+.users-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fff;
+  border-radius: 50px;
+  padding: 4px 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.users-filter-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  color: #333;
+  padding: 8px 20px;
+  border-radius: 50px;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.users-filter-btn.active {
+  background-color: #f0f0f0;
+  font-weight: 500;
+  border: 1px solid #ccc;
+}
+
+.users-filter-btn:not(.active):hover {
+  background-color: #f7f7f7;
+}
+
+/* Поиск — отдельная строка */
+.users-search {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.users-search-input {
+  width: 100%;
+  height: 54px;
+  border: 1px solid #d0d0d0;
+  border-radius: 18px;
+  background: #fff;
+  padding: 0 54px 0 22px;
+  font-size: 18px;
+  font-family: inherit;
+  color: #333;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.users-search-input::placeholder {
+  color: #aaa;
+}
+
+.users-search-input:focus {
+  border-color: #bbb;
+}
+
+.users-search-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+}
+
+/* Список карточек */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.user-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.user-card-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-card-name {
+  font-size: 17px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.user-card-sub {
+  font-size: 15px;
+  color: #666;
+}
+
+/* Кнопки бан/разбан */
+.btn-block {
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+
+.btn-block:hover {
+  opacity: 0.85;
+}
+
+.btn-block--ban {
+  background-color: #FF7575;
+  color: #fff;
+}
+
+.btn-block--unban {
+  background-color: #97FF72;
+  color: #fff;
+}
+
+.users-empty {
+  text-align: center;
+  padding: 48px 0;
+  color: #aaa;
+  font-size: 16px;
+}
+
+/* Модалка — содержимое */
+.create-admin-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 10px 4px 4px;
+  text-align: left;
+}
+
+.create-admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-admin-label {
+  font-size: 16px;
+  color: #1a1a1a;
+  font-weight: 400;
+}
+
+.create-admin-input {
+  height: 44px;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  background: #f6f6f6;
+  padding: 0 14px;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.create-admin-input:focus {
+  border-color: #bbb;
+  background: #fff;
+}
+
+.create-admin-select-wrapper {
+  position: relative;
+  width: fit-content;
+}
+
+.create-admin-select {
+  width: 160px;
+  height: 44px;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  background: #f6f6f6;
+  padding: 0 36px 0 14px;
+  font-size: 15px;
+  font-family: inherit;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.create-admin-select-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #666;
+  pointer-events: none;
+}
+
+.create-admin-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}

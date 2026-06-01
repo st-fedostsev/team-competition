@@ -14,6 +14,9 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { AnnouncementsPage } from '../pages/Student/HeaderNav/Event feed/NewsPage';
 import { RatingPage } from '../pages/Student/HeaderNav/RatingPage';
 import { RatingTeamsPage } from '../pages/Student/HeaderNav/Event feed/RatingTeamsPage';
+import { UsersPage } from '../pages/Tech Admin/HeaderNav/UsersPage';
+import { RatingTechPage } from '../pages/Tech Admin/HeaderNav/RatingTechPage';
+import { IntegrationsPage } from '../pages/Tech Admin/HeaderNav/IntegrationsPage';
 
 export const router = createBrowserRouter([
   {
@@ -100,4 +103,16 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   }, 
+  {
+    path: '/admin/users',
+    element: <UsersPage />
+  },
+  {
+    path: '/admin/rating',
+    element: <RatingTechPage />
+  },
+    {
+    path: '/admin/integrations',
+    element: <IntegrationsPage />
+  },
 ]);

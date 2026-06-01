@@ -81,7 +81,7 @@ export function useAdminLogin() {
             navigate('/ProfilePage');
             break;
           case 'technical_admin':
-            navigate('/ProfilePage');
+            navigate('/ProfileTechAdmin');
             break;
           default:
             navigate('/ProfilePage');
