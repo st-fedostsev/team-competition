@@ -7,5 +7,5 @@ class Challenge(SQLModel, table=True):
     title: str = Field()
     description: str = Field()
     deadline: datetime = Field()
-    created_by: int = Field(foreign_key='user.id')
+    created_by: int = Field(foreign_key='users.id')
     is_active: bool = Field(default=True)

@@ -12,6 +12,6 @@ class RequestStatus(str, enum.Enum):
 class JoinTeamRequest(SQLModel, table=True):
     id: int = Field(primary_key=True)
     team_id: int = Field(foreign_key='team.id')
-    from_id: int = Field(foreign_key='user.id')
+    from_id: int = Field(foreign_key='users.id')
     status: RequestStatus = Field(default=RequestStatus.awaiting, sa_column=Column(Enum(RequestStatus)))
     created_at: datetime = Field()

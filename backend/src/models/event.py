@@ -13,5 +13,5 @@ class Event(SQLModel, table=True):
     description: str | None = None
     date: datetime = Field()
     format: EventFormat = Field(default=EventFormat.offline, sa_column=Column(Enum(EventFormat)))
-    created_by: int = Field(foreign_key='user.id')
+    created_by: int = Field(foreign_key='users.id')
     is_official: bool = Field()

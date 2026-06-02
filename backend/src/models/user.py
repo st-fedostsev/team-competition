@@ -10,6 +10,7 @@ class UserRole(str, enum.Enum):
     technical_admin = 'technical_admin'
 
 class User(SQLModel, table=True):
+    __tablename__ = 'users'
     id: int = Field(primary_key=True)
     student_id: int = Field()
     last_name: str = Field()

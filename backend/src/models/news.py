@@ -7,4 +7,4 @@ class News(SQLModel, table=True):
     title: str = Field()
     body: str = Field()
     created_at: datetime = Field()
-    created_by: int = Field(foreign_key='user.id')
+    created_by: int = Field(foreign_key='users.id')

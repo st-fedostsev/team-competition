@@ -11,5 +11,5 @@ class ChallengeReport(SQLModel, table=True):
     file_url: str | None = None
     comment: str | None = None
     status: ModerationStatus = Field(default=ModerationStatus.on_moderation, sa_column=Column(Enum(ModerationStatus)))
-    moderated_by: int = Field(foreign_key='user.id', nullable=True, default=None)
+    moderated_by: int = Field(foreign_key='users.id', nullable=True, default=None)
     moderated_at: datetime | None = None

@@ -6,7 +6,7 @@ from typing import Any
 
 class Notification(SQLModel, table=True):
     id: int = Field(primary_key=True)
-    user_id: int = Field(foreign_key='user.id')
+    user_id: int = Field(foreign_key='users.id')
     title: str = Field()
     body: str = Field()
     dismissed: bool = Field(default=False)

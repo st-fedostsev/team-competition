@@ -21,7 +21,7 @@ class Team(SQLModel, table=True):
     name: str = Field()
     crc: float = Field(default=0)
     league: League = Field(default=League.novice, sa_column=Column(Enum(League)))
-    captain_id: int = Field(foreign_key='user.id')
+    captain_id: int = Field(foreign_key='users.id')
     created_at: datetime = Field()
     secret_code: uuid.UUID = Field(default_factory=uuid.uuid4)
 
