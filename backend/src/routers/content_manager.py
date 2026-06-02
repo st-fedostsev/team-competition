@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status, UploadFile
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Notification, KnowledgePost, ModerationStatus
+from models import User, UserRole, Notification, KnowledgePost, ModerationStatus, \
+                    ChallengeReport, Achievement
+from models.achievement_templates import ACHIEVEMENTS
 from pwdlib import PasswordHash
 from schemas.content_manager import *
 from schemas.common import *
@@ -95,3 +97,44 @@ async def moderate_knowledge_post(moderation_data: ModerationData, response: Res
 
     return Message(msg='Данные сохранены')
 
+@router.post(
+    '/get_challenge_reports',
+    summary='Получить список отчетов по челленджам'
+)
+async def get_challenge_reports(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    if credentials['role'] != UserRole.content_manager:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = select(ChallengeReport).where(ChallengeReport.status == ModerationStatus.on_moderation).limit(paged_request_data.limit).offset(paged_request_data.offset)
+    reports = session.exec(q).all()
+    return reports
+
+@router.post(
+    '/moderate_challenge_report',
+    summary='Установить статус отчета по челленджу(одобрено/отклонено)'
+)
+async def moderate_challenge_report(moderation_data: ModerationData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    if credentials['role'] != UserRole.content_manager:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = select(ChallengeReport).where(ChallengeReport.id == moderation_data.id)
+    report = session.exec(q).first()
+    if not report or report.status != ModerationStatus.on_moderation:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пост не найден')
+    
+    report.status = moderation_data.new_status
+    session.add(report)
+    session.commit()
+
+    q = select(ChallengeReport).where((ChallengeReport.team_id == report.team_id) & (ChallengeReport.status == ModerationStatus.approved))
+    team_reports = session.exec(q).all()
+    if len(team_reports) >= 3:
+        q = select(User).where(User.team_id == report.team_id)
+        team_members = session.exec(q).all()
+        for member in team_members:
+            Achievement.give(session, member.id, ACHIEVEMENTS['beginning_of_the_path'])
+
+    return Message(msg='Данные сохранены')

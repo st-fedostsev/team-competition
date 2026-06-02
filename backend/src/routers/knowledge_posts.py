@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, KnowledgePost
+from models import User, UserRole, KnowledgePost, Achievement
+from models.achievement_templates import ACHIEVEMENTS
 from schemas.knowledge_posts import *
 from schemas.common import *
 from auth.auth_handler import access_security, refresh_security
@@ -60,6 +61,13 @@ async def create_post(post_create_data: KnowledgePostCreateData, response: Respo
     )
     session.add(post)
     session.commit()
+
+    q = select(User).where(User.team_id == user.team_id)
+    team_members = session.exec(q).all()
+
+    achievement_type = ACHIEVEMENTS['brave_novice'] if post_create_data.type == KnowledgePostType.request else ACHIEVEMENTS['instructor']
+    for member in team_members:
+        Achievement.give(session, member.id, achievement_type)
 
     return Message(msg='Объявление создано')
 

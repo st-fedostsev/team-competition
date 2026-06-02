@@ -7,6 +7,8 @@ from typing import Any
 from .user import User
 from .rescue_request import RescueRequest
 from .vote import Vote
+from .achievement import Achievement
+from .achievement_templates import ACHIEVEMENTS
 
 
 class League(str, enum.Enum):
@@ -41,6 +43,16 @@ class Team(SQLModel, table=True):
         self.crc = members_mean * 0.6 + unity * 0.3 + bonus # * 0.1 <---- UNCOMMENT LATER!!
         session.add(self)
         session.commit()
+
+        q = select(Team).order_by(-Team.crc).limit(10)
+        teams_ids = list(map(lambda x: x.id, session.exec(q)))
+        if self.id in teams_ids:
+            for member_id in member_ids:
+                Achievement.give(session, member_id, ACHIEVEMENTS['top_10'])
+
+        if self.id in teams_ids[:5]:
+            for member_id in member_ids:
+                Achievement.give(session, member_id, ACHIEVEMENTS['top_5'])
 
 # required for search
 LEAGUES_LOCALIZED = {
