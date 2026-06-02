@@ -68,3 +68,9 @@ class NotificationData(BaseModel):
 
 class DismissNotificationData(BaseModel):
     id: int
+
+class SearchUserData(BaseModel):
+    query: str
+    roles: list[UserRole]
+    limit: int
+    offset: int

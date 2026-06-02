@@ -259,6 +259,55 @@ async def user_get_leaderboard(paged_request_query_data: PagedRequestQueryData, 
 
     return sorted(result[paged_request_query_data.offset:paged_request_query_data.offset + paged_request_query_data.limit], key=lambda x: -x.personal_rating)
 
+@router.post(
+    '/search',
+    summary='Поиск пользователя(только для технического и игрового администратора)'
+)
+async def search_user(search_user_data: SearchUserData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if user.role not in [UserRole.game_admin, UserRole.technical_admin]:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = (select(User).where((column('role').in_(search_user_data.roles)) & 
+                        (column('last_name').ilike(f'%{search_user_data.query}%') | 
+                        column('first_name').ilike(f'%{search_user_data.query}%') | 
+                        column('patronymic').ilike(f'%{search_user_data.query}%'))))
+    if ' ' in search_user_data.query:
+        full_name = list(filter(lambda x: len(x) > 0, search_user_data.query.split(' ', maxsplit=3)))
+        if len(full_name) == 2:
+            q = (select(User).where(column('role').in_(search_user_data.roles) & 
+                                (column('last_name').ilike(f'%{full_name[0]}%') &
+                                column('first_name').ilike(f'%{full_name[1]}%'))))
+        elif len(full_name) == 3:
+            q = (select(User).where(column('role').in_(search_user_data.roles) & 
+                                (column('last_name').ilike(f'%{full_name[0]}%') &
+                                column('first_name').ilike(f'%{full_name[1]}%') &
+                                column('patronymic').ilike(f'%{full_name[2]}%'))))
+    result = session.exec(q.limit(search_user_data.limit).offset(search_user_data.offset)).all()
+    result = list(map(lambda x: UserData(
+                id=x.id,
+                last_name=x.last_name,
+                first_name=x.first_name,
+                patronymic=x.patronymic,
+                role=x.role,
+                team_id=x.team_id,
+                is_captain=x.is_captain,
+                personal_rating=x.personal_rating,
+                is_blocked=x.is_blocked,
+                created_at=x.created_at
+            ),
+            result
+        )
+    )
+
+    return result
+
 @router.get(
     '/my_achievements',
     summary='Получить список своих достижений'
