@@ -16,6 +16,10 @@ export const teamApi = {
   // Получить свою команду
   getMyTeam: () => apiClient.get<Team>('/api/team/get_my'),
 
+   // Получить команду по ID
+  getTeamById: (teamId: number) =>
+    apiClient.post<Team>('/api/team/get_by_id', { id: teamId }),
+
   // Сгенерировать новый код приглашения (только капитан)
   regenerateCode: () =>
     apiClient.post<{ secret_code: string }>('/api/team/regenerate_code'),

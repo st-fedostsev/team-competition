@@ -37,16 +37,16 @@ export function useLeaderboard(search?: string) {
       const response = await ratingApi.getLeaderboard({
         offset: pageParam as number,
         limit: 20,
-        search: search || undefined,
+        query: '',
       });
-      
+
       const users = response.data as unknown as LeaderboardUser[];
-      
+
       const usersWithPosition = users.map((user, index) => ({
         ...user,
         position: (pageParam as number) + index + 1,
       }));
-      
+
       return {
         users: usersWithPosition,
         hasMore: users.length === 20,
@@ -67,17 +67,23 @@ export function useLeaderboard(search?: string) {
 // Хук для получения позиции текущего пользователя
 export function useUserRatingPosition() {
   const { data: user } = useCurrentUser();
-  
+
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ratingKeys.leaderboard,
     queryFn: async () => {
-      const response = await ratingApi.getLeaderboard({ offset: 0, limit: 1000 });
+      const response = await ratingApi.getLeaderboard({
+        offset: 0,
+        limit: 1000,
+        query: '',
+      });
       const users = response.data as unknown as LeaderboardUser[];
-      
-      const sorted = [...users].sort((a, b) => b.personal_rating - a.personal_rating);
-      
-      const userPosition = sorted.findIndex(u => u.id === user?.id) + 1;
-      
+
+      const sorted = [...users].sort(
+        (a, b) => b.personal_rating - a.personal_rating,
+      );
+
+      const userPosition = sorted.findIndex((u) => u.id === user?.id) + 1;
+
       return {
         position: userPosition > 0 ? userPosition : null,
         total: sorted.length,
@@ -86,7 +92,7 @@ export function useUserRatingPosition() {
     enabled: !!user,
     staleTime: 1000 * 60 * 2,
   });
-  
+
   return {
     position: leaderboardData?.position || null,
     total: leaderboardData?.total || 0,

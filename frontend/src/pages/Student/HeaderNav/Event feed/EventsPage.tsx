@@ -74,12 +74,12 @@ function CreateEventModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
             <option value="online">Онлайн</option>
           </select>
           <label className="modal-checkbox">
-            <input
+            {/* <input
               type="checkbox"
               checked={isOfficial}
               onChange={(e) => setIsOfficial(e.target.checked)}
             />
-            Официальное мероприятие
+            Официальное мероприятие */}
           </label>
           <div className="modal-buttons">
             <button type="button" onClick={onClose} className="cancel-button">Отмена</button>

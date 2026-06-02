@@ -1,5 +1,5 @@
 // hooks/useTeam.ts
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { teamApi } from '../api/team';
 import { useCurrentUser } from './useAuth';
 import { useAuthStore } from '../stores/authStore';
@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 export const teamKeys = {
   all: ['team'] as const,
   my: ['team', 'my'] as const,
+  byId: (id: number) => ['team', id] as const,
   leaderboard: ['team', 'leaderboard'] as const,
   search: (query: string) => ['team', 'search', query] as const,
 };
@@ -37,6 +38,37 @@ export function useMyTeam() {
     throwOnError: false,
     // Запрос только если есть токен И есть team_id
     enabled: !!accessToken && hasTeam,
+  });
+}
+
+// Хук для получения команды по ID
+export function useTeamById(teamId: number | null | undefined) {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  return useQuery({
+    queryKey: teamKeys.byId(teamId!),
+    queryFn: async () => {
+      const response = await teamApi.getTeamById(teamId!);
+      return response.data;
+    },
+    enabled: !!accessToken && !!teamId,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
+// Хук для получения нескольких команд по ID
+export function useTeamsByIds(teamIds: number[]) {
+  return useQueries({
+    queries: teamIds.map(teamId => ({
+      queryKey: teamKeys.byId(teamId),
+      queryFn: async () => {
+        const response = await teamApi.getTeamById(teamId);
+        return response.data;
+      },
+      enabled: !!teamId,
+      staleTime: 1000 * 60 * 5,
+    })),
   });
 }
 
