@@ -101,7 +101,7 @@ export function SendButton() {
 
 export function CancelButton({ onClick }: ButtonProps) { 
   return (
-    <button className="button button-small drop-shadow" onClick={onClick}> 
+    <button className="button-close button-small drop-shadow" onClick={onClick}> 
     <p className='button-text button-text-small'> 
       Отмена
     </p>
@@ -183,11 +183,13 @@ interface JoinButtonProps {
 export function JoinButton({ onClick, disabled }: JoinButtonProps) {
   return (
     <button 
-      className="join-button" 
+      className="button button-small drop-shadow"
       onClick={onClick}
       disabled={disabled}
     >
+    <p className="button-text button-text-small">
       Вступить
+    </p>
     </button>
   );
 }
@@ -259,8 +261,10 @@ interface PublishButtonProps {
 
 export function PublishButton({ onClick, disabled }: PublishButtonProps) {
   return (
-    <button className="publish-button" onClick={onClick} disabled={disabled}>
-      Опубликовать
+    <button className="button button-small drop-shadow" onClick={onClick} disabled={disabled}>
+      <p className="button-text button-text-small">
+        Опубликовать
+      </p>
     </button>
   );
 }

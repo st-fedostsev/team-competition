@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router-dom';
 import { QueryProvider } from './providers/QueryProvider';
 import { router } from './providers/routes';
 import './styles/main.css';
+import '@fontsource-variable/raleway'
 
 const root = createRoot(document.getElementById('root')!);
 

@@ -1,5 +1,5 @@
 .lenta-container {
-  font-family: 'Roboto', sans-serif;
+  font-family: Raleway Variable;
   background-color: #f0f0f0;
   min-height: 100vh;
 }
@@ -39,7 +39,7 @@
   padding: 8px 18px;
   border-radius: 50px;
   transition: background 0.15s ease;
-  font-family: inherit;
+  font-family: Raleway Variable;
 }
 
 .lenta-tab.active {
@@ -183,7 +183,7 @@
   border-radius: 10px;
   padding: 12px 14px;
   font-size: 16px;
-  font-family: inherit;
+  font-family: Raleway Variable;
   background: #f7f7f8;
 }
 
@@ -212,7 +212,7 @@
   border-radius: 8px;
   padding: 10px 22px;
   cursor: pointer;
-  font-family: inherit;
+  font-family: Raleway Variable;
 }
 
 .create-button {
@@ -223,7 +223,7 @@
   cursor: pointer;
   font-size: 18px;
   font-weight: 500;
-  font-family: inherit;
+  font-family: Raleway Variable;
 }
 
 .create-button:disabled {

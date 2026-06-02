@@ -7,8 +7,8 @@ export const HEADERS_LIST_STUDENT = [
 
 export const HEADERS_LIST_TECH_ADMIN = [
   { label: 'Пользователи', path: '/admin/users' },
-  { label: 'Логи', path: '/admin/logs' },
-  { label: 'Резервное копирование', path: '/admin/backup' },
+  // { label: 'Логи', path: '/admin/logs' },
+  // { label: 'Резервное копирование', path: '/admin/backup' },
   { label: 'Рейтинг', path: '/admin/rating' },
   { label: 'Интеграции', path: '/admin/integrations' },
 ];

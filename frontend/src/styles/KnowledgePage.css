@@ -1,5 +1,5 @@
 .knowledge-container {
-  font-family: 'Roboto', sans-serif;
+  font-family: Raleway Variable;
   background-color: #f0f0f0;
   min-height: 100vh;
 }
@@ -65,7 +65,7 @@
   font-size: 14px;
   font-weight: 400;
   color: #333;
-  border: 1px solid #ccc;
+  border: 1px solid #FFD675;
   border-radius: 8px;
   padding: 4px 12px;
   white-space: nowrap;
@@ -107,7 +107,7 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 15px;
-  font-family: inherit;
+  font-family: Raleway Variable;
   outline: none;
   box-sizing: border-box;
   background: #fff;
@@ -128,7 +128,7 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 15px;
-  font-family: inherit;
+  font-family: Raleway Variable;
   outline: none;
   appearance: none;
   background: #fff;
@@ -161,7 +161,7 @@
   border-radius: 10px;
   padding: 12px 14px;
   font-size: 15px;
-  font-family: inherit;
+  font-family: Raleway Variable;
   resize: none;
   outline: none;
   box-sizing: border-box;

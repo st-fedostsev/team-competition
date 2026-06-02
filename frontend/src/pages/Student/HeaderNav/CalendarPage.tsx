@@ -25,10 +25,16 @@ function getWeekDates(weekOffset: number) {
   return DAYS.map((_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
+
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
-    return { dateStr: `${dd}.${mm}`, fullDate: `${yyyy}-${mm}-${dd}`, dateObj: d };
+
+    return {
+      dateStr: `${dd}.${mm}`,
+      fullDate: `${yyyy}-${mm}-${dd}`,
+      dateObj: d,
+    };
   });
 }
 
@@ -41,12 +47,14 @@ export function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<EventItem[]>([]);
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Используем хук для получения всех событий
+  const [expandedDescriptions, setExpandedDescriptions] = useState<number[]>([]);
+
   const { data: allEvents, isLoading, isError, error, refetch } = useAllEvents();
 
-  // Группируем события по датам и часам
+  const DESCRIPTION_LIMIT = 248;
+
   const eventsByDateAndHour: Record<string, Record<number, EventItem[]>> = {};
 
   if (allEvents) {
@@ -54,14 +62,19 @@ export function CalendarPage() {
       const eventDate = new Date(event.date);
       const dateKey = eventDate.toISOString().split('T')[0];
       const hour = eventDate.getHours();
-      const time = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
+      const time = eventDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
       if (!eventsByDateAndHour[dateKey]) {
         eventsByDateAndHour[dateKey] = {};
       }
+
       if (!eventsByDateAndHour[dateKey][hour]) {
         eventsByDateAndHour[dateKey][hour] = [];
       }
+
       eventsByDateAndHour[dateKey][hour].push({
         ...event,
         time,
@@ -71,17 +84,26 @@ export function CalendarPage() {
   }
 
   const weekDates = getWeekDates(weekOffset);
+  const currentEvent = selectedEvents[currentEventIndex];
 
   const getEventsAtSlot = (fullDate: string, hour: number) => {
     return eventsByDateAndHour[fullDate]?.[hour] || [];
   };
 
-  const handleSlotClick = (fullDate: string, dateStr: string, slotHour: number, slotLabel: string) => {
+  const handleSlotClick = (
+    fullDate: string,
+    dateStr: string,
+    slotHour: number,
+    slotLabel: string
+  ) => {
     const events = getEventsAtSlot(fullDate, slotHour);
+
     if (events.length > 0) {
       setSelectedDate(dateStr);
       setSelectedTimeSlot(slotLabel);
       setSelectedEvents(events);
+      setCurrentEventIndex(0);
+      setExpandedDescriptions([]);
       setIsModalOpen(true);
     }
   };
@@ -91,12 +113,64 @@ export function CalendarPage() {
     setSelectedDate(null);
     setSelectedTimeSlot(null);
     setSelectedEvents([]);
+    setCurrentEventIndex(0);
+    setExpandedDescriptions([]);
+  };
+
+  const goToNextEvent = () => {
+    setExpandedDescriptions([]);
+
+    setCurrentEventIndex((prevIndex) =>
+      prevIndex === selectedEvents.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const goToPrevEvent = () => {
+    setExpandedDescriptions([]);
+
+    setCurrentEventIndex((prevIndex) =>
+      prevIndex === 0 ? selectedEvents.length - 1 : prevIndex - 1
+    );
+  };
+
+  const toggleDescription = (eventId: number) => {
+    setExpandedDescriptions((prev) =>
+      prev.includes(eventId)
+        ? prev.filter((id) => id !== eventId)
+        : [...prev, eventId]
+    );
+  };
+
+  const isDescriptionExpanded = (eventId: number) => {
+    return expandedDescriptions.includes(eventId);
+  };
+
+  const getDescriptionText = (event: EventItem) => {
+    const description = event.description || '';
+    const isExpanded = isDescriptionExpanded(event.id);
+
+    if (isExpanded || description.length <= DESCRIPTION_LIMIT) {
+      return description;
+    }
+
+    return `${description.slice(0, DESCRIPTION_LIMIT)}...`;
+  };
+
+  const getModalTitle = () => {
+    if (!selectedDate) return 'Мероприятия';
+    if (!selectedTimeSlot) return `Мероприятия на ${selectedDate}`;
+
+    const [startRaw, end] = selectedTimeSlot.split('\n');
+    const start = startRaw.replace('-', '');
+
+    return `Мероприятия на ${selectedDate} (${start} - ${end})`;
   };
 
   if (isLoading) {
     return (
       <div className="calendar-container">
         <HeaderStudent />
+
         <div className="calendar-content">
           <div className="loading">Загрузка календаря...</div>
         </div>
@@ -108,6 +182,7 @@ export function CalendarPage() {
     return (
       <div className="calendar-container">
         <HeaderStudent />
+
         <div className="calendar-content">
           <div className="error">
             <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
@@ -118,14 +193,6 @@ export function CalendarPage() {
     );
   }
 
-  const getModalTitle = () => {
-  if (!selectedDate) return 'Мероприятия';
-  if (!selectedTimeSlot) return `Мероприятия на ${selectedDate}`;
-  const [startRaw, end] = selectedTimeSlot.split('\n');
-  const start = startRaw.replace('-', ''); // убираем дефис
-  return `Мероприятия на ${selectedDate} (${start} - ${end})`;
-};
-
   return (
     <div className="calendar-container">
       <HeaderStudent />
@@ -133,8 +200,19 @@ export function CalendarPage() {
       <div className="calendar-content">
         <div className="calendar-wrapper">
           <div className="calendar-nav">
-            <button className="calendar-nav-btn" onClick={() => setWeekOffset((w) => w - 1)}>‹</button>
-            <button className="calendar-nav-btn" onClick={() => setWeekOffset((w) => w + 1)}>›</button>
+            <button
+              className="calendar-nav-btn"
+              onClick={() => setWeekOffset((w) => w - 1)}
+            >
+              ‹
+            </button>
+
+            <button
+              className="calendar-nav-btn"
+              onClick={() => setWeekOffset((w) => w + 1)}
+            >
+              ›
+            </button>
           </div>
 
           <div className="calendar-scroll">
@@ -142,44 +220,69 @@ export function CalendarPage() {
               <thead>
                 <tr>
                   <th className="calendar-th-time"></th>
+
                   {DAYS.map((day, i) => (
                     <th key={day} className="calendar-th-day">
                       <span className="calendar-day-name">{day}</span>
-                      <span className="calendar-day-date">{weekDates[i].dateStr}</span>
+                      <span className="calendar-day-date">
+                        {weekDates[i].dateStr}
+                      </span>
                     </th>
                   ))}
                 </tr>
               </thead>
+
               <tbody>
                 {TIME_SLOTS.map((slot) => {
                   const slotHour = getHourFromSlot(slot);
+
                   return (
                     <tr key={slot}>
                       <td className="calendar-td-time">
                         {slot.split('\n').map((line, i) => (
-                          <span key={i} className="calendar-time-line">{line}</span>
+                          <span key={i} className="calendar-time-line">
+                            {line}
+                          </span>
                         ))}
                       </td>
+
                       {DAYS.map((day, dayIndex) => {
                         const fullDate = weekDates[dayIndex].fullDate;
                         const eventsInSlot = getEventsAtSlot(fullDate, slotHour);
                         const hasEvents = eventsInSlot.length > 0;
+
                         return (
-                          <td 
-                            key={day} 
-                            className={`calendar-td-cell ${hasEvents ? 'has-events' : ''}`}
-                            onClick={() => hasEvents && handleSlotClick(fullDate, weekDates[dayIndex].dateStr, slotHour, slot)}
+                          <td
+                            key={day}
+                            className={`calendar-td-cell ${
+                              hasEvents ? 'has-events' : ''
+                            }`}
+                            onClick={() =>
+                              hasEvents &&
+                              handleSlotClick(
+                                fullDate,
+                                weekDates[dayIndex].dateStr,
+                                slotHour,
+                                slot
+                              )
+                            }
                           >
                             {hasEvents && (
                               <div className="event-in-cell">
                                 <div className="event-titles">
                                   {eventsInSlot.slice(0, 2).map((event) => (
-                                    <div key={event.id} className="event-title-cell">
+                                    <div
+                                      key={event.id}
+                                      className="event-title-cell"
+                                    >
                                       {event.title}
                                     </div>
                                   ))}
+
                                   {eventsInSlot.length > 2 && (
-                                    <div className="event-more">+{eventsInSlot.length - 2}</div>
+                                    <div className="event-more">
+                                      +{eventsInSlot.length - 2}
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -199,29 +302,90 @@ export function CalendarPage() {
       {isModalOpen && (
         <Modal closeModal={closeModal}>
           <div className="calendar-modal-body">
-          <h2>{getModalTitle()}</h2>
-            <div className="calendar-events-list">
-              {selectedEvents.length === 0 ? (
-                <p className="no-events">Нет мероприятий</p>
-              ) : (
-                selectedEvents.map((event) => (
-                  <div key={event.id} className="calendar-event-card">
-                    <div className="calendar-event-time">
-                      <span className="time-icon">🕐</span>
-                      {event.time}
-                    </div>
-                    <div className="calendar-event-info">
-                      <p className="calendar-event-title">{event.title}</p>
-                      <p className="calendar-event-description">{event.description}</p>
-                      <div className="calendar-event-tags">
-                        {event.is_official && <span className="official-tag">Официальное</span>}
-                        <span className="format-tag">{event.format === 'offline' ? '📍 Офлайн' : '💻 Онлайн'}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="calendar-modal-header">
+              <h2>{getModalTitle()}</h2>
+              <p>Список мероприятий на выбранное время</p>
             </div>
+
+            {selectedEvents.length === 0 || !currentEvent ? (
+              <div className="calendar-empty-events">
+                Нет мероприятий
+              </div>
+            ) : (
+              <>
+                <div className="calendar-event-card calendar-event-card-single">
+                  <div className="calendar-event-top">
+                    <div className="calendar-event-time">
+                      {currentEvent.time}
+                    </div>
+
+                    <h3 className="calendar-event-title">
+                      {currentEvent.title}
+                    </h3>
+                  </div>
+
+                  <div
+                    className={`calendar-event-description ${
+                      isDescriptionExpanded(currentEvent.id) ? 'expanded' : ''
+                    }`}
+                  >
+                    <div className="calendar-event-description-text">
+                      {getDescriptionText(currentEvent)}
+                    </div>
+
+                    {(currentEvent.description || '').length > DESCRIPTION_LIMIT && (
+                      <button
+                        className="calendar-description-more"
+                        type="button"
+                        onClick={() => toggleDescription(currentEvent.id)}
+                      >
+                        {isDescriptionExpanded(currentEvent.id)
+                          ? 'Скрыть'
+                          : 'Подробнее...'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="calendar-event-tags">
+                    {currentEvent.is_official && (
+                      <span className="calendar-event-tag official">
+                        Официальное
+                      </span>
+                    )}
+
+                    <span className="calendar-event-tag format">
+                      {currentEvent.format === 'offline'
+                        ? 'Офлайн'
+                        : 'Онлайн'}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedEvents.length > 1 && (
+                  <div className="calendar-event-navigation">
+                    <button
+                      className="calendar-event-nav-button"
+                      type="button"
+                      onClick={goToPrevEvent}
+                    >
+                      ‹
+                    </button>
+
+                    <span className="calendar-event-counter">
+                      {currentEventIndex + 1} / {selectedEvents.length}
+                    </span>
+
+                    <button
+                      className="calendar-event-nav-button"
+                      type="button"
+                      onClick={goToNextEvent}
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </Modal>
       )}

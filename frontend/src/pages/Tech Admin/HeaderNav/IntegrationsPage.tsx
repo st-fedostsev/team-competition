@@ -6,18 +6,18 @@ import '../../../styles/TechAdminIntegrationsPage.css';
 type ImportType = 'api' | 'file' | 'bot';
 
 const IMPORT_OPTIONS: { label: string; value: ImportType }[] = [
-  {
-    label: 'API',
-    value: 'api',
-  },
+  // {
+  //   label: 'API',
+  //   value: 'api',
+  // },
   {
     label: 'Загрузка файла',
     value: 'file',
   },
-  {
-    label: 'Бот',
-    value: 'bot',
-  },
+  // {
+  //   label: 'Бот',
+  //   value: 'bot',
+  // },
 ];
 
 export function IntegrationsPage() {

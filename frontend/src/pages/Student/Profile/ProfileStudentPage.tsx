@@ -7,6 +7,8 @@ import { SearchTeamModal } from '../../../components/SearchTeamModal';
 import { Modal } from '../../../components/ModalWindowComponent';
 import { useCurrentUser } from '../../../hooks/useAuth';
 import { useJoinTeam } from '../../../hooks/useTeam';
+import { CancelButton } from '../../../components/Buttons';
+import { JoinButton } from '../../../components/Buttons';
 import '../../../styles/ProfilePage.css';
 
 export function ProfileStudentPage() {
@@ -80,60 +82,70 @@ export function ProfileStudentPage() {
       <HeaderStudent/>
 
       {/* Карточка профиля с реальными данными */}
-      <div className="profile-card">
-        <div className="profile-avatar">
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-            <circle cx="28" cy="28" r="27" stroke="#ccc" strokeWidth="1.5" />
-            <circle cx="28" cy="22" r="9" stroke="#ccc" strokeWidth="1.5" />
-            <path d="M8 50c0-11 9-20 20-20s20 9 20 20" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </div>
-        <div className="profile-info">
-          {/* данные из API */}
-          <p className="profile-name">
-            {user.last_name} {user.first_name}
-          </p>
-          <p className="profile-role">
-            Студенческий билет № {user.student_id}
-          </p>
-          
-          <div className="name-button">
-            <span className="team-label">Команда:</span>
-            <NameButton onClick={() => setIsSearchTeamOpen(true)} />
+      <div className="profile-content">
+        <div className="profile-card">
+          <div className="profile-avatar">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <defs><clipPath id="avatarClip"><circle cx="28" cy="28" r="26" /></clipPath></defs>
+              <g clipPath="url(#avatarClip)"><circle cx="28" cy="22" r="8" stroke="#3B3B3B" strokeWidth="1.5" /><path d="M8 50c0-11 9-20 20-20s20 9 20 20" stroke="#3B3B3B" strokeWidth="1.5" strokeLinecap="round" /></g>
+              <circle cx="28" cy="28" r="27" stroke="#3B3B3B" strokeWidth="1.5" />
+            </svg>
           </div>
-        </div>
-      </div>
-
-      <NavStudent />
-
-      {isSearchTeamOpen && (
-        <SearchTeamModal closeModal={() => setIsSearchTeamOpen(false)} />
-      )}
-
-      {/* Модальное окно подтверждения вступления по ссылке */}
-      {isJoinModalOpen && (
-        <Modal closeModal={handleCancelJoin}>
-          <div className="join-team-modal-body">
-            <h2>Вступление в команду</h2>
-            <p>Вы хотите вступить в команду?</p>
-            <div className="join-team-modal-buttons">
-              <button 
-                className="cancel-join-btn" 
-                onClick={handleCancelJoin}
-              >
-                Отмена
-              </button>
-              <button 
-                className="confirm-join-btn" 
-                onClick={handleJoinTeam}
-                disabled={isJoining}
-              >
-                {isJoining ? 'Вступление...' : 'Вступить'}
-              </button>
+          <div className="profile-info">
+            {/* данные из API */}
+            <p className="profile-name">
+              {user.last_name} {user.first_name}
+            </p>
+            <p className="profile-role">
+              Студенческий билет № {user.student_id}
+            </p>
+            
+            <div className="name-button">
+              <span className="team-label">Команда:</span>
+              <NameButton onClick={() => setIsSearchTeamOpen(true)} />
             </div>
           </div>
-        </Modal>
-      )}
+        </div>
+
+        <NavStudent />
+
+        {isSearchTeamOpen && (
+          <SearchTeamModal closeModal={() => setIsSearchTeamOpen(false)} />
+        )}
+
+        {/* Модальное окно подтверждения вступления по ссылке */}
+        {/* Модальное окно подтверждения вступления по ссылке */}
+        {isJoinModalOpen && (
+          <Modal closeModal={handleCancelJoin}>
+            <div className="join-team-modal-body">
+              <h2>
+                Вступить в команду <span>Название?</span>
+              </h2>
+
+              <div className="join-team-avatar">
+                <svg width="86" height="86" viewBox="0 0 86 86" fill="none">
+                  <defs><clipPath id="joinTeamAvatarClip"><circle cx="43" cy="43" r="40" /></clipPath></defs>
+                  <g clipPath="url(#joinTeamAvatarClip)"><circle cx="43" cy="31" r="12" stroke="#3B3B3B" strokeWidth="1.5" /><path d="M15 75c0-16 12.5-28 28-28s28 12 28 28" stroke="#3B3B3B" strokeWidth="1.5" strokeLinecap="round" /></g><circle cx="43" cy="43" r="40" stroke="#3B3B3B" strokeWidth="1.5" />
+                </svg>
+              </div>
+              <div className='h1'>
+                3 участника
+              </div>
+              <div className="join-team-modal-buttons">
+                <CancelButton onClick={handleCancelJoin} />
+
+                <JoinButton
+                  className="confirm-join-btn"
+                  onClick={handleJoinTeam}
+                  disabled={isJoining}
+                >
+                  {isJoining ? 'Вступление...' : 'Вступить'}
+                </JoinButton>
+              </div>
+            </div>
+          </Modal>
+        )}
+      </div>
     </div>
   );
 }
