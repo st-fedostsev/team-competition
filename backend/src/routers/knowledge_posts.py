@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, KnowledgePost, Achievement
+from models import User, UserRole, KnowledgePost, Achievement, Notification
 from models.achievement_templates import ACHIEVEMENTS
+from models.notification_templates import NOTIFICATIONS
 from schemas.knowledge_posts import *
 from schemas.common import *
 from auth.auth_handler import access_security, refresh_security
@@ -68,6 +69,8 @@ async def create_post(post_create_data: KnowledgePostCreateData, response: Respo
     achievement_type = ACHIEVEMENTS['brave_novice'] if post_create_data.type == KnowledgePostType.request else ACHIEVEMENTS['instructor']
     for member in team_members:
         Achievement.give(session, member.id, achievement_type)
+
+    Notification.send(session, user.id, NOTIFICATIONS['post_created'])
 
     return Message(msg='Объявление создано')
 

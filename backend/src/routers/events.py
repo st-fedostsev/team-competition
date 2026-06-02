@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Event, Achievement
+from models import User, UserRole, Event, Achievement, Notification
 from models.achievement_templates import ACHIEVEMENTS
+from models.notification_templates import NOTIFICATIONS
 from schemas.events import *
 from schemas.common import *
 from auth.auth_handler import access_security, refresh_security
@@ -63,6 +64,8 @@ async def create_event(event_create_data: EventCreateData, response: Response, c
     events = session.exec(q).all()
     if len(events) >= 2:
         Achievement.give(session, user.id, ACHIEVEMENTS['event_master'])
+    
+    Notification.send(session, user.id, NOTIFICATIONS['event_created'])
 
     return Message(msg='Мероприятие создано')
 

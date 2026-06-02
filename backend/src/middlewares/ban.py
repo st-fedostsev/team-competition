@@ -24,10 +24,11 @@ class BanMiddleware(BaseHTTPMiddleware):
         with get_session_cm() as session:
             q = select(User).where(User.id == credentials['id'])
             user = session.exec(q).first()
-            if user.is_blocked:
-                return JSONResponse(
-                    status_code=403,
-                    content={'message': 'Пользователь заблокирован администратором'}
-                )
+            if user is not None:
+                if user.is_blocked:
+                    return JSONResponse(
+                        status_code=403,
+                        content={'message': 'Пользователь заблокирован администратором'}
+                    )
         
         return await call_next(request)

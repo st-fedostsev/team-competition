@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Team, Achievement, get_league_by_partial_name, JoinTeamRequest, RequestStatus
+from models import User, UserRole, Team, Achievement, get_league_by_partial_name, JoinTeamRequest, RequestStatus, Notification
 from models.achievement_templates import ACHIEVEMENTS
+from models.notification_templates import NOTIFICATIONS
 from schemas.team import *
 from schemas.common import *
 from auth.auth_handler import access_security, refresh_security
@@ -388,6 +389,8 @@ async def kick_user(kick_user_data: KickUserData, response: Response, credential
     session.add(target_user)
     session.commit()
 
+    Notification.send(session, target_user.id, NOTIFICATIONS['kicked'])
+
     return Message(msg='Пользователь исключен из команды')
 
 @router.post(
@@ -431,6 +434,8 @@ async def request_join(request_join_data: RequestJoinData, response: Response, c
 
     session.add(request)
     session.commit()
+
+    Notification.send(session, captain.id, NOTIFICATIONS['join_request'])
 
     return Message(msg='Заявка отправлена')
 
@@ -525,6 +530,11 @@ async def review_request(request_review_data: RequestReviewData, response: Respo
                 return Message(msg='Пользователь уже состоит в команде')
             from_user.team_id = request.team_id
             session.add(from_user)
+
+            if request_review_data.new_status == RequestStatus.approved:
+                Notification.send(session, from_user.id, NOTIFICATIONS['request_approved'])
+            else:
+                Notification.send(session, from_user.id, NOTIFICATIONS['request_rejected'])
         
     session.commit()
 
