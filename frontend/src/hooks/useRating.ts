@@ -2,55 +2,56 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { ratingApi } from '../api/rating';
 import { useCurrentUser } from './useAuth';
+import type { LeaderboardPage, LeaderboardTeam, LeaderboardUser } from '../types/leaderboard.types';
 
 export const ratingKeys = {
   all: ['rating'] as const,
-  leaderboard: ['rating', 'leaderboard'] as const,
+  users: ['rating', 'users'] as const,
+  teams: ['rating', 'teams'] as const,
 };
 
-interface LeaderboardUser {
-  id: number;
-  student_id: number | null;
-  last_name: string;
-  first_name: string;
-  patronymic: string | null;
-  role: string;
-  team_id: number | null;
-  is_captain: boolean;
-  personal_rating: number;
-  is_blocked: boolean;
-  login: string | null;
-  created_at: string;
-}
 
-interface LeaderboardPage {
-  users: LeaderboardUser[];
-  hasMore: boolean;
-  total: number;
-}
 
-// Хук для бесконечной загрузки лидерборда
-export function useLeaderboard(search?: string) {
-  return useInfiniteQuery<LeaderboardPage>({
-    queryKey: [...ratingKeys.leaderboard, search],
+// Универсальный хук для бесконечной загрузки лидерборда
+export function useLeaderboard<T = LeaderboardUser | LeaderboardTeam>(
+  type: 'users' | 'teams',
+  query?: string,
+  topOnly?: boolean
+) {
+  const getLeaderboard = type === 'users' 
+    ? ratingApi.getUsersLeaderboard 
+    : ratingApi.getTeamsLeaderboard;
+  
+  return useInfiniteQuery<LeaderboardPage<T>>({
+    queryKey: [type === 'users' ? 'users-leaderboard' : 'teams-leaderboard', query, topOnly],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await ratingApi.getLeaderboard({
+      const params: {
+        offset: number;
+        limit: number;
+        query: string;
+        top_only?: boolean;
+      } = {
         offset: pageParam as number,
         limit: 20,
-        query: '',
-      });
-
-      const users = response.data as unknown as LeaderboardUser[];
-
-      const usersWithPosition = users.map((user, index) => ({
-        ...user,
+        query: query || '', // ✅ Всегда передаём строку (пустую или с текстом)
+      };
+      
+      if (topOnly) {
+        params.top_only = true;
+      }
+      
+      const response = await getLeaderboard(params);
+      const items = response.data as unknown as T[];
+      
+      const itemsWithPosition = items.map((item, index) => ({
+        ...item,
         position: (pageParam as number) + index + 1,
       }));
-
+      
       return {
-        users: usersWithPosition,
-        hasMore: users.length === 20,
-        total: usersWithPosition.length,
+        items: itemsWithPosition,
+        hasMore: items.length === 20,
+        total: itemsWithPosition.length,
       };
     },
     initialPageParam: 0,
@@ -69,12 +70,12 @@ export function useUserRatingPosition() {
   const { data: user } = useCurrentUser();
 
   const { data: leaderboardData, isLoading } = useQuery({
-    queryKey: ratingKeys.leaderboard,
+    queryKey: ratingKeys.users,
     queryFn: async () => {
-      const response = await ratingApi.getLeaderboard({
+      const response = await ratingApi.getUsersLeaderboard({
         offset: 0,
         limit: 1000,
-        query: '',
+        query: '', 
       });
       const users = response.data as unknown as LeaderboardUser[];
 

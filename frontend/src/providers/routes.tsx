@@ -2,6 +2,8 @@ import { createBrowserRouter } from 'react-router-dom';
 import { ChooseRolePage } from '../pages/Login/ChooseRolePage';
 import { LoginAdminPage } from '../pages/Login/LoginAdminPage';
 import { ProfileContentManagerPage } from '../pages/Content Manager/Profile/ProfileContentManagerPage';
+// import { ProfilePage } from '../pages/Content Manager/Profile/ProfileContentManagerPage';
+import { UserRole } from '../types/auth.types';
 import { ProfileStudentPage } from '../pages/Student/Profile/ProfileStudentPage';
 import { LoginStudent } from '../pages/Login/LoginStudentPage';
 import { LentaPage } from '../pages/Student/HeaderNav/Event feed/EventsPage';
@@ -12,8 +14,8 @@ import { TeamProfilePage } from '../pages/Student/Profile/ProfileTeam/TeamProfil
 import { ProfileTechAdmin } from '../pages/Tech Admin/Profile/ProfileTechAdminPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AnnouncementsPage } from '../pages/Student/HeaderNav/Event feed/NewsPage';
-import { RatingPage } from '../pages/Student/HeaderNav/RatingPage';
-import { RatingTeamsPage } from '../pages/Student/HeaderNav/Event feed/RatingTeamsPage';
+import { RatingPage } from '../pages/Student/HeaderNav/Rating/RatingStudentPage';
+import { RatingTeamsPage } from '../pages/Student/HeaderNav/Rating/RatingTeamsPage';
 import { UsersPage } from '../pages/Tech Admin/HeaderNav/UsersPage';
 import { RatingTechPage } from '../pages/Tech Admin/HeaderNav/RatingTechPage';
 import { IntegrationsPage } from '../pages/Tech Admin/HeaderNav/IntegrationsPage';
@@ -115,7 +117,11 @@ export const router = createBrowserRouter([
   },
   {
   path: '/rating',
-  element: <RatingPage />,
+  element: (
+    <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+      <RatingPage />
+    </ProtectedRoute>
+  ),
   },
   {
     path: '/rating/teams',

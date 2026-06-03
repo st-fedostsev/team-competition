@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useNotifications, useDismissNotification } from '../../hooks/useNotifications';
 import '../../styles/TopMenu.css';
 
 interface TabItem {
@@ -21,61 +22,52 @@ interface TopMenuProps {
   userAvatar?: string;
 }
 
-interface NotificationItem {
-  id: number;
-  text: string;
-  date: string;
-  isRead: boolean;
-}
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 1,
-    text: 'Привет! Урок "Практика. Олимпиадные задачи. Задания 18, 19" прошёл без тебя сегодня. Там было интересно! Сможешь глянуть запись вечером?',
-    date: 'Вчера 15:00',
-    isRead: false,
-  },
-  {
-    id: 2,
-    text: 'Срок сдачи ДЗ по уроку "Практика. Банк. Задание 16" уже близко, а твоя работа еще в пути. Садись сегодня вечером и сделай — мы верим в тебя. Напиши, если что-то непонятно — поможем.',
-    date: 'Вчера 08:00',
-    isRead: false,
-  },
-  {
-    id: 3,
-    text: 'Привет! Урок "Теория. Олимпиадные задачи. Задания 18, 19" прошёл без тебя сегодня. Там было интересно! Сможешь глянуть запись вечером?',
-    date: '31 мая 06:00',
-    isRead: false,
-  },
-  {
-    id: 4,
-    text: 'Привет! Урок "Практика. Банк. Задание 16" прошёл без тебя сегодня. Там было интересно! Сможешь глянуть запись вечером?',
-    date: '28 мая 18:00',
-    isRead: true,
-  },
-];
-
 export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false);
   const [activeNotificationMenuId, setActiveNotificationMenuId] = useState<number | null>(null);
 
   const navigate = useNavigate();
 
+  // Получаем уведомления из API
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotifications();
+  const { mutate: dismissNotification } = useDismissNotification();
+
+  // Все уведомления из всех страниц
+  const allNotifications = data?.pages.flatMap(page => page.notifications) || [];
+
   const unreadCount = useMemo(() => {
-    return notifications.filter((notification) => !notification.isRead).length;
-  }, [notifications]);
+    return allNotifications.filter((notification) => !notification.dismissed).length;
+  }, [allNotifications]);
 
   const filteredNotifications = useMemo(() => {
     if (showOnlyUnread) {
-      return notifications.filter((notification) => !notification.isRead);
+      return allNotifications.filter((notification) => !notification.dismissed);
     }
+    return allNotifications;
+  }, [allNotifications, showOnlyUnread]);
 
-    return notifications;
-  }, [notifications, showOnlyUnread]);
+  // Загружаем следующие уведомления при скролле (если нужно)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!isNotificationsOpen) return;
+      const dropdown = document.querySelector('.notifications-dropdown');
+      if (!dropdown) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = dropdown;
+      if (scrollTop + clientHeight >= scrollHeight - 50 && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    };
+
+    const dropdown = document.querySelector('.notifications-dropdown');
+    if (dropdown) {
+      dropdown.addEventListener('scroll', handleScroll);
+      return () => dropdown.removeEventListener('scroll', handleScroll);
+    }
+  }, [isNotificationsOpen, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleMenuItemClick = (item: UserMenuItem) => {
     if (item.onClick) {
@@ -83,7 +75,6 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
     } else if (item.path) {
       navigate(item.path);
     }
-
     setIsUserMenuOpen(false);
   };
 
@@ -102,30 +93,36 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
   };
 
   const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({
-        ...notification,
-        isRead: true,
-      }))
-    );
-
+    // Массовое удаление всех уведомлений (если есть API)
+    allNotifications.forEach(notification => {
+      if (!notification.dismissed) {
+        dismissNotification(notification.id);
+      }
+    });
     setIsNotificationsMenuOpen(false);
     setActiveNotificationMenuId(null);
   };
 
   const markNotificationAsRead = (notificationId: number) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === notificationId
-          ? {
-              ...notification,
-              isRead: true,
-            }
-          : notification
-      )
-    );
-
+    dismissNotification(notificationId);
     setActiveNotificationMenuId(null);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) {
+      return `Сегодня ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (days === 1) {
+      return `Вчера ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (days < 7) {
+      return `${days} дня назад`;
+    } else {
+      return date.toLocaleDateString();
+    }
   };
 
   return (
@@ -213,16 +210,18 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
                 </label>
 
                 <div className="notifications-list">
-                  {filteredNotifications.length === 0 ? (
+                  {isLoading && allNotifications.length === 0 ? (
+                    <div className="notifications-empty">Загрузка уведомлений...</div>
+                  ) : filteredNotifications.length === 0 ? (
                     <div className="notifications-empty">
-                      Нет уведомлений
+                      {showOnlyUnread ? 'Нет непрочитанных уведомлений' : 'Нет уведомлений'}
                     </div>
                   ) : (
                     filteredNotifications.map((notification) => (
                       <div
                         key={notification.id}
                         className={`notification-item ${
-                          !notification.isRead ? 'unread' : ''
+                          !notification.dismissed ? 'unread' : ''
                         } ${
                           activeNotificationMenuId === notification.id ? 'active' : ''
                         }`}
@@ -246,8 +245,9 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
                         </div>
 
                         <div className="notification-content">
-                          <p>{notification.text}</p>
-                          <span>{notification.date}</span>
+                          <p className="notification-title">{notification.title}</p>
+                          <p className="notification-body">{notification.body}</p>
+                          <span className="notification-date">{formatDate(notification.created_at)}</span>
                         </div>
 
                         <div className="notification-item-menu-wrapper">
@@ -270,10 +270,10 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
                             <div className="notification-item-menu">
                               <button
                                 type="button"
-                                disabled={notification.isRead}
+                                disabled={notification.dismissed}
                                 onClick={() => markNotificationAsRead(notification.id)}
                               >
-                                {notification.isRead
+                                {notification.dismissed
                                   ? 'Уже прочитано'
                                   : 'Отметить прочитанным'}
                               </button>
@@ -282,6 +282,9 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
                         </div>
                       </div>
                     ))
+                  )}
+                  {isFetchingNextPage && (
+                    <div className="notifications-loading">Загрузка...</div>
                   )}
                 </div>
               </div>

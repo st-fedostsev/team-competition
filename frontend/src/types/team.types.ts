@@ -35,3 +35,9 @@ export interface LeaderboardEntry {
   members_count: number;
   rank: number;
 }
+
+export interface TeamLeaderboardResponse {
+  teams: LeaderboardEntry[];
+  total: number;
+  has_more: boolean;
+}

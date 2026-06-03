@@ -1,20 +1,23 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { HeaderStudent } from '../../../components/Header/HeaderStudent';
-import { NavRating } from '../../../components/Nav/NavRating';
-import { useLeaderboard } from '../../../hooks/useRating';
-import { useCurrentUser } from '../../../hooks/useAuth';
-import { RATING_TABS } from '../../../constants';
-import '../../../styles/RatingPage.css';
+import { useState, useEffect, useMemo } from 'react';
+import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
+import { NavRating } from '../../../../components/Nav/NavRating';
+import { useLeaderboard } from '../../../../hooks/useRating';
+import { useCurrentUser } from '../../../../hooks/useAuth';
+import { useTeamsByIds } from '../../../../hooks/useTeam';
+import { RATING_TABS } from '../../../../constants';
+import '../../../../styles/RatingPage.css';
+import type { LeaderboardUser } from '../../../../types/leaderboard.types'
 
 export function RatingPage() {
-  const [activeTab, setActiveTab] = useState<'students' | 'teams'>('students');
   const [searchQuery, setSearchQuery] = useState('');
   const [topOnly, setTopOnly] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   
   const { data: currentUser } = useCurrentUser();
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useLeaderboard(
-    activeTab === 'students' ? debouncedSearch : undefined
+    'users',
+    debouncedSearch,
+    topOnly
   );
 
   useEffect(() => {
@@ -24,7 +27,9 @@ export function RatingPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const allUsers = data?.pages.flatMap(page => page.users) || [];
+  const allUsers = useMemo(() => {
+  return data?.pages?.flatMap(page => page?.items || []) || [];
+  }, [data?.pages]); // зависим только от data.pages
   
   // Фильтрация на фронте
   const filteredUsers = useMemo(() => {
@@ -36,6 +41,25 @@ export function RatingPage() {
     
     return result;
   }, [allUsers, topOnly]);
+
+  // Собираем уникальные team_id у пользователей (только если есть)
+  const teamIds = useMemo(() => {
+    return [...new Set(filteredUsers.map(user => user?.team_id).filter(id => id != null))] as number[];
+  }, [filteredUsers]);
+
+  // Получаем названия команд
+  const teamQueries = useTeamsByIds(teamIds);
+
+  // Создаём Map для быстрого доступа к названиям команд
+  const teamNameMap = useMemo(() => {
+    const map = new Map<number, string>();
+    teamQueries.forEach((query, index) => {
+      if (query.data?.name && teamIds[index]) {
+        map.set(teamIds[index], query.data.name);
+      }
+    });
+    return map;
+  }, [teamQueries, teamIds]);
 
   const currentUserId = currentUser?.id;
 
@@ -72,15 +96,13 @@ export function RatingPage() {
         <div className="rating-switch">
           <NavRating 
             tabs={RATING_TABS}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
           />
         </div>
 
         <div className="rating-search">
           <input
             className="rating-search-input"
-            placeholder="Введите студента"
+            placeholder="Введите ФИО студента или название команды"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -104,30 +126,31 @@ export function RatingPage() {
           </div>
 
           {filteredUsers.length === 0 ? (
-            <div className="rating-empty">Нет данных</div>
-          ) : (
-            filteredUsers.map((user, index) => {
-              const isCurrentUser = user.id === currentUserId;
-              const displayPosition = topOnly ? index + 1 : user.position;
-              
-              return (
-                <div 
-                  key={user.id} 
-                  className={`rating-row ${isCurrentUser ? 'current-user' : ''}`}
-                >
-                  <div className="rating-position">{displayPosition}</div>
-                  <div className="rating-name">
-                    {user.last_name} {user.first_name}
-                    {user.patronymic && ` ${user.patronymic}`}
-                  </div>
-                  <div className="rating-team">
-                    {user.team_id ? `Команда ${user.team_id}` : '—'}
-                  </div>
-                  <div className="rating-score">{user.personal_rating}</div>
-                </div>
-              );
-            })
-          )}
+  <div className="rating-empty">Нет данных</div>
+) : (
+  filteredUsers.map((user, index) => {
+    if (!user) return null;
+    const studentUser = user as LeaderboardUser;
+    const isCurrentUser = studentUser.id === currentUserId;
+    
+    return (
+      <div 
+        key={studentUser.id} 
+        className={`rating-row ${isCurrentUser ? 'current-user' : ''}`}
+      >
+        <div className="rating-position">{index + 1}</div>
+        <div className="rating-name">
+          {studentUser.last_name} {studentUser.first_name}
+          {studentUser.patronymic && ` ${studentUser.patronymic}`}
+        </div>
+        <div className="rating-team">
+          {studentUser.team_id ? (teamNameMap.get(studentUser.team_id) || '—') : '—'}
+        </div>
+        <div className="rating-score">{studentUser.personal_rating}</div>
+      </div>
+    );
+  })
+)}
         </div>
 
         {!topOnly && hasNextPage && (

@@ -46,7 +46,7 @@ class ApiClient {
 
     const headers = new Headers();
 
-    // Если body это FormData - не устанавливаем Content-Type (браузер сам добавит boundary)
+    // Если body это FormData - не устанавливаем Content-Type
     if (!(body instanceof FormData)) {
       headers.set('Content-Type', 'application/json');
     }

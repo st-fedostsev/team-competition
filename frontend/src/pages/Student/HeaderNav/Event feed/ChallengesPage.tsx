@@ -4,6 +4,7 @@ import { NavLenta } from '../../../../components/Nav/NavEvents';
 import { SendReportButton } from '../../../../components/Buttons';
 import { Modal } from '../../../../components/ModalWindowComponent';
 import { useChallengesList, useSendChallengeReport } from '../../../../hooks/useChallenges';
+import { useUploadFile } from '../../../../hooks/useFiles';
 import { useCurrentUser } from '../../../../hooks/useAuth';
 import { TABS } from '../../../../constants';
 import '../../../../styles/ChallengesPage.css';
@@ -46,6 +47,7 @@ export function ChallengesPage() {
   const { data: user } = useCurrentUser();
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useChallengesList();
   const { mutate: sendReport, isPending: isSending } = useSendChallengeReport();
+  const { mutateAsync: uploadFile, isPending: isUploadPending } = useUploadFile();
 
   const canSendReport = user?.role === 'student';
 
@@ -65,14 +67,6 @@ export function ChallengesPage() {
     }
   };
 
-  // Функция для загрузки файла на сервер (TODO: заменить на реальный эндпоинт)
-  const uploadFile = async (file: File): Promise<string> => {
-    // TODO: Реализовать загрузку файла на сервер
-    // Пока возвращаем временный URL
-    console.log('Загрузка файла:', file.name);
-    return URL.createObjectURL(file);
-  };
-
   const handleSendReport = async () => {
     if (!selectedChallengeId) return;
     if (!comment.trim()) {
@@ -87,8 +81,12 @@ export function ChallengesPage() {
     setIsUploading(true);
     
     try {
-      // Загружаем файл и получаем URL
-      const fileUrl = await uploadFile(selectedFile);
+      // ✅ Загружаем файл на сервер и получаем ID
+      const uploadResponse = await uploadFile(selectedFile);
+      const fileId = uploadResponse.data.id;
+      
+      // ✅ Формируем URL для скачивания
+      const fileUrl = `http://localhost:8000/files/download/${fileId}`;
       
       sendReport({
         challengeId: selectedChallengeId,
@@ -203,7 +201,7 @@ export function ChallengesPage() {
               <label className="report-upload-btn">
                 <span className="report-upload-icon">📎</span>
                 {selectedFile ? selectedFile.name : 'загрузить файл'}
-                <input type="file" hidden onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt,.jpg,.png" />
+                <input type="file" hidden onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt,.jpg,.png,.zip,.rar,.7z" />
               </label>
               {selectedFile && (
                 <div className="file-info">
@@ -244,10 +242,10 @@ export function ChallengesPage() {
               <button 
                 className="button button-small drop-shadow" 
                 onClick={handleSendReport}
-                disabled={isSending || isUploading || !selectedFile || !comment.trim()}
+                disabled={isSending || isUploading || isUploadPending || !selectedFile || !comment.trim()}
               >
                 <p className="button-text button-text-small">
-                  {isUploading ? 'Загрузка файла...' : isSending ? 'Отправка...' : 'Отправить'}
+                  {isUploading || isUploadPending ? 'Загрузка файла...' : isSending ? 'Отправка...' : 'Отправить'}
                 </p>
               </button>
             </div>
