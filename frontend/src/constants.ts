@@ -13,6 +13,23 @@ export const HEADERS_LIST_TECH_ADMIN = [
   { label: 'Интеграции', path: '/admin/integrations' },
 ];
 
+export const HEADERS_LIST_CONTENT_MANAGER =[
+  { label: 'Лента', path: '/ContentManager/lenta' },
+  { label: 'Модерация', path: '/moderation' },
+];
+
+export const FEED_TABS = [
+  { label: 'Все', value: '/all' },
+  { label: 'Челленджи', value: '/challenges' },
+  { label: 'Новости', value: '/news' },
+];
+
+export const MODERATION_TABS = [
+  { label: 'Отчеты', value: '/reports' },
+  { label: 'Биржа', value: '/market' },
+  { label: 'Мероприятия', value: '/events' },
+];
+
 export const RATING_TABS = [
   { label: 'Студенты', path: '/rating' },
   { label: 'Команды', path: '/rating/teams' },

@@ -75,16 +75,16 @@ export function useAdminLogin() {
         // Редирект в зависимости от роли
         switch (user.role) {
           case 'content_manager':
-            navigate('/ProfilePage');
+            navigate('/ProfileContentManager');
             break;
           case 'game_admin':
-            navigate('/ProfilePage');
+            navigate('/ProfileContentManager');
             break;
           case 'technical_admin':
             navigate('/ProfileTechAdmin');
             break;
           default:
-            navigate('/ProfilePage');
+            navigate('/ProfileContentManager');
         }
       } catch (error) {
         console.error('Ошибка получения пользователя:', error);

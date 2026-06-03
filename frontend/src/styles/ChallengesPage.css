@@ -138,3 +138,23 @@
   color: #888;
   white-space: nowrap;
 }
+
+
+.remove-file-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-file-icon {
+  width: 18px;
+  height: 20px;
+  display: block;
+}

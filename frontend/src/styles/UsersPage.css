@@ -149,12 +149,12 @@
 
 .btn-block--ban {
   background-color: #FF7575;
-  color: #fff;
+  color: #000000;
 }
 
 .btn-block--unban {
   background-color: #97FF72;
-  color: #fff;
+  color: #000000;
 }
 
 .users-empty {

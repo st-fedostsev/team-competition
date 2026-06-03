@@ -66,7 +66,10 @@ export function CreatePlusButton({ onClick }: ButtonProps) {
     <div>
       <button className="button button-small" onClick={onClick}>
         <span className='button-text button-text-small'>
-          Создать +
+          Создать
+          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
+          </svg>
         </span>
       </button>
     </div>
@@ -206,7 +209,10 @@ export function PostAnnouncementButton({ onClick }: ButtonProps) {
   return (
     <button className="button button-middle drop-shadow" onClick={onClick}>
       <p className='button-text button-text-big'> 
-        Опубликовать объявление +
+        Опубликовать объявление
+          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
+          </svg>
       </p>
     </button>
   );
@@ -216,7 +222,10 @@ export function CreateEventButton({ onClick }: ButtonProps) {
   return (
     <button className="button button-middle drop-shadow"onClick={onClick}>
     <p className='button-text button-text-big'> 
-      Создать мероприятие+
+      Создать мероприятие
+          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
+          </svg>
     </p>
     </button>
   );
@@ -226,7 +235,10 @@ export function CreateChallengeButton({ onClick }: ButtonProps) {
   return (
     <button className="button button-middle drop-shadow"onClick={onClick}>
     <p className='button-text button-text-small'> 
-      Создать челлендж+
+      Создать челлендж
+          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
+          </svg>
     </p>
     </button>
   );
@@ -236,7 +248,10 @@ export function CreateSletter({ onClick }: ButtonProps) {
   return (
     <button className="button button-big drop-shadow"onClick={onClick}>
       <p className='button-text button-text-big'> 
-        Создать рассылку+
+        Создать рассылку
+          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
+          </svg>
       </p>
     </button>
   );
@@ -265,6 +280,170 @@ export function PublishButton({ onClick, disabled }: PublishButtonProps) {
       <p className="button-text button-text-small">
         Опубликовать
       </p>
+    </button>
+  );
+}
+
+
+export function DetailsButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-moderation-details-button"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Подробнее
+    </button>
+  );
+}
+
+export function ModerationDeleteButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-moderation-market-delete"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Удалить
+    </button>
+  );
+}
+
+export function ModerationPublishButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-moderation-market-publish"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Опубликовать
+    </button>
+  );
+}
+
+export function EventDeleteButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-moderation-event-delete"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Удалить
+    </button>
+  );
+}
+
+export function ReportRejectButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-report-modal-reject"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Отклонить
+    </button>
+  );
+}
+
+export function ReportAcceptButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-report-modal-accept"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Принять
+    </button>
+  );
+}
+
+export function EventDeleteCancelButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-event-delete-cancel"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Отмена
+    </button>
+  );
+}
+
+export function EventDeleteConfirmButton({ onClick, disabled }: ModerationButtonProps) {
+  return (
+    <button
+      className="cm-event-delete-confirm"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Удалить
+    </button>
+  );
+}
+
+interface NewsButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+export function CreateNewsButton({ onClick, disabled }: NewsButtonProps) {
+  return (
+    <button
+      className="cm-news-create-button"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <span>Создать новость</span>
+          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
+          </svg>
+    </button>
+  );
+}
+
+export function CreateNewsCloseButton({ onClick, disabled }: NewsButtonProps) {
+  return (
+    <button
+      className="cm-create-news-close"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      ×
+    </button>
+  );
+}
+
+export function CreateNewsCancelButton({ onClick, disabled }: NewsButtonProps) {
+  return (
+    <button
+      className="cm-create-news-cancel"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Отмена
+    </button>
+  );
+}
+
+export function CreateNewsSubmitButton({ disabled }: NewsButtonProps) {
+  return (
+    <button
+      className="cm-create-news-submit"
+      type="submit"
+      disabled={disabled}
+    >
+      {disabled ? 'Создание...' : 'Создать'}
     </button>
   );
 }

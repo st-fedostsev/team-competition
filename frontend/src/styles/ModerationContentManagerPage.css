@@ -1,0 +1,556 @@
+.cm-moderation-page {
+  min-height: 100vh;
+  background: #f2f2f2;
+  font-family: Raleway Variable;
+}
+
+.cm-moderation-content {
+  width: 100%;
+  max-width: 890px;
+  margin: 0 auto;
+  padding: 92px 20px 80px;
+  box-sizing: border-box;
+}
+
+.cm-moderation-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 100px;
+}
+
+.cm-moderation-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 31px;
+}
+
+.cm-moderation-card {
+  width: 100%;
+  min-height: 188px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 36px 40px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  box-sizing: border-box;
+}
+
+.cm-moderation-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.cm-moderation-card-title {
+  margin: 0;
+  color: #111;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.cm-moderation-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cm-moderation-team span {
+  color: #000;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.cm-moderation-card-right {
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.cm-moderation-date {
+  margin: 0;
+  color: #666;
+  font-size: 19px;
+  font-weight: 400;
+}
+
+.cm-moderation-details-button {
+  min-width: 198px;
+  height: 43px;
+  border: none;
+  border-radius: 12px;
+  background: #ffd675;
+  color: #000;
+  font-family: Raleway Variable;
+  font-size: 21px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.cm-moderation-details-button:hover {
+  background: #ffcf5f;
+}
+
+.cm-moderation-empty {
+  width: 100%;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 940px) {
+  .cm-moderation-content {
+    max-width: 100%;
+    padding: 60px 24px;
+  }
+
+  .cm-moderation-header {
+    margin-bottom: 50px;
+  }
+
+  .cm-moderation-card {
+    min-height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .cm-moderation-card-right {
+    width: 100%;
+    min-height: auto;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .cm-moderation-details-button {
+    min-width: 160px;
+  }
+}
+
+
+.cm-moderation-market-card {
+  width: 100%;
+  min-height: 268px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 36px 40px 45px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  box-sizing: border-box;
+}
+
+.cm-moderation-market-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.cm-moderation-market-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cm-moderation-market-title {
+  margin: 0;
+  color: #111;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.cm-moderation-market-description {
+  margin: 0;
+  color: #444;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.cm-moderation-market-type {
+  min-width: 52px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border: 1px solid #ffc13d;
+  border-radius: 9px;
+  color: #111;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.cm-moderation-market-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cm-moderation-market-delete,
+.cm-moderation-market-publish {
+  min-width: 148px;
+  height: 48px;
+  border-radius: 12px;
+  color: #000;
+  font-family: Raleway Variable;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.cm-moderation-market-delete {
+  border: 1px solid #ffc13d;
+  background: transparent;
+}
+
+.cm-moderation-market-publish {
+  min-width: 200px;
+  border: none;
+  background: #ffd675;
+}
+
+.cm-moderation-market-delete:hover {
+  background: #fff5dc;
+}
+
+.cm-moderation-market-publish:hover {
+  background: #ffcf5f;
+}
+
+@media (max-width: 940px) {
+  .cm-moderation-market-card {
+    min-height: auto;
+    gap: 40px;
+    padding: 30px 24px;
+  }
+
+  .cm-moderation-market-actions {
+    gap: 16px;
+  }
+
+  .cm-moderation-market-delete,
+  .cm-moderation-market-publish {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+
+.cm-moderation-event-card {
+  width: 100%;
+  min-height: 214px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 36px 80px 36px 40px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+  box-sizing: border-box;
+}
+
+.cm-moderation-event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cm-moderation-event-title {
+  margin: 0;
+  color: #111;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.cm-moderation-event-description {
+  margin: 0;
+  color: #444;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.cm-moderation-event-delete {
+  min-width: 148px;
+  height: 48px;
+  border: 1px solid #ffc13d;
+  border-radius: 12px;
+  background: transparent;
+  color: #000;
+  font-family: Raleway Variable;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+  margin-top: auto
+  ;
+}
+
+.cm-moderation-event-delete:hover {
+  background: #fff5dc;
+}
+
+.cm-event-delete-modal-body {
+  width: 100%;
+  max-width: 775px;
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: left;
+}
+.cm-event-delete-info {
+  margin-bottom: 78px;
+}
+
+.cm-event-delete-title {
+  margin: 0 0 16px;
+  color: #000;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.cm-event-delete-description {
+  margin: 0;
+  color: #444;
+  font-size: 21px;
+  font-weight: 400;
+}
+
+.cm-event-delete-label {
+  display: block;
+  margin-bottom: 16px;
+  color: #000;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.cm-event-delete-textarea {
+  width: 100%;
+  height: 173px;
+  padding: 14px 16px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  outline: none;
+  resize: none;
+  background: #f7f7f7;
+  color: #111;
+  font-family: Raleway Variable;
+  font-size: 18px;
+  box-sizing: border-box;
+}
+
+.cm-event-delete-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+.cm-event-delete-cancel,
+.cm-event-delete-confirm {
+  min-width: 154px;
+  height: 42px;
+  border-radius: 12px;
+  color: #000;
+  font-family: Raleway Variable;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.cm-event-delete-cancel {
+  border: 1px solid #ffc13d;
+  background: transparent;
+}
+
+.cm-event-delete-confirm {
+  border: none;
+  background: #ffd675;
+}
+
+.cm-event-delete-cancel:hover {
+  background: #fff5dc;
+}
+
+.cm-event-delete-confirm:hover {
+  background: #ffcf5f;
+}
+
+@media (max-width: 940px) {
+  .cm-moderation-event-card {
+    min-height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 30px 24px;
+  }
+
+  .cm-moderation-event-delete {
+    width: 100%;
+  }
+
+  .cm-event-delete-modal-body {
+    width: 100%;
+  }
+}
+
+
+/* Растягиваем саму модалку только для удаления мероприятия */
+.modal-content:has(.cm-event-delete-modal-body) {
+  width: 840px;
+  max-width: calc(100vw - 40px);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* textarea строго внутри модалки */
+.cm-event-delete-textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+
+.cm-report-modal-body {
+  width: 560px;
+  padding: 4px 10px 0;
+  box-sizing: border-box;
+}
+
+.cm-report-modal-title {
+  margin: 0 0 18px;
+  color: #000;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.cm-report-modal-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.cm-report-modal-team span {
+  color: #000;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.cm-report-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 62px;
+}
+
+.cm-report-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cm-report-modal-field-title {
+  margin: 0;
+  color: #000;
+  font-size: 21px;
+  font-weight: 400;
+}
+
+.cm-report-modal-field-text {
+  margin: 0;
+  color: #000;
+  font-size: 21px;
+  font-weight: 400;
+}
+
+.cm-report-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 70px;
+}
+
+.cm-report-modal-reject,
+.cm-report-modal-accept {
+  min-width: 196px;
+  height: 43px;
+  border-radius: 12px;
+  color: #000;
+  font-family: Raleway Variable;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.cm-report-modal-reject {
+  border: 1px solid #ffc13d;
+  background: transparent;
+}
+
+.cm-report-modal-accept {
+  border: none;
+  background: #ffd675;
+}
+
+.cm-report-modal-reject:hover {
+  background: #fff5dc;
+}
+
+.cm-report-modal-accept:hover {
+  background: #ffcf5f;
+}
+
+/* Размер самой модалки для отчета */
+.modal-content:has(.cm-report-modal-body) {
+  width: 620px;
+  max-width: calc(100vw - 40px);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Внутренний блок отчета не должен вылезать */
+.cm-report-modal-body {
+  width: 100%;
+  max-width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Кнопки строго внутри модалки */
+.cm-report-modal-actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 70px;
+  box-sizing: border-box;
+}
+
+.cm-report-modal-reject,
+.cm-report-modal-accept {
+  min-width: 0;
+  width: 196px;
+  max-width: 100%;
+  box-sizing: border-box;
+}

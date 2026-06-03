@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { ChooseRolePage } from '../pages/Login/ChooseRolePage';
 import { LoginAdminPage } from '../pages/Login/LoginAdminPage';
-// import { ProfilePage } from '../pages/Content Manager/Profile/ProfileContentManagerPage';
+import { ProfileContentManagerPage } from '../pages/Content Manager/Profile/ProfileContentManagerPage';
 import { ProfileStudentPage } from '../pages/Student/Profile/ProfileStudentPage';
 import { LoginStudent } from '../pages/Login/LoginStudentPage';
 import { LentaPage } from '../pages/Student/HeaderNav/Event feed/EventsPage';
@@ -17,6 +17,8 @@ import { RatingTeamsPage } from '../pages/Student/HeaderNav/Event feed/RatingTea
 import { UsersPage } from '../pages/Tech Admin/HeaderNav/UsersPage';
 import { RatingTechPage } from '../pages/Tech Admin/HeaderNav/RatingTechPage';
 import { IntegrationsPage } from '../pages/Tech Admin/HeaderNav/IntegrationsPage';
+import { NewsContentManagerPage } from '../pages/Content Manager/Profile/HeaderNav/NewsContentManagerPage';
+import { ModerationPage } from '../pages/Content Manager/Profile/HeaderNav/ModerationPage';
 
 export const router = createBrowserRouter([
   {
@@ -27,10 +29,14 @@ export const router = createBrowserRouter([
     path: '/login-admin',
     element: <LoginAdminPage />,
   },
-  // {
-  //   path: '/ProfilePage',
-  //   element: <ProfilePage />,
-  // },
+  {
+    path: '/ProfileContentManager',
+    element: (
+      <ProtectedRoute>
+        <ProfileContentManagerPage />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: '/ProfileStudentPage',
     element: (
@@ -48,6 +54,22 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
            <LentaPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/ContentManager/lenta',
+    element: (
+      <ProtectedRoute>
+           <NewsContentManagerPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/moderation',
+    element: (
+      <ProtectedRoute>
+           <ModerationPage />
       </ProtectedRoute>
     ),
   },
