@@ -3,7 +3,7 @@ from sqlalchemy import BigInteger
 from datetime import datetime
 from typing import Any
 from .achievement_templates import AchievementTemplate
-from .notification import Notification
+from .notification import Notification, NotificationTemplate
 from .notification_templates import NOTIFICATIONS
 
 class Achievement(SQLModel, table=True):
@@ -26,4 +26,4 @@ class Achievement(SQLModel, table=True):
         ))
         session.commit()
 
-        Notification.send(session, user_id, NOTIFICATIONS['achievement'])
+        Notification.send(session, user_id, NotificationTemplate(title='Получено достижение', body=f'Вы получили новое достижение: "{template.title}"'))
