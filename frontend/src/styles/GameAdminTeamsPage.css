@@ -1,0 +1,213 @@
+.game-admin-teams-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+}
+
+.game-admin-teams-main {
+  width: 890px;
+  margin: 70px auto 0;
+  padding-bottom: 40px;
+}
+
+.game-admin-teams-search {
+  position: relative;
+  height: 54px;
+  margin: 0 auto 28px;
+}
+
+.game-admin-teams-search-input {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #d2d2d2;
+  border-radius: 18px;
+  background: transparent;
+  padding: 0 58px 0 20px;
+  color: #222222;
+  font-size: 18px;
+  font-weight: 400;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.game-admin-teams-search-input::placeholder {
+  color: #4e4e4e;
+}
+
+.game-admin-teams-search-input:focus {
+  border-color: #b8b8b8;
+  background: #ffffff;
+}
+
+.game-admin-teams-search-icon {
+  position: absolute;
+  right: 27px;
+  top: 50%;
+  display: flex;
+  color: #303030;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.game-admin-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 31px;
+  min-height: 405px;
+}
+
+.game-admin-team-card {
+  min-height: 187px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.23);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 31px 46px 32px 38px;
+  box-sizing: border-box;
+}
+
+.game-admin-team-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.game-admin-team-avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-admin-team-text {
+  padding-top: 7px;
+}
+
+.game-admin-team-title {
+  margin: 0 0 4px;
+  color: #111111;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.game-admin-team-members {
+  margin: 0 0 15px;
+  color: #555555;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.game-admin-team-league {
+  margin: 0;
+  color: #111111;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.game-admin-team-more-button {
+  width: 198px;
+  height: 42px;
+  border: none;
+  border-radius: 13px;
+  background: #ffd675;
+  color: #111111;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.game-admin-team-more-button:hover {
+  opacity: 0.9;
+}
+
+.game-admin-team-more-button:active {
+  transform: translateY(1px);
+}
+
+.game-admin-teams-status {
+  width: 100%;
+  min-height: 187px;
+  border-radius: 18px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777777;
+  font-size: 18px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.16);
+}
+
+.game-admin-teams-pagination {
+  height: 46px;
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.game-admin-teams-pagination-button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.game-admin-teams-pagination-button:disabled {
+  color: #b0b0b0;
+  cursor: default;
+  box-shadow: none;
+}
+
+.game-admin-teams-pagination-counter {
+  min-width: 54px;
+  color: #111111;
+  font-size: 17px;
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .game-admin-teams-main {
+    width: calc(100% - 40px);
+  }
+
+  .game-admin-teams-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .game-admin-teams-main {
+    margin-top: 38px;
+  }
+
+  .game-admin-teams-search {
+    margin-bottom: 44px;
+  }
+
+  .game-admin-team-card {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 24px;
+    padding: 26px;
+  }
+
+  .game-admin-team-more-button {
+    width: 100%;
+  }
+}

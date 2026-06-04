@@ -376,6 +376,23 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
                   <circle cx="16" cy="16" r="15" />
                 </svg>
               )}
+
+              <svg
+                className="user-menu-chevron"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 9L12 15L18 9"
+                  stroke="#333"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
 
             {isUserMenuOpen && (
