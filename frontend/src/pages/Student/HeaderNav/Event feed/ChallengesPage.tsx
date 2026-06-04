@@ -94,7 +94,7 @@ export function ChallengesPage() {
     setIsUploading(true);
     
     try {
-      // Загружаем файл с display_name (описание или имя файла)
+      // Загружаем файл с display_name
       const uploadResponse = await uploadFile({
         file: selectedFile,
         displayName: fileDescription.trim() || selectedFile.name

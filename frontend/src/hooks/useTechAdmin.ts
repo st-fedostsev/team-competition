@@ -82,3 +82,9 @@ export function useEditRating() {
     },
   });
 }
+
+export function useImportUsers() {
+  return useMutation({
+    mutationFn: (file: File) => adminApi.importUsers(file),
+  });
+}

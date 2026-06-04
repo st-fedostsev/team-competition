@@ -1,12 +1,12 @@
 // api/techadmin.ts
 import { apiClient } from './client';
-import type { 
-  User, 
-  RegisterUserData, 
-  BanUserData, 
+import type {
+  User,
+  RegisterUserData,
+  BanUserData,
   EditRatingData,
   SearchUsersRequest,
-  SearchUsersResponse
+  SearchUsersResponse,
 } from '../types/techadmin.types';
 
 export const adminApi = {
@@ -25,4 +25,15 @@ export const adminApi = {
   // Редактировать рейтинг пользователя
   editRating: (data: EditRatingData) =>
     apiClient.post('/api/technical_admin/edit_rating', data),
+
+  // Импорт пользователей из CSV
+  importUsers: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return apiClient.post<{ imported: number; errors?: string[] }>(
+      '/api/technical_admin/import_users',
+      formData,
+    );
+  },
 };
