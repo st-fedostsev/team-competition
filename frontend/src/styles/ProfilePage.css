@@ -137,3 +137,35 @@
   align-items: center;
   gap: 12px;
 }
+
+
+.profile-student-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-id-eye-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.student-id-eye-button svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.student-id-eye-button:hover {
+  opacity: 0.7;
+}

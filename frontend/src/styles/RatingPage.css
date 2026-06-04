@@ -63,6 +63,22 @@
 .rating-top input {
   width: 20px;
   height: 20px;
+  margin: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 1.5px solid #000;
+  border-radius: 50%;
+  background: transparent;
+
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.rating-top input:checked {
+  border: 5px solid #000;
+  background: #fff;
 }
 
 .rating-table {

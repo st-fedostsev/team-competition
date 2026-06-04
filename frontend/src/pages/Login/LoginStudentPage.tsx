@@ -4,17 +4,18 @@ import { useStudentLogin } from '../../hooks/useAuth';
 import '../../styles/LoginStudentPage.css';
 import '../../styles/input.css';
 import { LoginButton } from '../../components/Buttons';
+import { EyeIcon } from '../../components/EyeIcon';
+import { EyeClosedIcon } from '../../components/EyeClosedIcon';
 import '../../styles/Button.css';
 
 export function LoginStudent() {
   const [fullName, setFullName] = useState('');
   const [studentId, setStudentId] = useState('');
+  const [isStudentIdVisible, setIsStudentIdVisible] = useState(false);
   const [errors, setErrors] = useState({ fullName: '', studentId: '' });
-  
-  // Хук для входа
+
   const { mutate: login, isPending, error: apiError } = useStudentLogin();
 
-  // Валидация формы
   const validateForm = () => {
     const newErrors = { fullName: '', studentId: '' };
     let isValid = true;
@@ -39,7 +40,6 @@ export function LoginStudent() {
     return isValid;
   };
 
-  // Разделяем ФИО на фамилию и имя
   const parseFullName = (name: string) => {
     const parts = name.trim().split(' ');
     return {
@@ -48,14 +48,13 @@ export function LoginStudent() {
     };
   };
 
-  // Обработчик отправки
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     const { last_name, first_name } = parseFullName(fullName);
-    
+
     login({
       last_name,
       first_name,
@@ -66,8 +65,12 @@ export function LoginStudent() {
   return (
     <div className="login-student-page">
       <div className="login-student-card">
-        <h1 className="login-student-title">Вход</h1>    
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <h1 className="login-student-title">Вход</h1>
+
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+        >
           <div className="admin-inputs">
             <input
               type="text"
@@ -81,22 +84,41 @@ export function LoginStudent() {
               disabled={isPending}
               required
             />
+
             {errors.fullName && (
               <span className="error-message">{errors.fullName}</span>
             )}
-            
-            <input
-              type="text"
-              placeholder="Введите номер студенческого"
-              className={`input-text input ${errors.studentId ? 'error' : ''}`}
-              value={studentId}
-              onChange={(e) => {
-                setStudentId(e.target.value);
-                if (errors.studentId) setErrors({ ...errors, studentId: '' });
-              }}
-              disabled={isPending}
-              required
-            />
+
+            <div className="password-input-wrapper">
+              <input
+                type={isStudentIdVisible ? 'text' : 'password'}
+                placeholder="Введите номер студенческого"
+                className={`input-text input password-input ${errors.studentId ? 'error' : ''}`}
+                value={studentId}
+                onChange={(e) => {
+                  setStudentId(e.target.value);
+                  if (errors.studentId) setErrors({ ...errors, studentId: '' });
+                }}
+                disabled={isPending}
+                inputMode="numeric"
+                required
+              />
+
+              <button
+                type="button"
+                className="password-eye-button"
+                onClick={() => setIsStudentIdVisible((prev) => !prev)}
+                disabled={isPending}
+                aria-label={
+                  isStudentIdVisible
+                    ? 'Скрыть номер студенческого'
+                    : 'Показать номер студенческого'
+                }
+              >
+                {isStudentIdVisible ? <EyeIcon /> : <EyeClosedIcon />}
+              </button>
+            </div>
+
             {errors.studentId && (
               <span className="error-message">{errors.studentId}</span>
             )}
@@ -107,11 +129,12 @@ export function LoginStudent() {
               {apiError.message || 'Ошибка входа. Проверьте данные'}
             </div>
           )}
-           <div className="login-student-buttons" style={{ display: 'flex', marginTop: 'auto', paddingBottom: '10%' }}>
-              <LoginButton 
-              onClick={() => handleSubmit}
-              disabled={isPending}
-            />
+
+          <div
+            className="login-student-buttons"
+            style={{ display: 'flex', marginTop: 'auto', paddingBottom: '10%' }}
+          >
+            <LoginButton disabled={isPending} />
           </div>
         </form>
       </div>

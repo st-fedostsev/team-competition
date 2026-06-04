@@ -43,7 +43,10 @@ export function ChallengesPage() {
   const [comment, setComment] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
+  const [fileDescription, setFileDescription] = useState('');
+  const [isFileDescriptionOpen, setIsFileDescriptionOpen] = useState(false);
+    
   const { data: user } = useCurrentUser();
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useChallengesList();
   const { mutate: sendReport, isPending: isSending } = useSendChallengeReport();
@@ -59,12 +62,22 @@ export function ChallengesPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
       if (file.size > 10 * 1024 * 1024) {
         alert('Файл не должен превышать 10MB');
         return;
       }
+
       setSelectedFile(file);
+      setFileDescription('');
+      setIsFileDescriptionOpen(false);
     }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFileDescription('');
+    setIsFileDescriptionOpen(false);
   };
 
   const handleSendReport = async () => {
@@ -97,6 +110,8 @@ export function ChallengesPage() {
           setIsReportModalOpen(false);
           setComment('');
           setSelectedFile(null);
+          setFileDescription('');
+          setIsFileDescriptionOpen(false);
           setSelectedChallengeId(null);
           alert('Отчёт успешно отправлен!');
         },
@@ -198,17 +213,37 @@ export function ChallengesPage() {
           <div className="report-modal-body">
             <div className="report-section">
               <p className="report-label">Прикрепите отчет</p>
-              <label className="report-upload-btn">
-                <span className="report-upload-icon">📎</span>
-                {selectedFile ? selectedFile.name : 'загрузить файл'}
-                <input type="file" hidden onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt,.jpg,.png,.zip,.rar,.7z" />
-              </label>
+              {!selectedFile && (
+                <label className="report-upload-btn">
+                  Выбор файла
+                  <input
+                    type="file"
+                    hidden
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.png,.zip,.rar,.7z"
+                  />
+                </label>
+              )}
               {selectedFile && (
-                <div className="file-info">
-                  <span>Файл: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)</span>
+                <div className="selected-file-card">
+                  <div className="selected-file-main">
+                    <div className="selected-file-text">
+                      <p className="selected-file-name">{selectedFile.name}</p>
+
+                      {fileDescription.trim() ? (
+                        <p className="selected-file-description">{fileDescription}</p>
+                      ) : (
+                        <p className="selected-file-placeholder">
+                          Описание не добавлено
+                        </p>
+                      )}
+                    </div>
+
                     <button 
+                      type="button"
                       className="remove-file-btn" 
-                      onClick={() => setSelectedFile(null)}
+                      onClick={handleRemoveFile}
+                      aria-label="Удалить файл"
                     >
                       <svg 
                         className="remove-file-icon"
@@ -216,13 +251,39 @@ export function ChallengesPage() {
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          fill="#818A91"
+                          fill="#191919"
                           d="M432,32H312l-9.4-18.7C298.5,5.1,290.2,0,281.1,0H166.8c-9.1,0-17.4,5.1-21.4,13.3L136,32H16
                           C7.2,32,0,39.2,0,48v32c0,8.8,7.2,16,16,16h416c8.8,0,16-7.2,16-16V48C448,39.2,440.8,32,432,32z M53.2,467
                           c1.6,25.3,22.6,45,47.9,45h245.8c25.3,0,46.3-19.7,47.9-45L416,128H32L53.2,467z"
                         />
                       </svg>
                     </button>
+                  </div>
+
+                  <div className="file-description-area">
+                    <button
+                      type="button"
+                      className="file-description-button"
+                      onClick={() => setIsFileDescriptionOpen((prev) => !prev)}
+                    >
+                      <span className="file-description-icon"></span>
+                      Редактировать описание
+                    </button>
+
+                    {isFileDescriptionOpen && (
+                      <div className="file-description-popover">
+                        <p className="file-description-title">Описание к файлу</p>
+
+                        <input
+                          className="file-description-input"
+                          value={fileDescription}
+                          onChange={(e) => setFileDescription(e.target.value)}
+                          placeholder="Напишите описание файла..."
+                          autoFocus
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

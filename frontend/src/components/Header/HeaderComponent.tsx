@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotifications, useDismissNotification } from '../../hooks/useNotifications';
@@ -28,6 +28,8 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false);
   const [activeNotificationMenuId, setActiveNotificationMenuId] = useState<number | null>(null);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const navigate = useNavigate();
 
@@ -68,6 +70,54 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
       return () => dropdown.removeEventListener('scroll', handleScroll);
     }
   }, [isNotificationsOpen, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+  if (!isNotificationsOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(target)
+      ) {
+        setIsNotificationsOpen(false);
+        setIsNotificationsMenuOpen(false);
+        setActiveNotificationMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
+
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(target)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   const handleMenuItemClick = (item: UserMenuItem) => {
     if (item.onClick) {
@@ -137,7 +187,7 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
         </div>
 
         <div className="user-settings">
-          <div className="notifications-wrapper">
+          <div className="notifications-wrapper" ref={notificationsRef}>
             <button
               className={`bell-button ${isNotificationsOpen ? 'active' : ''}`}
               type="button"
@@ -291,7 +341,7 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
             )}
           </div>
 
-          <div className="user-menu-wrapper">
+          <div className="user-menu-wrapper" ref={userMenuRef}>
             <button
               className="user-button"
               type="button"

@@ -1,51 +1,101 @@
 .lenta-container {
-  font-family: Raleway Variable;
+  font-family: "Raleway Variable", sans-serif;
   background-color: #f0f0f0;
   min-height: 100vh;
 }
 
 .lenta-content {
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
   padding: 40px 20px;
+  box-sizing: border-box;
 }
 
 /* Строка с фильтрами и кнопкой */
 .lenta-header {
+  width: 100%;
+  min-height: 42px;
+
+  position: relative;
+
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+
   margin-bottom: 28px;
+  box-sizing: border-box;
+}
+
+/* Кнопка создания мероприятия справа, но она больше не двигает навигацию */
+.lenta-header > *:not(:first-child) {
+  position: absolute;
+  right: 0;
+  top: 50%;
+
+  transform: translateY(-50%);
+  margin-left: 0;
 }
 
 /* Группа табов-фильтров */
 .lenta-tabs {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: #fff;
-  border-radius: 50px;
+
+  height: 42px;
   padding: 4px 8px;
+
+  background-color: #fff;
   border: 1px solid #e0e0e0;
-}
-
-.lenta-tab {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 400;
-  color: #333;
-  padding: 8px 18px;
   border-radius: 50px;
-  transition: background 0.15s ease;
-  font-family: Raleway Variable;
+
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
+/* Обычная кнопка */
+.lenta-tab {
+  height: 32px;
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  font-family: "Raleway Variable", sans-serif;
+
+  color: #333;
+
+  box-sizing: border-box;
+  margin: 0;
+
+  position: relative;
+  top: 0;
+  transform: none;
+
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Активная кнопка */
 .lenta-tab.active {
   background-color: #f0f0f0;
+  border-color: #ccc;
+
   font-weight: 500;
-  border: 1px solid #ccc;
+
+  margin: 0;
+  top: 0;
+  transform: none;
 }
 
 .lenta-tab:not(.active):hover {
@@ -66,6 +116,7 @@
   padding: 28px 32px;
   min-height: 140px;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
 }
 
 .lenta-card-title {
@@ -81,41 +132,40 @@
   margin: 0;
 }
 
-
 /* LentaPage.css — стили для AnnouncementsPage */
 
 .announcements-container {
-  display: flex;
-  flex-direction: column;
+  font-family: "Raleway Variable", sans-serif;
+  background-color: #f0f0f0;
   min-height: 100vh;
-  background-color: #f2f2f2;
 }
 
 .announcements-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
   width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
   box-sizing: border-box;
 }
 
 .announcements-header {
   width: 100%;
-  max-width: 800px;
-  margin-bottom: 24px;
-    display: flex;
+  min-height: 42px;
+
+  display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+
   margin-bottom: 28px;
+  box-sizing: border-box;
 }
 
 .announcements-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
+
   width: 100%;
-  max-width: 800px;
 }
 
 .announcements-card {
@@ -123,6 +173,7 @@
   border-radius: 16px;
   padding: 28px 32px 60px 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
   width: 100%;
   box-sizing: border-box;
 }
@@ -141,25 +192,31 @@
   margin: 0;
 }
 
-
+/* Модальное окно создания мероприятия */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
+
   background: rgba(0, 0, 0, 0.45);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 1000;
 }
 
 .modal-content {
   width: 100%;
   max-width: 520px;
+
   background: #fff;
   border-radius: 14px;
   padding: 38px 42px 34px;
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  box-sizing: border-box;
 }
 
 .modal-content h2 {
@@ -179,11 +236,15 @@
 .modal-select {
   width: 100%;
   box-sizing: border-box;
+
   border: 1px solid #d0d0d0;
   border-radius: 10px;
+
   padding: 12px 14px;
+
   font-size: 16px;
-  font-family: Raleway Variable;
+  font-family: "Raleway Variable", sans-serif;
+
   background: #f7f7f8;
 }
 
@@ -196,6 +257,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+
   font-size: 16px;
 }
 
@@ -203,6 +265,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+
   margin-top: 8px;
 }
 
@@ -210,20 +273,26 @@
   background: #fff;
   border: 1px solid #ffd675;
   border-radius: 8px;
+
   padding: 10px 22px;
+
   cursor: pointer;
-  font-family: Raleway Variable;
+
+  font-family: "Raleway Variable", sans-serif;
 }
 
 .create-button {
   background: #ffd675;
   border: none;
   border-radius: 8px;
+
   padding: 12px 34px;
+
   cursor: pointer;
+
   font-size: 18px;
   font-weight: 500;
-  font-family: Raleway Variable;
+  font-family: "Raleway Variable", sans-serif;
 }
 
 .create-button:disabled {

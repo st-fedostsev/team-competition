@@ -9,12 +9,15 @@ import { useCurrentUser } from '../../../hooks/useAuth';
 import { useJoinTeam } from '../../../hooks/useTeam';
 import { CancelButton } from '../../../components/Buttons';
 import { JoinButton } from '../../../components/Buttons';
+import { EyeIcon } from '../../../components/EyeIcon';
+import { EyeClosedIcon } from '../../../components/EyeClosedIcon';
 import '../../../styles/ProfilePage.css';
 
 export function ProfileStudentPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isSearchTeamOpen, setIsSearchTeamOpen] = useState(false);
+  const [isStudentIdVisible, setIsStudentIdVisible] = useState(false);
   
   // Получаем данные пользователя
   const { data: user, isLoading, isError, error, refetch } = useCurrentUser();
@@ -96,9 +99,20 @@ export function ProfileStudentPage() {
             <p className="profile-name">
               {user.last_name} {user.first_name}
             </p>
-            <p className="profile-role">
-              Студенческий билет № {user.student_id}
-            </p>
+            <div className="profile-role profile-student-id">
+              <span>
+                Студенческий билет № {isStudentIdVisible ? user.student_id : '••••••'}
+              </span>
+
+              <button
+                type="button"
+                className="student-id-eye-button"
+                onClick={() => setIsStudentIdVisible((prev) => !prev)}
+                aria-label={isStudentIdVisible ? 'Скрыть номер студенческого билета' : 'Показать номер студенческого билета'}
+              >
+                {isStudentIdVisible ? <EyeIcon /> : <EyeClosedIcon />}
+              </button>
+            </div>
             
             <div className="name-button">
               <span className="team-label">Команда:</span>

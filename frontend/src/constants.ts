@@ -9,7 +9,7 @@ export const HEADERS_LIST_TECH_ADMIN = [
   { label: 'Пользователи', path: '/admin/users' },
   // { label: 'Логи', path: '/admin/logs' },
   // { label: 'Резервное копирование', path: '/admin/backup' },
-  { label: 'Рейтинг', path: '/admin/rating' },
+  { label: 'Рейтинг', path: '/admin/rating/students' },
   { label: 'Интеграции', path: '/admin/integrations' },
 ];
 
