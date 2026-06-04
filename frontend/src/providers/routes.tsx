@@ -22,6 +22,7 @@ import { RatingTechStudentsPage } from '../pages/Tech Admin/HeaderNav/Rating/Rat
 import { IntegrationsPage } from '../pages/Tech Admin/HeaderNav/IntegrationsPage';
 import { NewsContentManagerPage } from '../pages/Content Manager/Profile/HeaderNav/NewsContentManagerPage';
 import { ModerationPage } from '../pages/Content Manager/Profile/HeaderNav/ModerationPage';
+import { ProfileGameAdminPage } from '../pages/GameAdmin/Profile/ProfileGameAdminPage'
 
 export const router = createBrowserRouter([
   {
@@ -147,5 +148,13 @@ export const router = createBrowserRouter([
   {
     path: '/admin/integrations',
     element: <IntegrationsPage />
+  },
+  {
+    path: '/ProfileGameAdminPage',
+    element: (
+      <ProtectedRoute>
+        <ProfileGameAdminPage />
+      </ProtectedRoute>
+    ),
   },
 ]);

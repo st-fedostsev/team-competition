@@ -393,9 +393,14 @@ export function EventDeleteConfirmButton({ onClick, disabled }: ModerationButton
 interface NewsButtonProps {
   onClick?: () => void;
   disabled?: boolean;
+  label?: string;
 }
 
-export function CreateNewsButton({ onClick, disabled }: NewsButtonProps) {
+export function CreateNewsButton({
+  onClick,
+  disabled,
+  label = 'Создать новость',
+}: NewsButtonProps) {
   return (
     <button
       className="cm-news-create-button"
@@ -403,10 +408,22 @@ export function CreateNewsButton({ onClick, disabled }: NewsButtonProps) {
       onClick={onClick}
       disabled={disabled}
     >
-      <span>Создать новость</span>
-          <svg className="create-plus-icon" width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.53386 0V17M17.4233 8H0" stroke="#191919" strokeWidth="2" />
-          </svg>
+      <span>{label}</span>
+
+      <svg
+        className="create-plus-icon"
+        width="18"
+        height="17"
+        viewBox="0 0 18 17"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.53386 0V17M17.4233 8H0"
+          stroke="#191919"
+          strokeWidth="2"
+        />
+      </svg>
     </button>
   );
 }

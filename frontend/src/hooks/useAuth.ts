@@ -78,7 +78,7 @@ export function useAdminLogin() {
             navigate('/ProfileContentManager');
             break;
           case 'game_admin':
-            navigate('/ProfileContentManager');
+            navigate('/ProfileGameAdminPage');
             break;
           case 'technical_admin':
             navigate('/ProfileTechAdmin');

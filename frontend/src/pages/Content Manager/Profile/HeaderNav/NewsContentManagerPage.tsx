@@ -79,6 +79,46 @@ export function NewsContentManagerPage() {
     return feedItems;
   }, [activeTab, feedItems]);
 
+    const createButtonLabel = useMemo(() => {
+    if (activeTab === '/news') {
+      return 'Создать новость';
+    }
+
+    if (activeTab === '/challenges') {
+      return 'Создать челлендж';
+    }
+
+    return 'Создать мероприятие';
+  }, [activeTab]);
+
+  const createModalTitle = useMemo(() => {
+    if (activeTab === '/news') {
+      return 'Создание новости';
+    }
+
+    if (activeTab === '/challenges') {
+      return 'Создание челленджа';
+    }
+
+    return 'Создание мероприятий';
+  }, [activeTab]);
+
+  const titlePlaceholder = useMemo(() => {
+    if (activeTab === '/challenges') {
+      return 'Введите название челленджа';
+    }
+
+    return 'Введите название';
+  }, [activeTab]);
+
+  const descriptionPlaceholder = useMemo(() => {
+    if (activeTab === '/challenges') {
+      return 'Введите описание челленджа';
+    }
+
+    return 'Введите описание';
+  }, [activeTab]);
+
   const handleOpenCreateNewsModal = () => {
     setIsCreateNewsOpen(true);
   };
@@ -158,7 +198,7 @@ export function NewsContentManagerPage() {
             onChange={setActiveTab}
           />
 
-          <CreateNewsButton onClick={handleOpenCreateNewsModal} />
+          <CreateNewsButton  label={createButtonLabel}  onClick={handleOpenCreateNewsModal} />
         </div>
 
         <div className="cm-news-list">
@@ -194,7 +234,7 @@ export function NewsContentManagerPage() {
             <CreateNewsCloseButton onClick={handleCloseCreateNewsModal} />
 
             <h2 className="cm-create-news-title">
-              Создание новости
+              {createModalTitle}
             </h2>
 
             <form
@@ -204,14 +244,14 @@ export function NewsContentManagerPage() {
               <input
                 className="cm-create-news-input"
                 type="text"
-                placeholder="Введите название"
+                placeholder={titlePlaceholder}
                 value={newsTitle}
                 onChange={(event) => setNewsTitle(event.target.value)}
               />
 
               <textarea
                 className="cm-create-news-textarea"
-                placeholder="Введите описание"
+                placeholder={descriptionPlaceholder}
                 value={newsBody}
                 onChange={(event) => setNewsBody(event.target.value)}
               />

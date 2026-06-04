@@ -88,3 +88,48 @@ letter-spacing: 0%;
     right: 28px;
   }
 }
+
+.preview-delete-btn {
+   border: none;
+   outline: none;  
+   background-color: #fff;
+}
+
+.preview-pagination{
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0 0 4px;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  background: #f7f7f7;
+  color: #111;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.calendar-event-nav-button:hover {
+  background: #eeeeee;
+  border-color: #d0d0d0;
+}
+
+.preview-footer{
+  margin-top: 18px;
+}
+
+.preview-footer{
+  display: flex;
+  justify-content: space-between;
+}

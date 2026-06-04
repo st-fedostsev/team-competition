@@ -66,6 +66,7 @@ export function ModerationPage() {
   const [activeTab, setActiveTab] = useState(MODERATION_TABS[0].value);
   const [selectedReport, setSelectedReport] = useState<ModerationItem | null>(null);
   const [eventForDelete, setEventForDelete] = useState<ModerationItem | null>(null);
+  const [marketItemForDelete, setMarketItemForDelete] = useState<ModerationItem | null>(null);
   const [deleteComment, setDeleteComment] = useState('');
 
   const filteredItems = useMemo(() => {
@@ -81,6 +82,11 @@ export function ModerationPage() {
     setDeleteComment('');
   };
 
+  const closeDeleteMarketModal = () => {
+    setMarketItemForDelete(null);
+    setDeleteComment('');
+  };
+
   const handleReportReject = () => {
     console.log('Отклонить отчет:', selectedReport);
     closeReportModal();
@@ -92,7 +98,7 @@ export function ModerationPage() {
   };
 
   const handleDeleteMarketItem = (item: ModerationItem) => {
-    console.log('Удалить объявление:', item);
+    setMarketItemForDelete(item);
   };
 
   const handlePublishMarketItem = (item: ModerationItem) => {
@@ -106,6 +112,15 @@ export function ModerationPage() {
     });
 
     closeDeleteEventModal();
+  };
+
+  const handleConfirmDeleteMarketItem = () => {
+    console.log('Удалить объявление:', {
+      marketItem: marketItemForDelete,
+      comment: deleteComment,
+    });
+
+    closeDeleteMarketModal();
   };
 
   return (
@@ -320,6 +335,37 @@ export function ModerationPage() {
               <EventDeleteCancelButton onClick={closeDeleteEventModal} />
 
               <EventDeleteConfirmButton onClick={handleDeleteEvent} />
+            </div>
+          </div>
+        </Modal>
+      )}
+      {marketItemForDelete && (
+        <Modal closeModal={closeDeleteMarketModal}>
+          <div className="cm-event-delete-modal-body">
+            <div className="cm-event-delete-info">
+              <p className="cm-event-delete-title">
+                {marketItemForDelete.title}
+              </p>
+
+              <p className="cm-event-delete-description">
+                {marketItemForDelete.description}
+              </p>
+            </div>
+
+            <label className="cm-event-delete-label">
+              Введите комментарий
+            </label>
+
+            <textarea
+              className="cm-event-delete-textarea"
+              value={deleteComment}
+              onChange={(event) => setDeleteComment(event.target.value)}
+            />
+
+            <div className="cm-event-delete-actions">
+              <EventDeleteCancelButton onClick={closeDeleteMarketModal} />
+
+              <EventDeleteConfirmButton onClick={handleConfirmDeleteMarketItem} />
             </div>
           </div>
         </Modal>

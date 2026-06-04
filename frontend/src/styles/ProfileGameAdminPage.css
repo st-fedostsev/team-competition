@@ -1,0 +1,171 @@
+.profile-container {
+  min-height: 100vh;
+  background-color: #f0f0f0;
+  font-family: Raleway Variable;
+  padding: 0;
+}
+
+.profile-content {
+  padding: 20px;
+}
+
+.join-team-modal-buttons{
+  display: flex;
+  justify-content: space-between;
+   margin-top: 40px;
+
+}
+
+
+/* Карточка с профилем */
+.profile-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  margin-top: 30px;
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  margin-right: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-avatar i {
+  font-size: 36px;
+  color: #ccc;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.profile-role {
+  font-size: 14px;
+  color: #777;
+}
+
+/* Кнопка для создания рассылки */
+.create-newsletter {
+  display: flex;
+  justify-content: center;
+}
+
+.create-button {
+  padding: 12px 30px;
+  background-color: #FFD675;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.create-button:hover {
+  background-color: #e6b74f;
+}
+
+
+/* Модальное окно */
+
+.modal-form {
+  margin: 0 auto;
+  padding: 20px;
+  width: 80%; /* Используйте проценты для гибкости */
+  max-width: 600px; /* Ограничьте максимальную ширину */
+
+}
+
+
+/* Строка "Команда: [кнопка]" */
+.profile-team-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.name-button{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-team-label {
+  font-size: 15px;
+  color: #333;
+}
+
+/* Карандаш редактирования */
+.profile-edit-btn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.profile-edit-btn:hover svg {
+  stroke: #555;
+}
+
+/* NavStudent контейнер — центрируем по странице */
+.nav-student-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.name-button{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+.profile-student-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-id-eye-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.student-id-eye-button svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.student-id-eye-button:hover {
+  opacity: 0.7;
+}

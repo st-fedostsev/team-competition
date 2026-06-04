@@ -18,8 +18,14 @@ export const HEADERS_LIST_CONTENT_MANAGER =[
   { label: 'Модерация', path: '/moderation' },
 ];
 
+export const HEADERS_LIST_GAME_ADMIN =[
+  {label: 'Команды', path: '/game-admin/teams'},
+  {label: 'Заявки', path: '/game-admin/applications'},
+  {label: 'Рейтинг', path: '/game-admin/rating'},
+]
+
 export const FEED_TABS = [
-  { label: 'Все', value: '/all' },
+  { label: 'Мероприятия', value: '/all' },
   { label: 'Челленджи', value: '/challenges' },
   { label: 'Новости', value: '/news' },
 ];

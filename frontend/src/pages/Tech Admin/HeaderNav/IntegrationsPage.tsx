@@ -223,7 +223,18 @@ export function IntegrationsPage() {
                           onClick={() => handleDeleteUser(user.id)}
                           aria-label="Удалить"
                         >
-                          🗑️
+                          <svg 
+                            className="remove-file-icon"
+                            viewBox="0 0 448 512" 
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fill="#191919"
+                              d="M432,32H312l-9.4-18.7C298.5,5.1,290.2,0,281.1,0H166.8c-9.1,0-17.4,5.1-21.4,13.3L136,32H16
+                              C7.2,32,0,39.2,0,48v32c0,8.8,7.2,16,16,16h416c8.8,0,16-7.2,16-16V48C448,39.2,440.8,32,432,32z M53.2,467
+                              c1.6,25.3,22.6,45,47.9,45h245.8c25.3,0,46.3-19.7,47.9-45L416,128H32L53.2,467z"
+                            />
+                          </svg>
                         </button>
                       </td>
                     </tr>
@@ -240,31 +251,35 @@ export function IntegrationsPage() {
                   onClick={goToPrevPage}
                   disabled={currentPage === 1}
                 >
-                  ← Назад
+                  ‹
                 </button>
                 <span className="pagination-info">
-                  Страница {currentPage} из {totalPages}
+                   {currentPage} / {totalPages}
                 </span>
                 <button
                   className="pagination-btn"
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
                 >
-                  Вперед →
+                  ›
                 </button>
               </div>
             )}
             
             <div className="preview-footer">
-              <button className="preview-cancel-btn" onClick={handleCancelImport}>
-                Отмена
+              <button className="button button-small drop-shadow button-close" onClick={handleCancelImport}>
+                <p className='button-text button-text-small'>
+                  Отмена
+                </p>
               </button>
               <button 
-                className="preview-confirm-btn" 
+                className="button button-small drop-shadow" 
                 onClick={handleConfirmImport}
                 disabled={isPending}
               >
-                {isPending ? 'Импорт...' : `Импортировать (${previewData.length})`}
+                <p className='button-text button-text-small'>
+                  {isPending ? 'Импорт...' : `Импортировать (${previewData.length})`}
+                </p>
               </button>
             </div>
           </div>
