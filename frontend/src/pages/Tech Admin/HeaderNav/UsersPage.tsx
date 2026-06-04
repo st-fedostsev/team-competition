@@ -1,5 +1,5 @@
 // pages/TechAdmin/Users/UsersPage.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { HeaderTechAdmin } from '../../../components/Header/HeaderTechAdmin';
 import { CreatePlusButton, CancelButton, CreateButton } from '../../../components/Buttons';
 import { Modal } from '../../../components/ModalWindowComponent';
@@ -8,6 +8,7 @@ import { useCurrentUser } from '../../../hooks/useAuth';
 import { useTeamsByIds } from '../../../hooks/useTeam';
 import type { UserRole } from '../../../types/techadmin.types';
 import '../../../styles/UsersPage.css';
+import type { ApiError } from '../../../types/error.types'
 
 type FilterTab = 'all' | 'students' | 'admins';
 
@@ -126,7 +127,7 @@ export function UsersPage() {
           handleCloseModal();
           refetch();
         },
-        onError: (error: any) => {
+        onError: (error: Error & ApiError) => {
           alert(error.response?.data?.msg || 'Ошибка создания администратора');
         },
       });
@@ -161,7 +162,7 @@ export function UsersPage() {
           handleCloseModal();
           refetch();
         },
-        onError: (error: any) => {
+        onError: (error: Error & ApiError) => {
           alert(error.response?.data?.msg || 'Ошибка создания студента');
         },
       });

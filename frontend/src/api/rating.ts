@@ -7,10 +7,10 @@ import type {
 
 export const ratingApi = {
   // Получить лидерборд пользователей
-  getUsersLeaderboard: (params: LeaderboardRequest & { search?: string; top_only?: boolean }) =>
+  getUsersLeaderboard: (params: LeaderboardRequest & { query?: string; top_only?: boolean }) =>
     apiClient.post<LeaderboardResponse>('/api/users/leaderboard', params),
   
   // Получить лидерборд команд
-  getTeamsLeaderboard: (params: LeaderboardRequest & { search?: string; top_only?: boolean }) =>
+  getTeamsLeaderboard: (params: LeaderboardRequest & { query?: string; top_only?: boolean }) =>
     apiClient.post<LeaderboardResponse>('/api/team/leaderboard', params),
 };

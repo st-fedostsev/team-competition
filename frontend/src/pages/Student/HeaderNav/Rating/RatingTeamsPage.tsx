@@ -1,28 +1,19 @@
 // pages/Student/HeaderNav/RatingTeamsPage.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
 import { NavRating } from '../../../../components/Nav/NavRating';
 import { useLeaderboard } from '../../../../hooks/useRating';
+import type { LeaderboardTeam } from '../../../../types/leaderboard.types';
 import { RATING_TABS } from '../../../../constants';
 import '../../../../styles/RatingPage.css';
 
-interface TeamLeaderboardItem {
-  id: number;
-  name: string;
-  crc: number;
-  league: 'novice' | 'pro' | 'legend';
-  captain_id: number;
-  members?: number[];
-  members_count?: number;
-  position?: number;
-}
 
 export function RatingTeamsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [topOnly, setTopOnly] = useState(false);
   
-  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useLeaderboard(
+  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useLeaderboard<LeaderboardTeam>(
     'teams',
     debouncedSearch,
     topOnly
@@ -36,15 +27,17 @@ export function RatingTeamsPage() {
   }, [searchQuery]);
 
   const allTeams = useMemo(() => {
-    const rawTeams = data?.pages?.flatMap(page => page?.items || []) || [];
-    return rawTeams.map((team: any, index: number) => ({
-      id: team.id,
-      name: team.name,
-      rating: team.crc,
-      league: team.league,
-      position: index + 1,
-    }));
-  }, [data?.pages]);
+  const rawTeams = data?.pages?.flatMap(page => page?.items || []);
+  if (!rawTeams) return [];
+  
+  return rawTeams.map((team, index) => ({
+    id: team.id,
+    name: team.name,
+    rating: team.crc,
+    league: team.league,
+    position: index + 1,
+  }));
+}, [data?.pages]);
 
   const displayedTeams = useMemo(() => {
     let result = [...allTeams];

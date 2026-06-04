@@ -14,11 +14,12 @@ export interface LeaderboardUser {
 }
 
 export interface LeaderboardTeam {
-  team_id: number;
-  team_name: string;
-  rating: number;
-  members_count: number;
-  rank: number;
+  id: number;
+  name: string;
+  crc: number;
+  league: 'novice' | 'pro' | 'legend';
+  captain_id: number;
+  members?: number[];
 }
 
 export interface LeaderboardPage<T> {

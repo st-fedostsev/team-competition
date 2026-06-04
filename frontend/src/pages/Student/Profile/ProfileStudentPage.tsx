@@ -149,7 +149,6 @@ export function ProfileStudentPage() {
                 <CancelButton onClick={handleCancelJoin} />
 
                 <JoinButton
-                  className="confirm-join-btn"
                   onClick={handleJoinTeam}
                   disabled={isJoining}
                 >

@@ -94,11 +94,14 @@ export function ChallengesPage() {
     setIsUploading(true);
     
     try {
-      // ✅ Загружаем файл на сервер и получаем ID
-      const uploadResponse = await uploadFile(selectedFile);
+      // Загружаем файл с display_name (описание или имя файла)
+      const uploadResponse = await uploadFile({
+        file: selectedFile,
+        displayName: fileDescription.trim() || selectedFile.name
+      });
       const fileId = uploadResponse.data.id;
       
-      // ✅ Формируем URL для скачивания
+      // Формируем URL для скачивания
       const fileUrl = `http://localhost:8000/files/download/${fileId}`;
       
       sendReport({

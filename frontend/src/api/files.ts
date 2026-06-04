@@ -1,13 +1,16 @@
-// api/endpoints/files.ts
+// api/files.ts
 import { apiClient } from './client';
 
 export const filesApi = {
   // Загрузить файл
-  uploadFile: (file: File) => {
+  uploadFile: (file: File, displayName?: string) => {
     const formData = new FormData();
     formData.append('file', file);
     
-    // Убираем Content-Type, браузер сам добавит boundary
+    if (displayName) {
+      formData.append('display_name', displayName);
+    }
+    
     return apiClient.post<{ id: number }>('/api/files/upload', formData);
   },
 };

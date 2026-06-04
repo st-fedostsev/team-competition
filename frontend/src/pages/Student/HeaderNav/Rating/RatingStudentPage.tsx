@@ -4,9 +4,9 @@ import { NavRating } from '../../../../components/Nav/NavRating';
 import { useLeaderboard } from '../../../../hooks/useRating';
 import { useCurrentUser } from '../../../../hooks/useAuth';
 import { useTeamsByIds } from '../../../../hooks/useTeam';
+import type { LeaderboardUser } from '../../../../types/leaderboard.types';
 import { RATING_TABS } from '../../../../constants';
 import '../../../../styles/RatingPage.css';
-import type { LeaderboardUser } from '../../../../types/leaderboard.types'
 
 export function RatingPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,7 +14,7 @@ export function RatingPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   
   const { data: currentUser } = useCurrentUser();
-  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useLeaderboard(
+  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useLeaderboard<LeaderboardUser>(
     'users',
     debouncedSearch,
     topOnly

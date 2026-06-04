@@ -38,7 +38,9 @@ export function TopMenu({ tabs, userMenuItems, userAvatar }: TopMenuProps) {
   const { mutate: dismissNotification } = useDismissNotification();
 
   // Все уведомления из всех страниц
-  const allNotifications = data?.pages.flatMap(page => page.notifications) || [];
+  const allNotifications = useMemo(() => {
+  return data?.pages?.flatMap(page => page?.notifications || []) || [];
+}, [data?.pages]);
 
   const unreadCount = useMemo(() => {
     return allNotifications.filter((notification) => !notification.dismissed).length;

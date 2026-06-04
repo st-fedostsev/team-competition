@@ -4,12 +4,11 @@ import { HeaderTechAdmin } from '../../../../components/Header/HeaderTechAdmin';
 import { EditIcon } from '../../../../components/EditIcon';
 import { SearchIcon } from '../../../../components/SearchIcon';
 import { useLeaderboard } from '../../../../hooks/useRating';
-import type { LeaderboardUser } from '../../../../types/leaderboard.types'
-import { useTeamsByIds } from '../../../../hooks/useTeam';
+import type { LeaderboardTeam } from '../../../../types/leaderboard.types'
 import '../../../../styles/RatingTechPage.css';
 import type { ApiError } from '../../../../types/error.types'
 
-export function RatingTechStudentsPage() {
+export function RatingTechTeamsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -23,7 +22,7 @@ export function RatingTechStudentsPage() {
     fetchNextPage, 
     hasNextPage, 
     isFetchingNextPage 
-  } = useLeaderboard<LeaderboardUser>('users', debouncedSearch, showTop);
+  } = useLeaderboard<LeaderboardTeam>('teams', debouncedSearch, showTop);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,29 +31,21 @@ export function RatingTechStudentsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const allStudents = useMemo(() => {
+  const allTeams = useMemo(() => {
     return data?.pages?.flatMap(page => page?.items || []) || [];
   }, [data?.pages]);
 
-  // Для отображения названий команд
-  const teamIds = useMemo(() => {
-    return [...new Set(allStudents.map(student => student.team_id).filter(Boolean))] as number[];
-  }, [allStudents]);
-
-  const teamQueries = useTeamsByIds(teamIds);
-  
-  const teamNameMap = useMemo(() => {
-    const map = new Map<number, string>();
-    teamQueries.forEach((query, index) => {
-      if (query.data?.name && teamIds[index]) {
-        map.set(teamIds[index], query.data.name);
-      }
-    });
-    return map;
-  }, [teamQueries, teamIds]);
+  const getLeagueDisplay = (league?: string) => {
+    switch (league) {
+      case 'novice': return 'Новички';
+      case 'pro': return 'Профи';
+      case 'legend': return 'Легенды';
+      default: return '—';
+    }
+  };
 
   const getDisplayPosition = (index: number) => {
-  return index + 1;
+    return index + 1;
   };
 
   if (isLoading) {
@@ -62,7 +53,7 @@ export function RatingTechStudentsPage() {
       <div className="tech-rating-page">
         <HeaderTechAdmin />
         <main className="tech-rating-main">
-          <div className="loading">Загрузка рейтинга студентов...</div>
+          <div className="loading">Загрузка рейтинга команд...</div>
         </main>
       </div>
     );
@@ -90,7 +81,7 @@ export function RatingTechStudentsPage() {
         <div className="tech-rating-control-row">
           <div className="tech-rating-tabs">
             <button
-              className="tech-rating-tab active"
+              className="tech-rating-tab"
               type="button"
               onClick={() => navigate('/admin/rating/students')}
             >
@@ -98,7 +89,7 @@ export function RatingTechStudentsPage() {
             </button>
 
             <button
-              className="tech-rating-tab"
+              className="tech-rating-tab active"
               type="button"
               onClick={() => navigate('/admin/rating/teams')}
             >
@@ -112,7 +103,7 @@ export function RatingTechStudentsPage() {
             className="tech-rating-search-input"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Введите ФИО или команду"
+            placeholder="Введите название команды"
           />
 
           <button className="tech-rating-search-button" type="button" aria-label="Поиск">
@@ -130,23 +121,23 @@ export function RatingTechStudentsPage() {
         </label>
 
         <div className="tech-rating-table">
-          <div className="tech-rating-row tech-rating-header tech-rating-students-row">
+          <div className="tech-rating-row tech-rating-header tech-rating-teams-row">
             <div>Позиция</div>
-            <div>ФИО</div>
             <div>Команда</div>
+            <div>Лига</div>
             <div>Балл</div>
             <div></div>
           </div>
 
-          {allStudents.length === 0 ? (
+          {allTeams.length === 0 ? (
             <div className="tech-rating-empty">Нет данных</div>
           ) : (
-            allStudents.map((student, index) => (
-              <div className="tech-rating-row tech-rating-students-row" key={student.id}>
+            allTeams.map((team, index) => (
+              <div className="tech-rating-row tech-rating-teams-row" key={team.id}>
                 <div>{getDisplayPosition(index)}</div>
-                <div>{`${student.last_name} ${student.first_name} ${student.patronymic || ''}`}</div>
-                <div>{student.team_id ? (teamNameMap.get(student.team_id) || '—') : '—'}</div>
-                <div>{student.personal_rating}</div>
+                <div>{team.name}</div>
+                <div>{getLeagueDisplay(team.league)}</div>
+                <div>{team.crc?.toFixed(2) || team.crc}</div>
                 <div>
                   <button
                     className="tech-rating-edit-button"

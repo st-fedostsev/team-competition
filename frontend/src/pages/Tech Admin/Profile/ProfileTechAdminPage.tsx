@@ -1,4 +1,3 @@
-import React from 'react';
 import { HeaderTechAdmin } from '../../../components/Header/HeaderTechAdmin';
 import '../../../styles/ProfilePage.css'
 

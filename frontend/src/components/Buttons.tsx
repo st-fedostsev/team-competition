@@ -181,6 +181,7 @@ export function LoginButton({ onClick, disabled }: LoginProps) {
 interface JoinButtonProps {
   onClick?: () => void;
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
 export function JoinButton({ onClick, disabled }: JoinButtonProps) {

@@ -17,7 +17,7 @@ import { AnnouncementsPage } from '../pages/Student/HeaderNav/Event feed/NewsPag
 import { RatingPage } from '../pages/Student/HeaderNav/Rating/RatingStudentPage';
 import { RatingTeamsPage } from '../pages/Student/HeaderNav/Rating/RatingTeamsPage';
 import { UsersPage } from '../pages/Tech Admin/HeaderNav/UsersPage';
-import { RatingTechPage } from '../pages/Tech Admin/HeaderNav/Rating/RatingTechPage';
+import { RatingTechTeamsPage } from '../pages/Tech Admin/HeaderNav/Rating/RatingTechTeamsPage';
 import { RatingTechStudentsPage } from '../pages/Tech Admin/HeaderNav/Rating/RatingTechStudentPage';
 import { IntegrationsPage } from '../pages/Tech Admin/HeaderNav/IntegrationsPage';
 import { NewsContentManagerPage } from '../pages/Content Manager/Profile/HeaderNav/NewsContentManagerPage';
@@ -138,7 +138,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/admin/rating/teams',
-    element: <RatingTechPage />
+    element: <RatingTechTeamsPage />
   },
   {
     path: '/admin/rating/students',

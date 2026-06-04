@@ -9,8 +9,7 @@ export interface Team {
   created_at: string;
   captain_id: number;
   crc?: number;                 // рейтинг команды (Competitive Rating Coefficient)
-  league?: 'novice' | 'amateur' | 'pro' | 'legend';  // лига команды
-  total_rating?: number;       // общий балл команды
+  league?: 'novice' | 'pro' | 'legend';  // лига команды
 }
 
 export interface CreateTeamData {
