@@ -47,6 +47,10 @@ async def create_challenge(challenge_create_data: ChallengeCreateData, response:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
 
+    if user.role != UserRole.content_manager:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+
     challenge = Challenge(
         title=challenge_create_data.title,
         description=challenge_create_data.description,

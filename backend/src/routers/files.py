@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Security, Response, status, UploadFile
+from fastapi import APIRouter, Request, Depends, Security, Response, status, UploadFile, Form
 from sqlmodel import Session, select, column
 from database.session import get_session
 from models import User, UserRole, File
@@ -42,7 +42,7 @@ FILE_SIZE_LIMIT = 1024 * 1024 * 10 # 10MB
     '/upload',
     summary='Загрузить файл'
 )
-async def upload_file(file: UploadFile, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+async def upload_file(file: UploadFile, response: Response, display_name: str = Form(default=None), credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
     q = select(User).where(User.id == credentials['id'])
     user = session.exec(q).first()
     if not user:
@@ -57,6 +57,7 @@ async def upload_file(file: UploadFile, response: Response, credentials: JwtAuth
     f = File(
         name=file.filename,
         data=file_data,
+        display_name=display_name,
         author_id=user.id,
         created_at=datetime.utcnow()
     )
@@ -64,6 +65,37 @@ async def upload_file(file: UploadFile, response: Response, credentials: JwtAuth
     session.commit()
 
     return FileData(id=f.id)
+
+@router.post(
+    '/get_info',
+    summary='Получить информацию о файле'
+)
+async def get_info(file_data: FileData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+
+    q = select(File).where(File.id == file_data.id)
+    file = session.exec(q).first()
+    if not file:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Файл не найден')
+    
+    if (file.author_id != user.id) and (user.role != UserRole.content_manager):
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Недостаточно прав')
+    
+    return FileDescriptionData(
+        id=file.id,
+        name=file.name,
+        display_name=file.display_name,
+        size=len(file.data),
+        author_id=file.author_id,
+        created_at=file.created_at,
+    )
+
 
 @router.post(
     '/download/{file_id}',
