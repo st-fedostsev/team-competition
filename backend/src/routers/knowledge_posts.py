@@ -85,8 +85,9 @@ async def list_posts(post_list_data: PagedRequestData, response: Response, crede
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = select(KnowledgePost).limit(post_list_data.limit).offset(post_list_data.offset)
-    posts = session.exec(q).all()
+    q = select(KnowledgePost)
+    posts = session.exec(q.limit(post_list_data.limit).offset(post_list_data.offset)).all()
+    posts_all = session.exec(q).all()
 
     result = list(map(lambda x: KnowledgePostData(
             id=x.id,
@@ -100,7 +101,10 @@ async def list_posts(post_list_data: PagedRequestData, response: Response, crede
         posts
     ))
     
-    return result
+    return {
+        'count': len(posts_all),
+        'result': result
+    }
 
 @router.post(
     '/list_my',
@@ -117,10 +121,9 @@ async def list_posts(post_list_data: PagedRequestData, response: Response, crede
         response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
         return Message(msg='Пользователь не состоит в команде')
 
-    q = (select(KnowledgePost).where(KnowledgePost.team_id == user.team_id)
-                            .limit(post_list_data.limit)
-                            .offset(post_list_data.offset))
-    posts = session.exec(q).all()
+    q = (select(KnowledgePost).where(KnowledgePost.team_id == user.team_id))
+    posts = session.exec(q.limit(post_list_data.limit).offset(post_list_data.offset)).all()
+    posts_all = session.exec(q).all()
 
     result = list(map(lambda x: KnowledgePostData(
             id=x.id,
@@ -134,4 +137,7 @@ async def list_posts(post_list_data: PagedRequestData, response: Response, crede
         posts
     ))
     
-    return result
+    return {
+        'count': len(posts_all),
+        'result': result
+    }

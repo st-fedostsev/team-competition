@@ -80,8 +80,9 @@ async def list_events(event_list_data: PagedRequestData, response: Response, cre
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = select(Event).limit(event_list_data.limit).offset(event_list_data.offset)
-    events = session.exec(q).all()
+    q = select(Event)
+    events = session.exec(q.limit(event_list_data.limit).offset(event_list_data.offset)).all()
+    events_all = session.exec(q).all()
 
     result = list(map(lambda x: EventData(
             id=x.id,
@@ -95,4 +96,7 @@ async def list_events(event_list_data: PagedRequestData, response: Response, cre
         events
     ))
     
-    return result
+    return {
+        'count': len(events_all),
+        'result': result
+    }

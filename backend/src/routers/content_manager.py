@@ -72,9 +72,13 @@ async def get_knowledge_posts(paged_request_data: PagedRequestData, response: Re
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Доступ запрещен')
     
-    q = select(KnowledgePost).where(KnowledgePost.status == ModerationStatus.on_moderation).limit(paged_request_data.limit).offset(paged_request_data.offset)
-    posts = session.exec(q).all()
-    return posts
+    q = select(KnowledgePost).where(KnowledgePost.status == ModerationStatus.on_moderation)
+    posts = session.exec(q.limit(paged_request_data.limit).offset(paged_request_data.offset)).all()
+    posts_all = session.exec(q).all()
+    return {
+        'count': len(posts_all),
+        'result': posts
+    }
 
 @router.post(
     '/moderate_knowledge_post',
@@ -106,9 +110,13 @@ async def get_challenge_reports(paged_request_data: PagedRequestData, response: 
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Доступ запрещен')
     
-    q = select(ChallengeReport).where(ChallengeReport.status == ModerationStatus.on_moderation).limit(paged_request_data.limit).offset(paged_request_data.offset)
-    reports = session.exec(q).all()
-    return reports
+    q = select(ChallengeReport).where(ChallengeReport.status == ModerationStatus.on_moderation)
+    reports = session.exec(q.limit(paged_request_data.limit).offset(paged_request_data.offset)).all()
+    reports_all = session.exec(q).all()
+    return {
+        'count': len(reports_all),
+        'result': reports
+    }
 
 @router.post(
     '/moderate_challenge_report',

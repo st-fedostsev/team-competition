@@ -269,9 +269,9 @@ async def search_team(search_team_data: SearchTeamData, response: Response, cred
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
 
-    q = select(Team).filter(column('name').icontains(search_team_data.query)).limit(search_team_data.limit).offset(search_team_data.offset)
-    teams = session.exec(q).all()
-
+    q = select(Team).filter(column('name').icontains(search_team_data.query))
+    teams = session.exec(q.limit(search_team_data.limit).offset(search_team_data.offset)).all()
+    teams_all = session.exec(q).all()
 
     result = []
     for team in teams:
@@ -290,7 +290,10 @@ async def search_team(search_team_data: SearchTeamData, response: Response, cred
                         members=members_ids
                     ))
 
-    return result
+    return {
+        'count': len(teams_all),
+        'result': result
+    }
 
 @router.post(
     '/leaderboard',
@@ -346,7 +349,10 @@ async def team_get_leaderboard(paged_request_query_data: PagedRequestQueryData, 
                 if data not in result:
                     result.append(data)
 
-    return result
+    return {
+        'count': len(result),
+        'result': result[paged_request_query_data.offset:paged_request_query_data.offset + paged_request_query_data.limit]
+    }
 
 @router.post(
     '/kick',

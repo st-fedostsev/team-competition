@@ -74,8 +74,9 @@ async def list_challenges(challenge_list_data: PagedRequestData, response: Respo
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = select(Challenge).limit(challenge_list_data.limit).offset(challenge_list_data.offset)
-    challenges = session.exec(q).all()
+    q = select(Challenge)
+    challenges = session.exec(q.limit(challenge_list_data.limit).offset(challenge_list_data.offset)).all()
+    challenges_all = session.exec(q).all()
 
     now = datetime.utcnow()
     for challenge in challenges:
@@ -96,7 +97,10 @@ async def list_challenges(challenge_list_data: PagedRequestData, response: Respo
         challenges
     ))
     
-    return result
+    return {
+        'count': len(challenges_all),
+        'result': result
+    }
 
 @router.post(
     '/send_report',

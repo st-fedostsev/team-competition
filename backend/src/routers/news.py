@@ -73,8 +73,9 @@ async def list_news(news_list_data: PagedRequestData, response: Response, creden
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = select(News).limit(news_list_data.limit).offset(news_list_data.offset)
-    news = session.exec(q).all()
+    q = select(News)
+    news = session.exec(q.limit(news_list_data.limit).offset(news_list_data.offset)).all()
+    news_all = session.exec(q).all()
 
     result = list(map(lambda x: NewsData(
             id=x.id,
@@ -86,4 +87,7 @@ async def list_news(news_list_data: PagedRequestData, response: Response, creden
         news
     ))
     
-    return result
+    return {
+        'count': len(news_all),
+        'result': result
+    }

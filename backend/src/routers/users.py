@@ -255,9 +255,12 @@ async def user_get_leaderboard(paged_request_query_data: PagedRequestQueryData, 
                     result.append(data)
 
     if len(result) <= paged_request_query_data.offset:
-        return []
+        return { 'count': len(result), 'result': [] }
 
-    return sorted(result[paged_request_query_data.offset:paged_request_query_data.offset + paged_request_query_data.limit], key=lambda x: -x.personal_rating)
+    return {
+        'count': len(result),
+        'result': sorted(result[paged_request_query_data.offset:paged_request_query_data.offset + paged_request_query_data.limit], key=lambda x: -x.personal_rating)
+    }
 
 @router.post(
     '/search',
@@ -290,6 +293,7 @@ async def search_user(search_user_data: SearchUserData, response: Response, cred
                                 column('first_name').ilike(f'%{full_name[1]}%') &
                                 column('patronymic').ilike(f'%{full_name[2]}%'))))
     result = session.exec(q.limit(search_user_data.limit).offset(search_user_data.offset)).all()
+    result_all = session.exec(q).all()
     result = list(map(lambda x: UserData(
                 id=x.id,
                 last_name=x.last_name,
@@ -306,7 +310,7 @@ async def search_user(search_user_data: SearchUserData, response: Response, cred
         )
     )
 
-    return result
+    return { 'count': len(result_all), 'result': result }
 
 @router.get(
     '/my_achievements',
