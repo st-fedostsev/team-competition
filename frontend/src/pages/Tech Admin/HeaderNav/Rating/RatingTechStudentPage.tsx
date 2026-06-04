@@ -9,21 +9,21 @@ import { useTeamsByIds } from '../../../../hooks/useTeam';
 import '../../../../styles/RatingTechPage.css';
 import type { ApiError } from '../../../../types/error.types'
 
+const ITEMS_PER_PAGE = 10;
+
 export function RatingTechStudentsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showTop, setShowTop] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { 
     data, 
     isLoading, 
     isError, 
     error, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage 
-  } = useLeaderboard<LeaderboardUser>('users', debouncedSearch, showTop);
+  } = useLeaderboard<LeaderboardUser>('users', debouncedSearch, false); //
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,14 +32,40 @@ export function RatingTechStudentsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Обработчик поиска
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1);
+  };
+
+  // Обработчик чекбокса Топ-10
+  const handleTopOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowTop(event.target.checked);
+    setCurrentPage(1);
+  };
+
   const allStudents = useMemo(() => {
     return data?.pages?.flatMap(page => page?.items || []) || [];
   }, [data?.pages]);
 
-  // Для отображения названий команд
+  // Фильтрация Топ-10 на фронте
+  const filteredStudents = useMemo(() => {
+    if (showTop) {
+      return allStudents.slice(0, 10);
+    }
+    return allStudents;
+  }, [allStudents, showTop]);
+
+  // Пагинация
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+
+  // Для отображения названий команд (только для текущей страницы)
   const teamIds = useMemo(() => {
-    return [...new Set(allStudents.map(student => student.team_id).filter(Boolean))] as number[];
-  }, [allStudents]);
+    return [...new Set(currentStudents.map(student => student.team_id).filter(Boolean))] as number[];
+  }, [currentStudents]);
 
   const teamQueries = useTeamsByIds(teamIds);
   
@@ -54,7 +80,19 @@ export function RatingTechStudentsPage() {
   }, [teamQueries, teamIds]);
 
   const getDisplayPosition = (index: number) => {
-  return index + 1;
+    return (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
   };
 
   if (isLoading) {
@@ -111,7 +149,7 @@ export function RatingTechStudentsPage() {
           <input
             className="tech-rating-search-input"
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={handleSearchChange}
             placeholder="Введите ФИО или команду"
           />
 
@@ -124,7 +162,7 @@ export function RatingTechStudentsPage() {
           <input
             checked={showTop}
             type="checkbox"
-            onChange={(event) => setShowTop(event.target.checked)}
+            onChange={handleTopOnlyChange}
           />
           <span>Топ-10</span>
         </label>
@@ -138,10 +176,10 @@ export function RatingTechStudentsPage() {
             <div></div>
           </div>
 
-          {allStudents.length === 0 ? (
+          {currentStudents.length === 0 ? (
             <div className="tech-rating-empty">Нет данных</div>
           ) : (
-            allStudents.map((student, index) => (
+            currentStudents.map((student, index) => (
               <div className="tech-rating-row tech-rating-students-row" key={student.id}>
                 <div>{getDisplayPosition(index)}</div>
                 <div>{`${student.last_name} ${student.first_name} ${student.patronymic || ''}`}</div>
@@ -161,14 +199,27 @@ export function RatingTechStudentsPage() {
           )}
         </div>
 
-        {hasNextPage && (
-          <div className="tech-rating-load-more">
-            <button 
-              className="load-more-button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="tech-rating-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 20'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}

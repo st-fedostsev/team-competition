@@ -8,21 +8,21 @@ import type { LeaderboardTeam } from '../../../../types/leaderboard.types'
 import '../../../../styles/RatingTechPage.css';
 import type { ApiError } from '../../../../types/error.types'
 
+const ITEMS_PER_PAGE = 10;
+
 export function RatingTechTeamsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showTop, setShowTop] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { 
     data, 
     isLoading, 
     isError, 
     error, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage 
-  } = useLeaderboard<LeaderboardTeam>('teams', debouncedSearch, showTop);
+  } = useLeaderboard<LeaderboardTeam>('teams', debouncedSearch, false); // всегда false, фильтруем на фронте
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -31,9 +31,35 @@ export function RatingTechTeamsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Обработчик поиска
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1);
+  };
+
+  // Обработчик чекбокса Топ-10
+  const handleTopOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowTop(event.target.checked);
+    setCurrentPage(1);
+  };
+
   const allTeams = useMemo(() => {
     return data?.pages?.flatMap(page => page?.items || []) || [];
   }, [data?.pages]);
+
+  // Фильтрация Топ-10 на фронте
+  const filteredTeams = useMemo(() => {
+    if (showTop) {
+      return allTeams.slice(0, 10);
+    }
+    return allTeams;
+  }, [allTeams, showTop]);
+
+  // Пагинация
+  const totalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentTeams = filteredTeams.slice(startIndex, endIndex);
 
   const getLeagueDisplay = (league?: string) => {
     switch (league) {
@@ -45,7 +71,19 @@ export function RatingTechTeamsPage() {
   };
 
   const getDisplayPosition = (index: number) => {
-    return index + 1;
+    return (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
   };
 
   if (isLoading) {
@@ -102,7 +140,7 @@ export function RatingTechTeamsPage() {
           <input
             className="tech-rating-search-input"
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={handleSearchChange}
             placeholder="Введите название команды"
           />
 
@@ -115,7 +153,7 @@ export function RatingTechTeamsPage() {
           <input
             checked={showTop}
             type="checkbox"
-            onChange={(event) => setShowTop(event.target.checked)}
+            onChange={handleTopOnlyChange}
           />
           <span>Топ-10</span>
         </label>
@@ -129,10 +167,10 @@ export function RatingTechTeamsPage() {
             <div></div>
           </div>
 
-          {allTeams.length === 0 ? (
+          {currentTeams.length === 0 ? (
             <div className="tech-rating-empty">Нет данных</div>
           ) : (
-            allTeams.map((team, index) => (
+            currentTeams.map((team, index) => (
               <div className="tech-rating-row tech-rating-teams-row" key={team.id}>
                 <div>{getDisplayPosition(index)}</div>
                 <div>{team.name}</div>
@@ -152,14 +190,27 @@ export function RatingTechTeamsPage() {
           )}
         </div>
 
-        {hasNextPage && (
-          <div className="tech-rating-load-more">
-            <button 
-              className="load-more-button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="tech-rating-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 20'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}

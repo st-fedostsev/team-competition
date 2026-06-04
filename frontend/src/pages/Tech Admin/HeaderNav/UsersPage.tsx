@@ -1,5 +1,4 @@
-// pages/TechAdmin/Users/UsersPage.tsx
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { HeaderTechAdmin } from '../../../components/Header/HeaderTechAdmin';
 import { CreatePlusButton, CancelButton, CreateButton } from '../../../components/Buttons';
 import { Modal } from '../../../components/ModalWindowComponent';
@@ -12,11 +11,14 @@ import type { ApiError } from '../../../types/error.types'
 
 type FilterTab = 'all' | 'students' | 'admins';
 
+const ITEMS_PER_PAGE = 5;
+
 export function UsersPage() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Форма администратора
   const [formLogin, setFormLogin] = useState('');
@@ -40,12 +42,12 @@ export function UsersPage() {
     if (activeFilter === 'admins') {
       return ['content_manager', 'game_admin', 'technical_admin'];
     }
-    return undefined; // 'all' - не передаём роли, получаем всех
+    return undefined;
   };
   
   const rolesFilter = getRolesByFilter();
   
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = 
+  const { data, isLoading, isError, refetch } = 
     useAdminUsers(debouncedSearch, rolesFilter);
   
   const { mutate: registerUser, isPending: isRegistering } = useRegisterUser();
@@ -59,6 +61,18 @@ export function UsersPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Обработчик смены фильтра
+  const handleFilterChange = (filter: FilterTab) => {
+    setActiveFilter(filter);
+    setCurrentPage(1);
+  };
+
+  // Обработчик поиска
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
   // Все пользователи
   const allUsers = data?.pages.flatMap(page => page.users) || [];
 
@@ -69,8 +83,14 @@ export function UsersPage() {
     return user.id !== currentUser.id;
   });
 
-  // Собираем уникальные team_id у студентов
-  const teamIds = [...new Set(filteredUsers.map(user => user.team_id).filter(Boolean))] as number[];
+  // Пагинация
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Собираем уникальные team_id у студентов (только для текущей страницы)
+  const teamIds = [...new Set(currentUsers.map(user => user.team_id).filter(Boolean))] as number[];
 
   // Получаем названия команд через хук
   const teamQueries = useTeamsByIds(teamIds);
@@ -137,7 +157,6 @@ export function UsersPage() {
         return;
       }
       
-      // Проверка рейтинга
       const rating = Number(formRating);
       if (formRating && (rating < 0 || rating > 100)) {
         alert('Рейтинговый балл должен быть от 0 до 100');
@@ -179,6 +198,18 @@ export function UsersPage() {
     }
   };
 
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="users-page">
@@ -214,21 +245,21 @@ export function UsersPage() {
           <div className="users-filter">
             <button
               className={`users-filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveFilter('all')}
+              onClick={() => handleFilterChange('all')}
             >
-              Все {activeFilter === 'all' && `(${filteredUsers.length})`}
+              Все
             </button>
             <button
               className={`users-filter-btn ${activeFilter === 'students' ? 'active' : ''}`}
-              onClick={() => setActiveFilter('students')}
+              onClick={() => handleFilterChange('students')}
             >
-              Студенты {activeFilter === 'students' && `(${filteredUsers.filter(u => u.role === 'student').length})`}
+              Студенты
             </button>
             <button
               className={`users-filter-btn ${activeFilter === 'admins' ? 'active' : ''}`}
-              onClick={() => setActiveFilter('admins')}
+              onClick={() => handleFilterChange('admins')}
             >
-              Администраторы {activeFilter === 'admins' && `(${filteredUsers.filter(u => u.role !== 'student').length})`}
+              Администраторы
             </button>
           </div>
 
@@ -242,7 +273,7 @@ export function UsersPage() {
             className="users-search-input"
             placeholder="Поиск по ФИО или логину"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
           <span className="users-search-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -253,10 +284,10 @@ export function UsersPage() {
         </div>
 
         <div className="users-list">
-          {filteredUsers.length === 0 ? (
+          {currentUsers.length === 0 ? (
             <div className="users-empty">Пользователи не найдены</div>
           ) : (
-            filteredUsers.map((user) => (
+            currentUsers.map((user) => (
               <div key={user.id} className="user-card">
                 <div className="user-card-info">
                   <div className="user-card-avatar">
@@ -300,14 +331,27 @@ export function UsersPage() {
           )}
         </div>
 
-        {hasNextPage && (
-          <div className="users-load-more">
-            <button 
-              className="load-more-button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="users-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 20'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}
