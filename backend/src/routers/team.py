@@ -577,6 +577,13 @@ async def transfer_captain(transfer_captain_data: TransferCaptainData, response:
         response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
         return Message(msg='Пользователь должен состоять в вашей команде')
     
+    q = select(Team).where(Team.id == user.team_id)
+    team = session.exec(q).first()
+    if not team:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Команда не найдена')
+
+    team.captain_id = target_user.id
     user.is_captain = False
     target_user.is_captain = True
     session.add_all([user, target_user])
