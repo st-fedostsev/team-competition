@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderTechAdmin } from '../../../../components/Header/HeaderTechAdmin';
 import { EditIcon } from '../../../../components/EditIcon';
@@ -8,58 +8,81 @@ import type { LeaderboardTeam } from '../../../../types/leaderboard.types'
 import '../../../../styles/RatingTechPage.css';
 import type { ApiError } from '../../../../types/error.types'
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 export function RatingTechTeamsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [showTop, setShowTop] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-
+  
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+  
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
   const { 
     data, 
     isLoading, 
     isError, 
     error, 
-  } = useLeaderboard<LeaderboardTeam>('teams', debouncedSearch, false); // всегда false, фильтруем на фронте
+    refetch
+  } = useLeaderboard<LeaderboardTeam>(
+    'teams', 
+    debouncedSearch, 
+    ITEMS_PER_PAGE, 
+    offset
+  );
+
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+      saveScrollPosition();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, saveScrollPosition]);
 
   // Обработчик поиска
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+    saveScrollPosition();
     setCurrentPage(1);
   };
 
-  // Обработчик чекбокса Топ-10
-  const handleTopOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setShowTop(event.target.checked);
-    setCurrentPage(1);
-  };
-
+  // Все команды из API
   const allTeams = useMemo(() => {
-    return data?.pages?.flatMap(page => page?.items || []) || [];
-  }, [data?.pages]);
+    const items = data?.result || [];
+    return items.map((team, index) => ({
+      id: team.id,
+      name: team.name,
+      rating: team.crc,
+      league: team.league,
+      position: offset + index + 1,
+    }));
+  }, [data?.result, offset]);
 
-  // Фильтрация Топ-10 на фронте
-  const filteredTeams = useMemo(() => {
-    if (showTop) {
-      return allTeams.slice(0, 10);
-    }
-    return allTeams;
-  }, [allTeams, showTop]);
-
-  // Пагинация
-  const totalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentTeams = filteredTeams.slice(startIndex, endIndex);
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const getLeagueDisplay = (league?: string) => {
     switch (league) {
@@ -70,18 +93,16 @@ export function RatingTechTeamsPage() {
     }
   };
 
-  const getDisplayPosition = (index: number) => {
-    return (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
-  };
-
   const goToNextPage = () => {
     if (currentPage < totalPages) {
+      saveScrollPosition();
       setCurrentPage(prev => prev + 1);
     }
   };
 
   const goToPrevPage = () => {
     if (currentPage > 1) {
+      saveScrollPosition();
       setCurrentPage(prev => prev - 1);
     }
   };
@@ -104,7 +125,7 @@ export function RatingTechTeamsPage() {
         <main className="tech-rating-main">
           <div className="error">
             <p>Ошибка загрузки: {(error as ApiError)?.message || 'Неизвестная ошибка'}</p>
-            <button onClick={() => window.location.reload()}>Повторить</button>
+            <button onClick={() => refetch()}>Повторить</button>
           </div>
         </main>
       </div>
@@ -149,15 +170,6 @@ export function RatingTechTeamsPage() {
           </button>
         </div>
 
-        <label className="tech-rating-top-checkbox">
-          <input
-            checked={showTop}
-            type="checkbox"
-            onChange={handleTopOnlyChange}
-          />
-          <span>Топ-10</span>
-        </label>
-
         <div className="tech-rating-table">
           <div className="tech-rating-row tech-rating-header tech-rating-teams-row">
             <div>Позиция</div>
@@ -167,15 +179,15 @@ export function RatingTechTeamsPage() {
             <div></div>
           </div>
 
-          {currentTeams.length === 0 ? (
+          {allTeams.length === 0 ? (
             <div className="tech-rating-empty">Нет данных</div>
           ) : (
-            currentTeams.map((team, index) => (
+            allTeams.map((team) => (
               <div className="tech-rating-row tech-rating-teams-row" key={team.id}>
-                <div>{getDisplayPosition(index)}</div>
+                <div>{team.position}</div>
                 <div>{team.name}</div>
                 <div>{getLeagueDisplay(team.league)}</div>
-                <div>{team.crc?.toFixed(2) || team.crc}</div>
+                <div>{team.rating?.toFixed(2) || team.rating}</div>
                 <div>
                   <button
                     className="tech-rating-edit-button"

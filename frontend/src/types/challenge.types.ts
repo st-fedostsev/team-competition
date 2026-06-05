@@ -19,3 +19,13 @@ export interface SendReportData {
   file_url: string;
   comment: string;
 }
+
+export interface ChallengesListRequest {
+  offset: number;
+  limit: number;
+}
+
+export interface ChallengesListResponse {
+  result: Challenge[];
+  count: number;
+}

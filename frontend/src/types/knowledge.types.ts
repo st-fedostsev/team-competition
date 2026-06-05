@@ -25,7 +25,6 @@ export interface KnowledgeListRequest {
 }
 
 export interface KnowledgeListResponse {
-  posts: KnowledgePost[];
-  total: number;
-  has_more: boolean;
+  count: number;
+  result: KnowledgePost[];
 }

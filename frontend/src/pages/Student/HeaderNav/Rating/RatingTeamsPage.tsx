@@ -1,5 +1,5 @@
 // pages/Student/HeaderNav/RatingTeamsPage.tsx
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
 import { NavRating } from '../../../../components/Nav/NavRating';
 import { useLeaderboard } from '../../../../hooks/useRating';
@@ -7,45 +7,80 @@ import type { LeaderboardTeam } from '../../../../types/leaderboard.types';
 import { RATING_TABS } from '../../../../constants';
 import '../../../../styles/RatingPage.css';
 
+const ITEMS_PER_PAGE = 5;
 
 export function RatingTeamsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [topOnly, setTopOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
-  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useLeaderboard<LeaderboardTeam>(
-    'teams',
-    debouncedSearch,
-    topOnly
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+  
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error, 
+    refetch
+  } = useLeaderboard<LeaderboardTeam>(
+    'teams', 
+    debouncedSearch, 
+    ITEMS_PER_PAGE, 
+    offset
   );
+
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+      saveScrollPosition();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, saveScrollPosition]);
 
+  // Обработчик поиска
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    saveScrollPosition();
+    setCurrentPage(1);
+  };
+
+  // Все команды из API
   const allTeams = useMemo(() => {
-  const rawTeams = data?.pages?.flatMap(page => page?.items || []);
-  if (!rawTeams) return [];
-  
-  return rawTeams.map((team, index) => ({
-    id: team.id,
-    name: team.name,
-    rating: team.crc,
-    league: team.league,
-    position: index + 1,
-  }));
-}, [data?.pages]);
+    const items = data?.result || [];
+    return items.map((team, index) => ({
+      id: team.id,
+      name: team.name,
+      rating: team.crc,
+      league: team.league,
+      position: offset + index + 1,
+    }));
+  }, [data?.result, offset]);
 
-  const displayedTeams = useMemo(() => {
-    let result = [...allTeams];
-    if (topOnly) {
-      result = result.slice(0, 10);
-    }
-    return result;
-  }, [allTeams, topOnly]);
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const getLeagueDisplay = (league?: string) => {
     switch (league) {
@@ -53,6 +88,20 @@ export function RatingTeamsPage() {
       case 'pro': return 'Профи';
       case 'legend': return 'Легенды';
       default: return '—';
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev - 1);
     }
   };
 
@@ -74,7 +123,7 @@ export function RatingTeamsPage() {
         <main className="rating-main">
           <div className="error">
             <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
-            <button onClick={() => window.location.reload()}>Повторить</button>
+            <button onClick={() => refetch()}>Повторить</button>
           </div>
         </main>
       </div>
@@ -93,20 +142,11 @@ export function RatingTeamsPage() {
         <div className="rating-search">
           <input
             className="rating-search-input"
-            placeholder="Введите название команды или лигу"
+            placeholder="Введите название команды"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
-
-        <label className="rating-top">
-          <input 
-            type="checkbox" 
-            checked={topOnly}
-            onChange={(e) => setTopOnly(e.target.checked)}
-          />
-          <span>Топ-10</span>
-        </label>
 
         <div className="rating-table">
           <div className="rating-row rating-header">
@@ -116,32 +156,41 @@ export function RatingTeamsPage() {
             <div>Балл</div>
           </div>
 
-          {displayedTeams.length === 0 ? (
+          {allTeams.length === 0 ? (
             <div className="rating-empty">Нет данных</div>
           ) : (
-            displayedTeams.map((team) => {
-              const displayPosition = topOnly ? team.position : team.position;
-              
-              return (
-                <div key={team.id} className="rating-row">
-                  <div className="rating-position">{displayPosition}</div>
-                  <div className="rating-name">{team.name}</div>
-                  <div className="rating-league">{getLeagueDisplay(team.league)}</div>
-                  <div className="rating-score">{team.rating?.toFixed(2) || team.rating}</div>
-                </div>
-              );
-            })
+            allTeams.map((team) => (
+              <div key={team.id} className="rating-row">
+                <div className="rating-position">{team.position}</div>
+                <div className="rating-name">{team.name}</div>
+                <div className="rating-league">{getLeagueDisplay(team.league)}</div>
+                <div className="rating-score">{team.rating?.toFixed(2) || team.rating}</div>
+              </div>
+            ))
           )}
         </div>
 
-        {!topOnly && hasNextPage && (
-          <div className="rating-load-more">
-            <button 
-              className="load-more-button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="rating-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 20'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}

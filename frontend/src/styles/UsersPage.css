@@ -108,6 +108,15 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
+.user-card-empty {
+  background: #f3f3f3;
+  border-radius: 18px;
+  padding: 22px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .user-card-info {
   display: flex;
   align-items: center;

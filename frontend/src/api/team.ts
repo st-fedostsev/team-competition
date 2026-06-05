@@ -4,8 +4,8 @@ import type {
   Team,
   CreateTeamData,
   JoinTeamData,
-  SearchTeamData,
-  LeaderboardEntry,
+  SearchTeamsResponse,
+  SearchTeamsRequest,
 } from '../types/team.types';
 
 export const teamApi = {
@@ -32,12 +32,12 @@ export const teamApi = {
     apiClient.post<Team>('/api/team/join', data),
 
   // Поиск команды
-  searchTeam: (data: SearchTeamData) =>
-    apiClient.post<Team[]>('/api/team/search', data),
+  searchTeam: (data: SearchTeamsRequest) =>
+    apiClient.post<SearchTeamsResponse>('/api/team/search', data),
 
-  // Получить лидерборд
+  // Получить список команд
   getLeaderboard: () =>
-    apiClient.post<LeaderboardEntry[]>('/api/team/leaderboard'),
+    apiClient.post<SearchTeamsResponse>('/api/team/leaderboard'),
 
   // Для капитана кикнуть участника
   kickMember: (userId: number) =>

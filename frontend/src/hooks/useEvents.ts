@@ -1,57 +1,41 @@
 // hooks/useEvents.ts
 import {
-  useInfiniteQuery,
-  useMutation,
   useQuery,
+  useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import { eventsApi } from '../api/events';
-import type { CreateEventData } from '../types/event.types';
+import type { CreateEventData, EventsListResponse } from '../types/event.types';
+import { useCurrentUser } from './useAuth';
 
 export const eventsKeys = {
   all: ['events'] as const,
   list: ['events', 'list'] as const,
 };
 
-// Хук для бесконечной загрузки списка мероприятий
-export function useEventsList() {
-  return useInfiniteQuery({
-    queryKey: eventsKeys.list,
-    queryFn: async ({ pageParam = 0 }) => {
+// Хук для получения списка мероприятий с пагинацией
+export function useEventsList(limit: number = 5, offset: number = 0) {
+  const { data: currentUser } = useCurrentUser();
+  
+  return useQuery({
+    queryKey: [...eventsKeys.list, limit, offset],
+    queryFn: async () => {
       const response = await eventsApi.getEventsList({
-        offset: pageParam,
-        limit: 5,
+        offset: offset,
+        limit: limit,
       });
 
-      // API возвращает массив
-      const eventsData = response.data;
+      const data = response.data as EventsListResponse;
+      const events = data.result || [];
+      const total = data.count || 0;
 
-      // Если вернулся массив
-      if (Array.isArray(eventsData)) {
-        return {
-          events: eventsData,
-          hasMore: eventsData.length === 5, // Если пришло 5 штук
-          total: eventsData.length,
-        };
-      }
-
-      // Если вернулся объект с полями
       return {
-        events: eventsData.events || [],
-        hasMore: eventsData.has_more || false,
-        total: eventsData.total || 0,
+        events: events,
+        total: total,
       };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.hasMore) {
-        return allPages.length * 5;
-      }
-      return undefined;
-    },
+    enabled: !!currentUser,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
-    refetchOnWindowFocus: false,
   });
 }
 

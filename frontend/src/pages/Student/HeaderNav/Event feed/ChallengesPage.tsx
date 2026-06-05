@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
 import { NavLenta } from '../../../../components/Nav/NavEvents';
 import { SendReportButton } from '../../../../components/Buttons';
@@ -8,6 +8,8 @@ import { useUploadFile } from '../../../../hooks/useFiles';
 import { useCurrentUser } from '../../../../hooks/useAuth';
 import { TABS } from '../../../../constants';
 import '../../../../styles/ChallengesPage.css';
+
+const ITEMS_PER_PAGE = 1;
 
 // Тип для ошибки API
 interface ApiErrorResponse {
@@ -43,16 +45,46 @@ export function ChallengesPage() {
   const [comment, setComment] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [fileDescription, setFileDescription] = useState('');
   const [isFileDescriptionOpen, setIsFileDescriptionOpen] = useState(false);
-    
+  
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+  
   const { data: user } = useCurrentUser();
-  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useChallengesList();
+  
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
+  const { data, isLoading, isError, error, refetch } = useChallengesList(ITEMS_PER_PAGE, offset);
   const { mutate: sendReport, isPending: isSending } = useSendChallengeReport();
   const { mutateAsync: uploadFile, isPending: isUploadPending } = useUploadFile();
 
   const canSendReport = user?.role === 'student';
+
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
+
+  const allChallenges = data?.result || [];
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handleOpenReportModal = (challengeId: number) => {
     setSelectedChallengeId(challengeId);
@@ -94,14 +126,12 @@ export function ChallengesPage() {
     setIsUploading(true);
     
     try {
-      // Загружаем файл с display_name
       const uploadResponse = await uploadFile({
         file: selectedFile,
         displayName: fileDescription.trim() || selectedFile.name
       });
       const fileId = uploadResponse.data.id;
       
-      // Формируем URL для скачивания
       const fileUrl = `http://localhost:8000/files/download/${fileId}`;
       
       sendReport({
@@ -138,6 +168,20 @@ export function ChallengesPage() {
     }
   };
 
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="challenges-container">
@@ -156,14 +200,12 @@ export function ChallengesPage() {
         <div className="challenges-content">
           <div className="error">
             <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
-            <button onClick={() => window.location.reload()}>Повторить</button>
+            <button onClick={() => refetch()}>Повторить</button>
           </div>
         </div>
       </div>
     );
   }
-
-  const allChallenges = data?.pages.flatMap(page => page.challenges) || [];
 
   return (
     <div className="challenges-container">
@@ -197,14 +239,27 @@ export function ChallengesPage() {
           )}
         </div>
 
-        {hasNextPage && (
-          <div className="load-more-container">
-            <button 
-              className="load-more-button" 
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="challenges-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 5'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}

@@ -25,7 +25,6 @@ export interface EventsListRequest {
 }
 
 export interface EventsListResponse {
-  events: Event[];
-  total: number;
-  has_more: boolean;
+  result: Event[];
+  count: number;
 }

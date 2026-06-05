@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { HeaderTechAdmin } from '../../../components/Header/HeaderTechAdmin';
 import { CreatePlusButton, CancelButton, CreateButton } from '../../../components/Buttons';
 import { Modal } from '../../../components/ModalWindowComponent';
@@ -19,6 +19,7 @@ export function UsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState('');
 
   // Форма администратора
   const [formLogin, setFormLogin] = useState('');
@@ -34,7 +35,9 @@ export function UsersPage() {
   // Хуки
   const { data: currentUser } = useCurrentUser();
   
-  // Определяем роли для фильтрации
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+
   const getRolesByFilter = (): UserRole[] | undefined => {
     if (activeFilter === 'students') {
       return ['student'];
@@ -46,59 +49,52 @@ export function UsersPage() {
   };
   
   const rolesFilter = getRolesByFilter();
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   
   const { data, isLoading, isError, refetch } = 
-    useAdminUsers(debouncedSearch, rolesFilter);
+    useAdminUsers(debouncedSearch, rolesFilter, ITEMS_PER_PAGE, offset);
   
   const { mutate: registerUser, isPending: isRegistering } = useRegisterUser();
   const { mutate: banUser, isPending: isBanning } = useBanUser();
 
-  // Debounce поиска
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Обработчик смены фильтра
-  const handleFilterChange = (filter: FilterTab) => {
-    setActiveFilter(filter);
-    setCurrentPage(1);
-  };
+  const totalCount = data?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  // Обработчик поиска
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  };
+  const currentUsers = data?.users || [];
+  const filteredUsers = currentUsers;
 
-  // Все пользователи
-  const allUsers = data?.pages.flatMap(page => page.users) || [];
-
-  // Фильтруем текущего админа
-  const filteredUsers = allUsers.filter(user => {
-    if (!user) return false;
-    if (!currentUser) return true;
-    return user.id !== currentUser.id;
-  });
-
-  // Пагинация
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
-
-  // Собираем уникальные team_id у студентов (только для текущей страницы)
-  const teamIds = [...new Set(currentUsers.map(user => user.team_id).filter(Boolean))] as number[];
-
-  // Получаем названия команд через хук
+  const teamIds = [...new Set(filteredUsers.map(user => user.team_id).filter(Boolean))] as number[];
   const teamQueries = useTeamsByIds(teamIds);
-
-  // Создаём Map для быстрого доступа к названиям команд
   const teamNameMap = new Map<number, string>();
   teamQueries.forEach((query, index) => {
-    if (query.data?.name) {
+    if (query.data?.name && teamIds[index]) {
       teamNameMap.set(teamIds[index], query.data.name);
     }
   });
@@ -200,14 +196,132 @@ export function UsersPage() {
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
+      saveScrollPosition();
       setCurrentPage(prev => prev + 1);
     }
   };
 
   const goToPrevPage = () => {
     if (currentPage > 1) {
+      saveScrollPosition();
       setCurrentPage(prev => prev - 1);
     }
+  };
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const pageNumber = parseInt(pageInput);
+      if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        saveScrollPosition();
+        setCurrentPage(pageNumber);
+        setPageInput('');
+      } else {
+        alert(`Введите число от 1 до ${totalPages}`);
+      }
+    }
+  };
+
+  const handleFilterChange = (filter: FilterTab) => {
+    saveScrollPosition();
+    setActiveFilter(filter);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    saveScrollPosition();
+    setCurrentPage(1);
+  };
+
+  const renderUsers = () => {
+    if (filteredUsers.length === 0) {
+      return (
+        <div className="users-empty-state">
+          <p>Пользователи не найдены</p>
+        </div>
+      );
+    }
+
+    const users = [...filteredUsers];
+    const remaining = ITEMS_PER_PAGE - users.length;
+    
+    const emptySlots = [];
+    if (remaining > 0 && filteredUsers.length > 0) {
+      for (let i = 0; i < remaining; i++) {
+        emptySlots.push(
+          <div key={`empty-slot-${i}`} className="user-card-empty">
+            <div className="user-card-info">
+              <div className="user-card-avatar">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F3F3F3" strokeWidth="1.5">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+              </div>
+              <div className="user-card-details">
+                <span className="user-card-name-placeholder"></span>
+                <span className="user-card-sub-placeholder"></span>
+              </div>
+            </div>
+            <div className="btn-placeholder"></div>
+          </div>
+        );
+      }
+    }
+    
+    return (
+      <>
+        {users.map((user) => {
+          const isCurrentUser = currentUser && user.id === currentUser.id;
+          
+          return (
+            <div key={user.id} className="user-card">
+              <div className="user-card-info">
+                <div className="user-card-avatar">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.5">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
+                </div>
+                <div className="user-card-details">
+                  <span className="user-card-name">
+                    {user.last_name} {user.first_name} {user.patronymic || ''}
+                  </span>
+                  <span className="user-card-sub">
+                    {user.role === 'student' 
+                      ? (teamNameMap.get(user.team_id!) || 'Без команды')
+                      : getRoleDisplay(user.role)
+                    }
+                  </span>
+                  {user.role !== 'student' && user.login && (
+                    <span className="user-card-login">
+                      Логин: {user.login}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {isCurrentUser ? (
+                <div className="current-user-badge">Это вы</div>
+              ) : (
+                <button
+                  className={`btn-block ${user.is_blocked ? 'btn-block--unban' : 'btn-block--ban'}`}
+                  onClick={() => handleBanToggle(user.id, user.is_blocked)}
+                  disabled={isBanning}
+                >
+                  {user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {emptySlots}
+      </>
+    );
   };
 
   if (isLoading) {
@@ -284,54 +398,9 @@ export function UsersPage() {
         </div>
 
         <div className="users-list">
-          {currentUsers.length === 0 ? (
-            <div className="users-empty">Пользователи не найдены</div>
-          ) : (
-            currentUsers.map((user) => (
-              <div key={user.id} className="user-card">
-                <div className="user-card-info">
-                  <div className="user-card-avatar">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.5">
-                      <circle cx="12" cy="8" r="4" />
-                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                    </svg>
-                  </div>
-                  <div className="user-card-details">
-                    <span className="user-card-name">
-                      {user.last_name} {user.first_name} {user.patronymic || ''}
-                    </span>
-                    <span className="user-card-sub">
-                      {user.role === 'student' 
-                        ? (teamNameMap.get(user.team_id!) || 'Без команды')
-                        : getRoleDisplay(user.role)
-                      }
-                    </span>
-                    {user.role === 'student' && user.personal_rating !== undefined && (
-                      <span className="user-card-rating">
-                        Рейтинг: {user.personal_rating}
-                      </span>
-                    )}
-                    {user.role !== 'student' && user.login && (
-                      <span className="user-card-login">
-                        Логин: {user.login}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  className={`btn-block ${user.is_blocked ? 'btn-block--unban' : 'btn-block--ban'}`}
-                  onClick={() => handleBanToggle(user.id, user.is_blocked)}
-                  disabled={isBanning}
-                >
-                  {user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
-                </button>
-              </div>
-            ))
-          )}
+          {renderUsers()}
         </div>
 
-        {/* Пагинация */}
         {totalPages > 1 && (
           <div className="users-pagination">
             <button
@@ -342,9 +411,19 @@ export function UsersPage() {
               ‹
             </button>
             
-            <span className="pagination-counter">
-              {currentPage} / {totalPages}
-            </span>
+            <div className="pagination-page-input-wrapper">
+              <input
+                type="number"
+                className="pagination-page-input"
+                value={pageInput}
+                onChange={handlePageInputChange}
+                onKeyDown={handlePageInputKeyDown}
+                placeholder={`${currentPage}`}
+                min={1}
+                max={totalPages}
+              />
+              <span className="pagination-total"> / {totalPages}</span>
+            </div>
             
             <button
               className="pagination-nav-btn"
@@ -357,7 +436,7 @@ export function UsersPage() {
         )}
       </main>
 
-      {/* Модалка для создания администратора */}
+      {/* Модалки остаются без изменений */}
       {isModalOpen && activeFilter === 'admins' && (
         <Modal closeModal={handleCloseModal}>
           <div className="create-admin-modal">
@@ -420,7 +499,6 @@ export function UsersPage() {
         </Modal>
       )}
 
-      {/* Модалка для создания студента */}
       {isModalOpen && activeFilter === 'students' && (
         <Modal closeModal={handleCloseModal}>
           <div className="create-admin-modal">

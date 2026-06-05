@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
 import { NavLenta } from '../../../../components/Nav/NavEvents';
 import { CreateEventButton } from '../../../../components/Buttons';
@@ -7,9 +7,15 @@ import { useCurrentUser } from '../../../../hooks/useAuth';
 import '../../../../styles/LentaPage.css';
 import { TABS } from '../../../../constants';
 
+const ITEMS_PER_PAGE = 1;
 
-// Модальное окно создания мероприятия
-function CreateEventModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
+interface CreateEventModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -94,11 +100,63 @@ function CreateEventModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
 }
 
 export function LentaPage() {
+  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const { data: user } = useCurrentUser();
-  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEventsList();
+  
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+  
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error, 
+    refetch
+  } = useEventsList(ITEMS_PER_PAGE, offset);
+
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
+
+  // Все мероприятия из текущей страницы
+  const allEvents = data?.events || [];
+  const totalCount = data?.total || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const canCreateEvent = !!user;
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev - 1);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -118,14 +176,12 @@ export function LentaPage() {
         <div className="lenta-content">
           <div className="error">
             <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
-            <button onClick={() => window.location.reload()}>Повторить</button>
+            <button onClick={() => refetch()}>Повторить</button>
           </div>
         </div>
       </div>
     );
   }
-
-  const allEvents = data?.pages?.flatMap(page => page?.events || []) || [];
 
   return (
     <div className="lenta-container">
@@ -133,9 +189,7 @@ export function LentaPage() {
 
       <div className="lenta-content">
         <div className="lenta-header">
-          <NavLenta 
-            tabs = {TABS}
-          />
+          <NavLenta tabs={TABS} />
           {canCreateEvent && (
             <CreateEventButton onClick={() => setIsModalOpen(true)} />
           )}
@@ -158,14 +212,27 @@ export function LentaPage() {
           )}
         </div>
 
-        {hasNextPage && (
-          <div className="load-more-container">
-            <button 
-              className="load-more-button" 
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="lenta-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 5'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}

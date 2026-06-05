@@ -1,57 +1,43 @@
 // hooks/useKnowledge.ts
 import {
-  useInfiniteQuery,
+  useQuery,
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import { knowledgeApi } from '../api/knowledge';
-import type { CreateKnowledgePostData } from '../types/knowledge.types';
+import type { CreateKnowledgePostData, KnowledgeListResponse } from '../types/knowledge.types';
 import type { ApiErrorData } from '../types/error.types';
 import { AxiosError } from 'axios';
+import { useCurrentUser } from './useAuth';
 
 export const knowledgeKeys = {
   all: ['knowledge'] as const,
   list: ['knowledge', 'list'] as const,
 };
 
-// Хук для бесконечной загрузки списка объявлений
-export function useKnowledgePosts() {
-  return useInfiniteQuery({
-    queryKey: knowledgeKeys.list,
-    queryFn: async ({ pageParam = 0 }) => {
+// Хук для получения списка объявлений с пагинацией
+export function useKnowledgePosts(limit: number = 5, offset: number = 0) {
+  const { data: currentUser } = useCurrentUser();
+  
+  return useQuery({
+    queryKey: [...knowledgeKeys.list, limit, offset],
+    queryFn: async () => {
       const response = await knowledgeApi.getPostsList({
-        offset: pageParam,
-        limit: 5,
+        offset: offset,
+        limit: limit,
       });
 
-      const data = response.data;
+      const data = response.data as KnowledgeListResponse;
+      const posts = data.result || [];
+      const count = data.count || 0;
 
-      // Если вернулся массив
-      if (Array.isArray(data)) {
-        return {
-          posts: data,
-          hasMore: data.length === 5,
-          total: data.length,
-        };
-      }
-
-      // Если вернулся объект с полями
       return {
-        posts: data.posts || [],
-        hasMore: data.has_more || false,
-        total: data.total || 0,
+        result: posts,
+        count: count,
       };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.hasMore) {
-        return allPages.length * 5;
-      }
-      return undefined;
-    },
+    enabled: !!currentUser,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
-    refetchOnWindowFocus: false,
   });
 }
 

@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { HeaderStudent } from '../../../components/Header/HeaderStudent';
 import { PostAnnouncementButton, ReplyButton, PublishButton } from '../../../components/Buttons';
 import { Modal } from '../../../components/ModalWindowComponent';
 import { useKnowledgePosts, useCreateKnowledgePost } from '../../../hooks/useKnowledge';
 import '../../../styles/KnowledgePage.css';
 
-
+const ITEMS_PER_PAGE = 1;
 
 export function KnowledgePage() {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -13,11 +13,39 @@ export function KnowledgePage() {
   const [description, setDescription] = useState('');
   const [type, setType] = useState<'offer' | 'request'>('offer');
   const [tags, setTags] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useKnowledgePosts();
-  const { mutate: createPost } = useCreateKnowledgePost();
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+  
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
+  const { data, isLoading, isError, error, refetch } = useKnowledgePosts(ITEMS_PER_PAGE, offset);
+  const { mutate: createPost, isPending } = useCreateKnowledgePost();
 
-  // Обработчик отправки формы через PublishButton
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
+
+  const allPosts = data?.result || [];
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
   const handlePublish = () => {
     if (!title || !description) {
       alert('Заполните название и описание');
@@ -38,22 +66,56 @@ export function KnowledgePage() {
     );
   };
 
-  const allPosts = data?.pages?.flatMap(page => page?.posts || []) || [];
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="knowledge-container">
+        <HeaderStudent />
+        <div className="knowledge-content">
+          <div className="loading">Загрузка...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="knowledge-container">
+        <HeaderStudent />
+        <div className="knowledge-content">
+          <div className="error">
+            <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
+            <button onClick={() => refetch()}>Повторить</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="knowledge-container">
-      <HeaderStudent
-      />
+      <HeaderStudent />
+
       <div className="knowledge-content">
         <div className="knowledge-header">
           <PostAnnouncementButton onClick={() => setIsPublishModalOpen(true)} />
         </div>
 
-        {/* Список объявлений */}
         <div className="knowledge-list">
-          {isLoading ? (
-            <div className="loading">Загрузка...</div>
-          ) : allPosts.length === 0 ? (
+          {allPosts.length === 0 ? (
             <div className="empty-posts">Нет объявлений</div>
           ) : (
             allPosts.map((post) => (
@@ -65,7 +127,7 @@ export function KnowledgePage() {
                       <p className="knowledge-card-description">{post.description}</p>
                       {post.tags && (
                         <div className="knowledge-card-tags">
-                          {post.tags.split(',').map((tag:string, idx:number) => (
+                          {post.tags.split(',').map((tag: string, idx: number) => (
                             <span key={idx} className="tag">#{tag.trim()}</span>
                           ))}
                         </div>
@@ -84,20 +146,32 @@ export function KnowledgePage() {
           )}
         </div>
 
-        {hasNextPage && !isLoading && (
-          <div className="load-more-container">
-            <button 
-              className="load-more-button" 
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="knowledge-pagination">
+            <button
+              className="pagination-nav-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
             >
-              {isFetchingNextPage ? 'Загрузка...' : 'Загрузить ещё 5'}
+              ‹
+            </button>
+            
+            <span className="pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              className="pagination-nav-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
             </button>
           </div>
         )}
       </div>
 
-      {/* Модальное окно публикации объявления */}
       {isPublishModalOpen && (
         <Modal closeModal={() => setIsPublishModalOpen(false)}>
           <div className="publish-modal-body">
@@ -147,7 +221,7 @@ export function KnowledgePage() {
             </div>
 
             <div className="publish-modal-footer">
-              <PublishButton onClick={handlePublish} />
+              <PublishButton onClick={handlePublish} disabled={isPending} />
             </div>
           </div>
         </Modal>

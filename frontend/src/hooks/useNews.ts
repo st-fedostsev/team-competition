@@ -1,11 +1,12 @@
 // hooks/useNews.ts
 import {
-  useInfiniteQuery,
+  useQuery,
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import { newsApi } from '../api/news';
-import type { CreateNewsData, News } from '../types/news.types';
+import type { CreateNewsData, NewsListResponse } from '../types/news.types';
+import { useCurrentUser } from './useAuth';
 
 export const newsKeys = {
   all: ['news'] as const,
@@ -13,59 +14,33 @@ export const newsKeys = {
 };
 
 // Тип для ответа API (если приходит объект с полями)
-interface NewsApiResponse {
-  news: News[];
-  has_more: boolean;
-  total: number;
-}
 
-// Тип для возвращаемого значения хука
-interface NewsPage {
-  news: News[];
-  hasMore: boolean;
-  total: number;
-}
-
-export function useNewsList() {
-  return useInfiniteQuery<NewsPage>({
-    queryKey: newsKeys.list,
-    queryFn: async ({ pageParam = 0 }) => {
+// Хук для получения списка новостей с пагинацией (как в рейтингах)
+export function useNewsList(limit: number = 5, offset: number = 0) {
+  const { data: currentUser } = useCurrentUser();
+  
+  return useQuery({
+    queryKey: [...newsKeys.list, limit, offset],
+    queryFn: async () => {
       const response = await newsApi.getNewsList({
-        offset: pageParam as number,
-        limit: 5,
+        offset: offset,
+        limit: limit,
       });
 
-      const data = response.data;
+      const data = response.data as NewsListResponse;
+      const news = data.result || [];
+      const count = data.count || 0;
 
-      // Если пришёл массив
-      if (Array.isArray(data)) {
-        return {
-          news: data,
-          hasMore: data.length === 5,
-          total: data.length,
-        };
-      }
-
-      // Если пришёл объект
-      const typedData = data as NewsApiResponse;
       return {
-        news: typedData.news || [],
-        hasMore: typedData.has_more || false,
-        total: typedData.total || 0,
+        result: news,
+        count: count,
       };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.hasMore) {
-        return allPages.length * 5;
-      }
-      return undefined;
-    },
+    enabled: !!currentUser,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
-    refetchOnWindowFocus: false,
   });
 }
+
 
 // Хук для создания новости
 export function useCreateNews() {

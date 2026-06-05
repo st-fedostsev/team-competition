@@ -7,7 +7,7 @@ import { useAuthStore } from '../stores/authStore';
 import type {
   CreateTeamData,
   JoinTeamData,
-  SearchTeamData,
+  SearchTeamsResponse,
   Team,
 } from '../types/team.types';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,8 @@ export const teamKeys = {
   my: ['team', 'my'] as const,
   byId: (id: number) => ['team', id] as const,
   leaderboard: ['team', 'leaderboard'] as const,
-  search: (query: string) => ['team', 'search', query] as const,
+  search: (query: string, limit: number, offset: number) => 
+    ['team', 'search', query, limit, offset] as const,
 };
 
 // Хук для получения своей команды
@@ -134,20 +135,44 @@ export function useRegenerateCode() {
 }
 
 // Хук для поиска команды
-export function useSearchTeam() {
-  return useMutation({
-    mutationFn: (data: SearchTeamData) => teamApi.searchTeam(data),
+export function useSearchTeams(query: string, limit: number = 20, offset: number = 0) {
+  const { data: currentUser } = useCurrentUser();
+  
+  return useQuery({
+    queryKey: teamKeys.search(query, limit, offset),
+    queryFn: async () => {
+      const response = await teamApi.searchTeam({
+        query,
+        limit,
+        offset,
+      });
+      const data = response.data as SearchTeamsResponse;
+      return {
+        result: data.result || [],
+        count: data.count || 0,
+      };
+    },
+    enabled: !!currentUser,
+    staleTime: 1000 * 60 * 2,
   });
 }
 
 // Хук для получения лидерборда
-export function useLeaderboard() {
+export function useTeamLeaderboard(limit: number = 20, offset: number = 0) {
+  const { data: currentUser } = useCurrentUser();
+  
   return useQuery({
-    queryKey: teamKeys.leaderboard,
+    queryKey: [...teamKeys.leaderboard, limit, offset],
     queryFn: async () => {
       const response = await teamApi.getLeaderboard();
-      return response.data;
+      const data = response.data as SearchTeamsResponse;
+      return {
+        result: data.result || [],
+        count: data.count || 0,
+      };
     },
+    enabled: !!currentUser,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

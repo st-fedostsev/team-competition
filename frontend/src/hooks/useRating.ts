@@ -1,8 +1,8 @@
 // hooks/useRating.ts
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ratingApi } from '../api/rating';
 import { useCurrentUser } from './useAuth';
-import type { LeaderboardPage, LeaderboardTeam, LeaderboardUser } from '../types/leaderboard.types';
+import type { LeaderboardTeam, LeaderboardUser } from '../types/leaderboard.types';
 
 export const ratingKeys = {
   all: ['rating'] as const,
@@ -11,59 +11,52 @@ export const ratingKeys = {
 };
 
 
-
-// Универсальный хук для бесконечной загрузки лидерборда
-export function useLeaderboard<T = LeaderboardUser | LeaderboardTeam>(
-  type: 'users' | 'teams',
-  query?: string,
-  topOnly?: boolean
-) {
-  const getLeaderboard = type === 'users' 
-    ? ratingApi.getUsersLeaderboard 
-    : ratingApi.getTeamsLeaderboard;
-  
-  return useInfiniteQuery<LeaderboardPage<T>>({
-    queryKey: [type === 'users' ? 'users-leaderboard' : 'teams-leaderboard', query, topOnly],
-    queryFn: async ({ pageParam = 0 }) => {
-      const params: {
-        offset: number;
-        limit: number;
-        query: string;
-        top_only?: boolean;
-      } = {
-        offset: pageParam as number,
-        limit: 20,
-        query: query || '', // ✅ Всегда передаём строку (пустую или с текстом)
-      };
-      
-      if (topOnly) {
-        params.top_only = true;
-      }
-      
-      const response = await getLeaderboard(params);
-      const items = response.data as unknown as T[];
-      
-      const itemsWithPosition = items.map((item, index) => ({
-        ...item,
-        position: (pageParam as number) + index + 1,
-      }));
-      
-      return {
-        items: itemsWithPosition,
-        hasMore: items.length === 20,
-        total: itemsWithPosition.length,
-      };
-    },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.hasMore) {
-        return allPages.length * 20;
-      }
-      return undefined;
-    },
-    staleTime: 1000 * 60 * 2,
-  });
-}
+  // Хук для получения лидерборда с пагинацией
+  export function useLeaderboard<T = LeaderboardUser | LeaderboardTeam>(
+    type: 'users' | 'teams',
+    query: string,
+    limit: number = 10,
+    offset: number = 0
+  ) {
+    const { data: currentUser } = useCurrentUser();
+    const getLeaderboard = type === 'users' 
+      ? ratingApi.getUsersLeaderboard 
+      : ratingApi.getTeamsLeaderboard;
+    
+    return useQuery({
+      queryKey: [type === 'users' ? 'users-leaderboard' : 'teams-leaderboard', query, limit, offset],
+      queryFn: async () => {
+        const params: {
+          offset: number;
+          limit: number;
+          query: string;
+        } = {
+          offset: offset,
+          limit: limit,
+          query: query || '',
+        };
+        
+        const response = await getLeaderboard(params);
+        
+        // Формат ответа: { count: number, result: T[] }
+        const data = response.data as { count: number; result: T[] };
+        const result = data.result || [];
+        const count = data.count || 0;
+        
+        const itemsWithPosition = result.map((item, index) => ({
+          ...item,
+          position: offset + index + 1,
+        }));
+        
+        return {
+          result: itemsWithPosition,
+          count: count,
+        };
+      },
+      enabled: !!currentUser,
+      staleTime: 1000 * 60 * 2,
+    });
+  }
 
 // Хук для получения позиции текущего пользователя
 export function useUserRatingPosition() {

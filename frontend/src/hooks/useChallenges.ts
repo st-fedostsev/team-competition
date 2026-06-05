@@ -1,67 +1,45 @@
 // hooks/useChallenges.ts
 import {
-  useInfiniteQuery,
+  useQuery,
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import { challengesApi } from '../api/challenges';
-import type { CreateChallengeData, Challenge } from '../types/challenge.types';
+import type { CreateChallengeData, ChallengesListResponse } from '../types/challenge.types';
+import { useCurrentUser } from './useAuth';
 
 export const challengesKeys = {
   all: ['challenges'] as const,
   list: ['challenges', 'list'] as const,
 };
 
-interface ChallengesApiResponse {
-  challenges: Challenge[];
-  has_more: boolean;
-  total: number;
-}
 
-interface ChallengesPage {
-  challenges: Challenge[];
-  hasMore: boolean;
-  total: number;
-}
 
-export function useChallengesList() {
-  return useInfiniteQuery<ChallengesPage>({
-    queryKey: challengesKeys.list,
-    queryFn: async ({ pageParam = 0 }) => {
+export function useChallengesList(limit: number = 5, offset: number = 0) {
+  const { data: currentUser } = useCurrentUser();
+  
+  return useQuery({
+    queryKey: [...challengesKeys.list, limit, offset],
+    queryFn: async () => {
       const response = await challengesApi.getChallengesList({
-        offset: pageParam as number,
-        limit: 5,
+        offset: offset,
+        limit: limit,
       });
 
-      const data = response.data;
+      const data = response.data as ChallengesListResponse;
+      const challenges = data.result || [];
+      const count = data.count || 0;
 
-      if (Array.isArray(data)) {
-        return {
-          challenges: data,
-          hasMore: data.length === 5,
-          total: data.length,
-        };
-      }
-
-      const typedData = data as ChallengesApiResponse;
       return {
-        challenges: typedData.challenges || [],
-        hasMore: typedData.has_more || false,
-        total: typedData.total || 0,
+        result: challenges,
+        count: count,
       };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.hasMore) {
-        return allPages.length * 5;
-      }
-      return undefined;
-    },
+    enabled: !!currentUser,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
-    refetchOnWindowFocus: false,
   });
 }
+
 
 // Хук для создания челленджа
 export function useCreateChallenge() {

@@ -1,21 +1,23 @@
 // hooks/useTechAdmin.ts
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../api/techadmin';
 import type { RegisterUserData, BanUserData, EditRatingData, SearchUsersParams, UserRole} from '../types/techadmin.types';
+import { useCurrentUser } from './useAuth';
 
 export const adminKeys = {
   all: ['admin'] as const,
   users: ['admin', 'users'] as const,
 };
 
-// Хук для поиска пользователей (с пагинацией)
-export function useAdminUsers(searchQuery?: string, roles?: UserRole[]) {
-  return useInfiniteQuery({
-    queryKey: [...adminKeys.users, searchQuery, roles],
-    queryFn: async ({ pageParam = 0 }) => {
+// Хук для получения пользователей с пагинацией
+export function useAdminUsers(searchQuery?: string, roles?: UserRole[], limit: number = 5, offset: number = 0) {
+    const { data: user } = useCurrentUser();
+  return useQuery({
+    queryKey: [...adminKeys.users, searchQuery, roles, limit, offset],
+    queryFn: async () => {
       const params: SearchUsersParams = {
-        limit: 20,
-        offset: pageParam as number,
+        limit: limit,
+        offset: offset,
         query: searchQuery || ''
       };
       
@@ -27,25 +29,19 @@ export function useAdminUsers(searchQuery?: string, roles?: UserRole[]) {
       
       const response = await adminApi.searchUsers(params);
       
-      // response.data - это массив пользователей
-      const users = response.data;
+      // Формат ответа: { count: number, users: User[] }
+      const data = response.data
       
       return {
-        users: users,
-        hasMore: users.length === 20,
-        total: users.length,
+        users: data.result || [],
+        count: data.count || 0,
       };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.hasMore) {
-        return allPages.length * 20;
-      }
-      return undefined;
-    },
+    enabled: !!user,
     staleTime: 1000 * 60 * 2,
   });
 }
+
 
 // Хук для регистрации пользователя
 export function useRegisterUser() {

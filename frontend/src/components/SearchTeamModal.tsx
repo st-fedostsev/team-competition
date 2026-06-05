@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { JoinButton, CreatePlusButton, CreateButton } from './Buttons';
 import { Modal } from './ModalWindowComponent';
-import { useSearchTeam, useJoinTeam, useCreateTeam } from '../hooks/useTeam';
+import { useSearchTeams, useJoinTeam, useCreateTeam } from '../hooks/useTeam';
 import '../styles/SearchTeamModal.css';
 
 interface SearchTeamModalProps {
@@ -9,27 +9,43 @@ interface SearchTeamModalProps {
   onSuccess?: () => void;
 }
 
+const ITEMS_PER_PAGE = 5;
+
 export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps) {
   const [searchValue, setSearchValue] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [teamName, setTeamName] = useState('');
-  const { mutate: searchTeam, data: searchResponse, isPending: isSearching } = useSearchTeam();
+  
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
+  const { 
+    data, 
+    isLoading: isSearching, 
+    refetch 
+  } = useSearchTeams(searchValue, ITEMS_PER_PAGE, offset);
+  
   const { mutate: joinTeam, isPending: isJoining } = useJoinTeam();
   const { mutate: createTeam, isPending: isCreating } = useCreateTeam();
-
-  // Загружаем все команды при открытии модалки
-  useEffect(() => {
-    searchTeam({ query: '', limit: 20, offset: 0 });
-  }, [searchTeam]);
 
   // Поиск при изменении значения (с debounce)
   useEffect(() => {
     const timer = setTimeout(() => {
-      searchTeam({ query: searchValue, limit: 20, offset: 0 });
+      if (searchValue.trim()) {
+        refetch();
+        setCurrentPage(1);
+      } else {
+        // Если поиск пустой, показываем все команды
+        refetch();
+      }
     }, 500);
-
     return () => clearTimeout(timer);
-  }, [searchValue, searchTeam]);
+  }, [searchValue, refetch]);
+
+  // Загружаем команды при открытии модалки
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const handleJoinTeam = (inviteCode: string) => {
     joinTeam(
@@ -45,7 +61,8 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      searchTeam({ query: searchValue, limit: 20, offset: 0 });
+      refetch();
+      setCurrentPage(1);
     }
   };
 
@@ -64,8 +81,23 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
     }
   };
 
-  // Достаём массив команд из ответа API
-  const teams = searchResponse?.data || [];
+  const teams = data?.result || [];
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+      refetch();
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+      refetch();
+    }
+  };
 
   return (
     <>
@@ -98,9 +130,15 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
               <div className="search-team-loading">Поиск команд...</div>
             )}
             
-            {!isSearching && teams.length === 0 && (
+            {!isSearching && teams.length === 0 && searchValue && (
               <div className="search-team-empty">
                 <p>Команды не найдены</p>
+              </div>
+            )}
+            
+            {!isSearching && teams.length === 0 && !searchValue && (
+              <div className="search-team-empty">
+                <p>Введите название для поиска</p>
               </div>
             )}
 
@@ -130,6 +168,31 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
               </div>
             ))}
           </div>
+
+          {/* Пагинация */}
+          {totalPages > 1 && (
+            <div className="search-team-pagination">
+              <button
+                className="pagination-nav-btn"
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+              >
+                ‹
+              </button>
+              
+              <span className="pagination-counter">
+                {currentPage} / {totalPages}
+              </span>
+              
+              <button
+                className="pagination-nav-btn"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+              >
+                ›
+              </button>
+            </div>
+          )}
           
           <div className="search-team-footer">
             <CreatePlusButton onClick={() => setIsCreateTeamOpen(true)} />

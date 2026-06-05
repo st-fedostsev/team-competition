@@ -126,8 +126,7 @@ export function ProfileStudentPage() {
         {isSearchTeamOpen && (
           <SearchTeamModal closeModal={() => setIsSearchTeamOpen(false)} />
         )}
-
-        {/* Модальное окно подтверждения вступления по ссылке */}
+        
         {/* Модальное окно подтверждения вступления по ссылке */}
         {isJoinModalOpen && (
           <Modal closeModal={handleCancelJoin}>

@@ -52,4 +52,7 @@ export interface SearchUsersParams {
   roles?: UserRole[];
 }
 
-export type SearchUsersResponse = User[];
+export interface SearchUsersResponse {
+  count: number;
+  result: User[];
+}

@@ -21,11 +21,6 @@ export interface JoinTeamData {
   secret_code: string;
 }
 
-export interface SearchTeamData {
-  query: string;
-  limit: number;
-  offset: number;
-}
 
 export interface LeaderboardEntry {
   team_id: number;
@@ -35,8 +30,13 @@ export interface LeaderboardEntry {
   rank: number;
 }
 
-export interface TeamLeaderboardResponse {
-  teams: LeaderboardEntry[];
-  total: number;
-  has_more: boolean;
+export interface SearchTeamsResponse {
+  count: number;
+  result: Team[]
+}
+
+export interface SearchTeamsRequest {
+  query: string;
+  limit: number;
+  offset: number;
 }

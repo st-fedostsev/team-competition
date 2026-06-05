@@ -1,6 +1,6 @@
 // api/challenges.ts
 import { apiClient } from './client';
-import type { Challenge, CreateChallengeData } from '../types/challenge.types';
+import type { Challenge, ChallengesListRequest, ChallengesListResponse, CreateChallengeData } from '../types/challenge.types';
 
 export const challengesApi = {
   // Создать челлендж (только контент-менеджер)
@@ -8,8 +8,8 @@ export const challengesApi = {
     apiClient.post<Challenge>('/api/challenges/create', data),
 
   // Получить список челленджей
-  getChallengesList: (params: { offset: number; limit: number }) =>
-    apiClient.post<Challenge[]>('/api/challenges/list', params),
+  getChallengesList: (params: ChallengesListRequest) =>
+    apiClient.post<ChallengesListResponse>('/api/challenges/list', params),
 
    // Отправить отчёт по челленджу (студент)
   sendReport: (challengeId: number, comment: string, fileUrl: string) => {

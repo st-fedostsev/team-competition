@@ -1,4 +1,4 @@
-// api/endpoints/rating.ts
+// api/rating.ts
 import { apiClient } from './client';
 import type {
   LeaderboardRequest,
@@ -7,10 +7,10 @@ import type {
 
 export const ratingApi = {
   // Получить лидерборд пользователей
-  getUsersLeaderboard: (params: LeaderboardRequest & { query?: string; top_only?: boolean }) =>
+  getUsersLeaderboard: (params: LeaderboardRequest) =>
     apiClient.post<LeaderboardResponse>('/api/users/leaderboard', params),
   
   // Получить лидерборд команд
-  getTeamsLeaderboard: (params: LeaderboardRequest & { query?: string; top_only?: boolean }) =>
+  getTeamsLeaderboard: (params: LeaderboardRequest) =>
     apiClient.post<LeaderboardResponse>('/api/team/leaderboard', params),
 };
