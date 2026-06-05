@@ -1,10 +1,80 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { HeaderGameAdmin } from '../../../../components/Header/HeaderGameAdmin';
-import { useSearchTeam } from '../../../../hooks/useTeam';
-import type { Team } from '../../../../types/team.types';
 import '../../../../styles/GameAdminTeamsPage.css';
 
 const TEAMS_PER_PAGE = 5;
+
+type MockLeague = 'novice' | 'pro' | 'legend';
+
+interface MockTeam {
+  id: number;
+  name: string;
+  members: number[];
+  league: MockLeague;
+}
+
+const MOCK_TEAMS: MockTeam[] = [
+  {
+    id: 1,
+    name: 'Лига',
+    members: [1, 2, 3],
+    league: 'novice',
+  },
+  {
+    id: 2,
+    name: 'Команда Альфа',
+    members: [1, 2, 3, 4],
+    league: 'pro',
+  },
+  {
+    id: 3,
+    name: 'Звёзды знаний',
+    members: [1, 2],
+    league: 'novice',
+  },
+  {
+    id: 4,
+    name: 'Кибер Легенды',
+    members: [1, 2, 3, 4, 5],
+    league: 'legend',
+  },
+  {
+    id: 5,
+    name: 'Умники',
+    members: [1],
+    league: 'novice',
+  },
+  {
+    id: 6,
+    name: 'Профи Тим',
+    members: [1, 2, 3],
+    league: 'pro',
+  },
+  {
+    id: 7,
+    name: 'Феникс',
+    members: [1, 2, 3, 4],
+    league: 'legend',
+  },
+  {
+    id: 8,
+    name: 'Новая волна',
+    members: [1, 2],
+    league: 'novice',
+  },
+  {
+    id: 9,
+    name: 'Победители',
+    members: [1, 2, 3, 4, 5],
+    league: 'pro',
+  },
+  {
+    id: 10,
+    name: 'Вектор',
+    members: [1, 2, 3],
+    league: 'novice',
+  },
+];
 
 function TeamAvatar() {
   return (
@@ -25,7 +95,12 @@ function SearchIcon() {
   return (
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M16.2 16.2L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M16.2 16.2L21 21"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -38,14 +113,18 @@ function getMembersText(count: number) {
     return `${count} участник`;
   }
 
-  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+  if (
+    lastDigit >= 2 &&
+    lastDigit <= 4 &&
+    (lastTwoDigits < 12 || lastTwoDigits > 14)
+  ) {
     return `${count} участника`;
   }
 
   return `${count} участников`;
 }
 
-function getLeagueText(league?: Team['league']) {
+function getLeagueText(league: MockLeague) {
   switch (league) {
     case 'novice':
       return 'Новички';
@@ -60,34 +139,21 @@ function getLeagueText(league?: Team['league']) {
 
 export function TeamsGameAdminPage() {
   const [searchValue, setSearchValue] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const {
-    mutate: searchTeam,
-    data: searchResponse,
-    isPending: isSearching,
-    isError,
-  } = useSearchTeam();
+  const filteredTeams = MOCK_TEAMS.filter((team) => {
+    const search = searchValue.trim().toLowerCase();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchValue.trim());
-      setCurrentPage(1);
-    }, 400);
+    if (!search) {
+      return true;
+    }
 
-    return () => clearTimeout(timer);
-  }, [searchValue]);
+    return team.name.toLowerCase().includes(search);
+  });
 
-  useEffect(() => {
-    searchTeam({ query: debouncedSearch, limit: 100, offset: 0 });
-  }, [debouncedSearch, searchTeam]);
-
-  const teams = useMemo<Team[]>(() => searchResponse?.data || [], [searchResponse?.data]);
-
-  const totalPages = Math.ceil(teams.length / TEAMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredTeams.length / TEAMS_PER_PAGE);
   const startIndex = (currentPage - 1) * TEAMS_PER_PAGE;
-  const currentTeams = teams.slice(startIndex, startIndex + TEAMS_PER_PAGE);
+  const currentTeams = filteredTeams.slice(startIndex, startIndex + TEAMS_PER_PAGE);
 
   const goToPrevPage = () => {
     if (currentPage > 1) {
@@ -112,22 +178,24 @@ export function TeamsGameAdminPage() {
             type="text"
             placeholder="Введите название"
             value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
+            onChange={(event) => {
+              setSearchValue(event.target.value);
+              setCurrentPage(1);
+            }}
           />
+
           <span className="game-admin-teams-search-icon">
             <SearchIcon />
           </span>
         </div>
 
         <div className="game-admin-teams-list">
-          {isSearching && currentTeams.length === 0 ? (
-            <div className="game-admin-teams-status">Загрузка команд...</div>
-          ) : isError ? (
-            <div className="game-admin-teams-status">Ошибка загрузки команд</div>
-          ) : currentTeams.length === 0 ? (
-            <div className="game-admin-teams-status">Команды не найдены</div>
+          {currentTeams.length === 0 ? (
+            <div className="game-admin-teams-status">
+              Команды не найдены
+            </div>
           ) : (
-            currentTeams.map((team: Team) => (
+            currentTeams.map((team) => (
               <article className="game-admin-team-card" key={team.id}>
                 <div className="game-admin-team-info">
                   <div className="game-admin-team-avatar">
@@ -135,15 +203,27 @@ export function TeamsGameAdminPage() {
                   </div>
 
                   <div className="game-admin-team-text">
-                    <h3 className="game-admin-team-title">{team.name}</h3>
+                    <h3 className="game-admin-team-title">
+                      {team.name}
+                    </h3>
+
                     <p className="game-admin-team-members">
-                      {getMembersText(team.members?.length || 0)}
+                      {getMembersText(team.members.length)}
                     </p>
-                    <p className="game-admin-team-league">{getLeagueText(team.league)}</p>
+
+                    <p className="game-admin-team-league">
+                      {getLeagueText(team.league)}
+                    </p>
                   </div>
                 </div>
 
-                <button className="game-admin-team-more-button" type="button">
+                <button
+                  className="game-admin-team-more-button"
+                  type="button"
+                  onClick={() => {
+                    console.log('Подробнее о команде:', team);
+                  }}
+                >
                   Подробнее
                 </button>
               </article>
