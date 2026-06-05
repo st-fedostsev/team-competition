@@ -1,18 +1,9 @@
-<<<<<<< Updated upstream
 import { useMemo, useState } from 'react';
 import { HeaderGameAdmin } from '../../../../components/Header/HeaderGameAdmin';
 import '../../../../styles/GameAdminTeamsPage.css';
-=======
-// import { useEffect, useMemo, useState } from 'react';
-// import { HeaderGameAdmin } from '../../../../components/Header/HeaderGameAdmin';
-// import { useSearchTeam } from '../../../../hooks/useTeam';
-// import type { Team } from '../../../../types/team.types';
-// import '../../../../styles/GameAdminTeamsPage.css';
->>>>>>> Stashed changes
 
-// const TEAMS_PER_PAGE = 5;
+const TEAMS_PER_PAGE = 5;
 
-<<<<<<< Updated upstream
 type MockLeague = 'novice' | 'pro' | 'legend';
 
 interface MockTeam {
@@ -125,41 +116,15 @@ function SearchIcon() {
     </svg>
   );
 }
-=======
-// function TeamAvatar() {
-//   return (
-//     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-//       <circle cx="20" cy="20" r="18.5" stroke="#111111" strokeWidth="1.2" />
-//       <circle cx="20" cy="15" r="5" stroke="#111111" strokeWidth="1.2" />
-//       <path
-//         d="M8 34c0-6.6 5.37-12 12-12s12 5.4 12 12"
-//         stroke="#111111"
-//         strokeWidth="1.2"
-//         strokeLinecap="round"
-//       />
-//     </svg>
-//   );
-// }
 
-// function SearchIcon() {
-//   return (
-//     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-//       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
-//       <path d="M16.2 16.2L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-//     </svg>
-//   );
-// }
->>>>>>> Stashed changes
+function getMembersText(count: number) {
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
 
-// function getMembersText(count: number) {
-//   const lastDigit = count % 10;
-//   const lastTwoDigits = count % 100;
+  if (lastDigit === 1 && lastTwoDigits !== 11) {
+    return `${count} участник`;
+  }
 
-//   if (lastDigit === 1 && lastTwoDigits !== 11) {
-//     return `${count} участник`;
-//   }
-
-<<<<<<< Updated upstream
   if (
     lastDigit >= 2 &&
     lastDigit <= 4 &&
@@ -167,16 +132,10 @@ function SearchIcon() {
   ) {
     return `${count} участника`;
   }
-=======
-//   if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
-//     return `${count} участника`;
-//   }
->>>>>>> Stashed changes
 
-//   return `${count} участников`;
-// }
+  return `${count} участников`;
+}
 
-<<<<<<< Updated upstream
 function getLeagueText(league?: MockLeague) {
   switch (league) {
     case 'novice':
@@ -209,65 +168,19 @@ export function TeamsGameAdminPage() {
   const totalPages = Math.ceil(filteredTeams.length / TEAMS_PER_PAGE);
   const startIndex = (currentPage - 1) * TEAMS_PER_PAGE;
   const currentTeams = filteredTeams.slice(startIndex, startIndex + TEAMS_PER_PAGE);
-=======
-// function getLeagueText(league?: Team['league']) {
-//   switch (league) {
-//     case 'novice':
-//       return 'Новички';
-//     case 'pro':
-//       return 'Профи';
-//     case 'legend':
-//       return 'Легенды';
-//     default:
-//       return 'Лига';
-//   }
-// }
 
-// export function TeamsGameAdminPage() {
-//   const [searchValue, setSearchValue] = useState('');
-//   const [debouncedSearch, setDebouncedSearch] = useState('');
-//   const [currentPage, setCurrentPage] = useState(1);
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((page) => page - 1);
+    }
+  };
 
-//   const {
-//     mutate: searchTeam,
-//     data: searchResponse,
-//     isPending: isSearching,
-//     isError,
-//   } = useSearchTeam();
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((page) => page + 1);
+    }
+  };
 
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setDebouncedSearch(searchValue.trim());
-//       setCurrentPage(1);
-//     }, 400);
-
-//     return () => clearTimeout(timer);
-//   }, [searchValue]);
-
-//   useEffect(() => {
-//     searchTeam({ query: debouncedSearch, limit: 100, offset: 0 });
-//   }, [debouncedSearch, searchTeam]);
-
-//   const teams = useMemo<Team[]>(() => searchResponse?.data || [], [searchResponse?.data]);
-
-//   const totalPages = Math.ceil(teams.length / TEAMS_PER_PAGE);
-//   const startIndex = (currentPage - 1) * TEAMS_PER_PAGE;
-//   const currentTeams = teams.slice(startIndex, startIndex + TEAMS_PER_PAGE);
->>>>>>> Stashed changes
-
-//   const goToPrevPage = () => {
-//     if (currentPage > 1) {
-//       setCurrentPage((page) => page - 1);
-//     }
-//   };
-
-//   const goToNextPage = () => {
-//     if (currentPage < totalPages) {
-//       setCurrentPage((page) => page + 1);
-//     }
-//   };
-
-<<<<<<< Updated upstream
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value);
     setCurrentPage(1);
@@ -335,74 +248,22 @@ export function TeamsGameAdminPage() {
             ))
           )}
         </div>
-=======
-//   return (
-//     <div className="game-admin-teams-page">
-//       <HeaderGameAdmin />
 
-//       <main className="game-admin-teams-main">
-//         <div className="game-admin-teams-search">
-//           <input
-//             className="game-admin-teams-search-input"
-//             type="text"
-//             placeholder="Введите название"
-//             value={searchValue}
-//             onChange={(event) => setSearchValue(event.target.value)}
-//           />
-//           <span className="game-admin-teams-search-icon">
-//             <SearchIcon />
-//           </span>
-//         </div>
+        {totalPages > 1 && (
+          <div className="game-admin-teams-pagination">
+            <button
+              className="game-admin-teams-pagination-button"
+              type="button"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
+            >
+              ‹
+            </button>
 
-//         <div className="game-admin-teams-list">
-//           {isSearching && currentTeams.length === 0 ? (
-//             <div className="game-admin-teams-status">Загрузка команд...</div>
-//           ) : isError ? (
-//             <div className="game-admin-teams-status">Ошибка загрузки команд</div>
-//           ) : currentTeams.length === 0 ? (
-//             <div className="game-admin-teams-status">Команды не найдены</div>
-//           ) : (
-//             currentTeams.map((team: Team) => (
-//               <article className="game-admin-team-card" key={team.id}>
-//                 <div className="game-admin-team-info">
-//                   <div className="game-admin-team-avatar">
-//                     <TeamAvatar />
-//                   </div>
+            <span className="game-admin-teams-pagination-counter">
+              {currentPage} / {totalPages}
+            </span>
 
-//                   <div className="game-admin-team-text">
-//                     <h3 className="game-admin-team-title">{team.name}</h3>
-//                     <p className="game-admin-team-members">
-//                       {getMembersText(team.members?.length || 0)}
-//                     </p>
-//                     <p className="game-admin-team-league">{getLeagueText(team.league)}</p>
-//                   </div>
-//                 </div>
-
-//                 <button className="game-admin-team-more-button" type="button">
-//                   Подробнее
-//                 </button>
-//               </article>
-//             ))
-//           )}
-//         </div>
->>>>>>> Stashed changes
-
-//         {totalPages > 1 && (
-//           <div className="game-admin-teams-pagination">
-//             <button
-//               className="game-admin-teams-pagination-button"
-//               type="button"
-//               onClick={goToPrevPage}
-//               disabled={currentPage === 1}
-//             >
-//               ‹
-//             </button>
-
-//             <span className="game-admin-teams-pagination-counter">
-//               {currentPage} / {totalPages}
-//             </span>
-
-<<<<<<< Updated upstream
             <button
               className="game-admin-teams-pagination-button"
               type="button"
@@ -417,19 +278,3 @@ export function TeamsGameAdminPage() {
     </div>
   );
 }
-=======
-//             <button
-//               className="game-admin-teams-pagination-button"
-//               type="button"
-//               onClick={goToNextPage}
-//               disabled={currentPage === totalPages}
-//             >
-//               ›
-//             </button>
-//           </div>
-//         )}
-//       </main>
-//     </div>
-//   );
-// }
->>>>>>> Stashed changes

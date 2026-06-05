@@ -30,7 +30,6 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
 
   const isCaptain = team?.captain_id === currentUser?.id;
 
-<<<<<<< Updated upstream
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -48,9 +47,7 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
     };
   }, []);
 
-=======
     const { data: teamPosition, isLoading: positionLoading } = useTeamPosition(team?.id || 0);
->>>>>>> Stashed changes
   // Сортируем участников: капитан первый, остальные по порядку (по id)
  const sortedMembers = (() => {
   if (!team) return [];
