@@ -57,6 +57,8 @@ async def create_event(event_create_data: EventCreateData, response: Response, c
         created_by=user.id,
         is_official=event_create_data.is_official
     )
+    if user.role == UserRole.content_manager:
+        event.status = ModerationStatus.approved
     session.add(event)
     session.commit()
 
