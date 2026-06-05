@@ -21,3 +21,6 @@ class ChallengeReportData(BaseModel):
     challenge_id: int
     file_url: Optional[str] = None
     comment: Optional[str] = None
+
+class GetChallengeByIdData(BaseModel):
+    id: int

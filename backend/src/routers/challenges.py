@@ -67,13 +67,7 @@ async def create_challenge(challenge_create_data: ChallengeCreateData, response:
     '/list',
     summary='Получить список челленджей'
 )
-async def list_challenges(challenge_list_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
-    q = select(User).where(User.id == credentials['id'])
-    user = session.exec(q).first()
-    if not user:
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return Message(msg='Пользователь не найден')
-    
+async def list_challenges(challenge_list_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):    
     q = select(Challenge)
     challenges = session.exec(q.limit(challenge_list_data.limit).offset(challenge_list_data.offset)).all()
     challenges_all = session.exec(q).all()
@@ -101,6 +95,19 @@ async def list_challenges(challenge_list_data: PagedRequestData, response: Respo
         'count': len(challenges_all),
         'result': result
     }
+
+@router.post(
+    '/get_by_id',
+    summary='Получить челлендж по id'
+)
+async def get_challenge_by_id(get_challenge_by_id: GetChallengeByIdData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(Challenge).where(Challenge.id == get_challenge_by_id.id)
+    challenge = session.exec(q).first()
+    if not challenge:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Челлендж не найден')
+
+    return challenge
 
 @router.post(
     '/send_report',

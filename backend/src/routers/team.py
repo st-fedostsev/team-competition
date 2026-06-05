@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Team, Achievement, get_league_by_partial_name, JoinTeamRequest, RequestStatus, Notification
+from models import User, UserRole, Team, Achievement, \
+                    get_league_by_partial_name, JoinTeamRequest, \
+                    RequestStatus, Notification, Vote
 from models.achievement_templates import ACHIEVEMENTS
 from models.notification_templates import NOTIFICATIONS
 from schemas.team import *
@@ -545,3 +547,169 @@ async def review_request(request_review_data: RequestReviewData, response: Respo
     session.commit()
 
     return Message(msg='Статус заявки изменен')
+
+@router.post(
+    '/transfer_captain',
+    summary='Передать капитанство'
+)
+async def transfer_captain(transfer_captain_data: TransferCaptainData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if not user.is_captain:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = select(User).where(User.id == transfer_captain_data.id)
+    target_user = session.exec(q).first()
+    if not target_user:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Пользователь не найден')
+    
+    if target_user.id == user.id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Нельзя передать капитанство себе')
+
+    if target_user.team_id != user.team_id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь должен состоять в вашей команде')
+    
+    user.is_captain = False
+    target_user.is_captain = True
+    session.add_all([user, target_user])
+    session.commit()
+
+    return Message(msg='Капитанство передано')
+
+@router.post(
+    '/vote',
+    summary='Проголосовать за пользователя'
+)
+async def vote_user(vote_data: VoteData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(User).where(User.id == vote_data.user_id)
+    target_user = session.exec(q).first()
+    if not target_user:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Пользователь не найден')
+    
+    if target_user.id == user.id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Нельзя голосовать за себя')
+
+    if target_user.team_id != user.team_id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь должен состоять в вашей команде')
+    
+    now = datetime.utcnow()
+    q = select(Vote).where((Vote.voter_id == user.id) & (Vote.team_id == user.team_id) & (Vote.target_id == vote_data.user_id))
+    last_vote = session.exec(q.order_by(-Vote.voted_at)).first()
+    if last_vote is not None:
+        if (now - last_vote.voted_at).days < 7:
+            response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+            return Message(msg='Голосовать можно раз в неделю')
+
+    vote = Vote(
+        team_id=user.team_id,
+        voter_id=user.id,
+        target_id=target_user.id,
+        score=vote_data.score,
+        voted_at=datetime.utcnow(),
+    )
+    session.add(vote)
+    session.commit()
+
+    return Message(msg='Голос сохранен')
+
+@router.post(
+    '/edit_last_vote',
+    summary='Редактировать свой последний голос за пользователя',
+
+)
+async def edit_last_vote(vote_data: VoteData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(User).where(User.id == vote_data.user_id)
+    target_user = session.exec(q).first()
+    if not target_user:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Пользователь не найден')
+    
+    if target_user.id == user.id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Нельзя голосовать за себя')
+
+    if target_user.team_id != user.team_id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь должен состоять в вашей команде')
+    
+    now = datetime.utcnow()
+    q = select(Vote).where((Vote.voter_id == user.id) & (Vote.team_id == user.team_id) & (Vote.target_id == vote_data.user_id))
+    last_vote = session.exec(q.order_by(-Vote.voted_at)).first()
+    if last_vote is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Голосов не найдено')
+
+    if (now - last_vote.voted_at).days >= 7:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Нельзя изменить голос, которому больше недели')
+
+    last_vote.score = vote_data.score
+    session.add(last_vote)
+    session.commit()
+
+    return Message(msg='Голос сохранен')
+    
+@router.get(
+    '/get_my_votes',
+    summary='Получить свои голоса'
+)
+async def get_my_votes(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Vote).where((Vote.voter_id == user.id) & (Vote.team_id == user.team_id))
+    votes = session.exec(q.order_by(-Vote.voted_at)).all()
+    return votes
+
+@router.post(
+    '/rename',
+    summary='Переименовать команду(для капитана)'
+)
+async def rename_team(rename_team_data: RenameTeamData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    if not user.is_captain:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = select(Team).where(Team.id == user.team_id)
+    team = session.exec(q).first()
+    if not team:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Команда не найдена')
+    
+    team.name = rename_team_data.new_name
+    session.add(team)
+    session.commit()
+
+    return Message(msg='Команда переименована')

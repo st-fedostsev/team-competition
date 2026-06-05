@@ -40,3 +40,13 @@ class RequestJoinData(BaseModel):
 class RequestReviewData(BaseModel):
     id: int
     new_status: RequestStatus
+
+class TransferCaptainData(BaseModel):
+    id: int
+
+class VoteData(BaseModel):
+    user_id: int
+    score: int
+
+class RenameTeamData(BaseModel):
+    new_name: str
