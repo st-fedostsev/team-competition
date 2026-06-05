@@ -1,9 +1,13 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class BanData(BaseModel):
     user_id: int
     ban: bool
 
-class EditRatingData(BaseModel):
+class EditUserData(BaseModel):
     user_id: int
-    new_rating: float
+    new_rating: Optional[float]
+    last_name: Optional[str]
+    first_name: Optional[str]
+    patronymic: Optional[str]

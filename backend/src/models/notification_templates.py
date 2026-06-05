@@ -5,7 +5,7 @@ class NotificationTemplate(BaseModel):
     body: str
 
 NOTIFICATIONS = {
-    'achievement': NotificationTemplate(title='Получено достижение', body='Вы получили новое достижение'),
+    #'achievement': NotificationTemplate(title='Получено достижение', body='Вы получили новое достижение'),
     'join_request': NotificationTemplate(title='Пользователь хочет вступить в команду', body='Вы получили запрос на присоединение к команде'),
     'request_approved': NotificationTemplate(title='Запрос одобрен', body='Запрос на присоединение к команде одобрен'),
     'request_rejected': NotificationTemplate(title='Запрос отклонен', body='Запрос на присоединение к команде отклонен'),

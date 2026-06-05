@@ -61,21 +61,29 @@ async def ban_user(ban_data: BanData, response: Response, credentials: JwtAuthor
     return Message(msg='Действие выполнено успешно')
 
 @router.post(
-    '/edit_rating',
-    summary='Изменить персональный рейтинг пользователя'
+    '/edit_user',
+    summary='Изменить пользователя'
 )
-async def edit_rating(edit_rating_data: EditRatingData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+async def edit_user(edit_user_data: EditUserData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
     if credentials['role'] != UserRole.technical_admin:
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Доступ запрещен')
     
-    q = select(User).where(User.id == edit_rating_data.user_id)
+    q = select(User).where(User.id == edit_user_data.user_id)
     target_user = session.exec(q).first()
     if not target_user:
         response.status_code = status.HTTP_404_NOT_FOUND
         return Message(msg='Пользователь не найден')
     
-    target_user.personal_rating = edit_rating_data.new_rating
+    if edit_user_data.new_rating is not None:
+        target_user.personal_rating = edit_user_data.new_rating
+    if edit_user_data.last_name is not None:
+        target_user.last_name = edit_user_data.last_name
+    if edit_user_data.first_name is not None:
+        target_user.first_name = edit_user_data.first_name
+    if edit_user_data.patronymic is not None:
+        target_user.patronymic = edit_user_data.patronymic
+
     session.add(target_user)
     session.commit()
     
