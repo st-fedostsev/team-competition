@@ -43,6 +43,7 @@ function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps)
 
   if (!isOpen) return null;
 
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -102,6 +103,7 @@ function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps)
 export function LentaPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+      const [pageInput, setPageInput] = useState('');
   
   const { data: user } = useCurrentUser();
   
@@ -183,6 +185,26 @@ export function LentaPage() {
     );
   }
 
+    const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const pageNumber = parseInt(pageInput);
+      if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        saveScrollPosition();
+        setCurrentPage(pageNumber);
+        setPageInput('');
+      } else {
+        alert(`Введите число от 1 до ${totalPages}`);
+      }
+    }
+  };
+  
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+
   return (
     <div className="lenta-container">
       <HeaderStudent />
@@ -212,30 +234,38 @@ export function LentaPage() {
           )}
         </div>
 
-        {/* Пагинация */}
-        {totalPages > 1 && (
-          <div className="lenta-pagination">
-            <button
-              className="pagination-nav-btn"
-              onClick={goToPrevPage}
-              disabled={currentPage === 1}
-            >
-              ‹
-            </button>
-            
-            <span className="pagination-counter">
-              {currentPage} / {totalPages}
-            </span>
-            
-            <button
-              className="pagination-nav-btn"
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages}
-            >
-              ›
-            </button>
-          </div>
-        )}
+            {/* Пагинация */}
+            {totalPages > 1 && (
+              <div className="preview-pagination">
+                <button
+                  className="pagination-btn"
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                >
+                  ‹
+                </button>
+                  <div className="pagination-page-input-wrapper">
+                    <input
+                      type="number"
+                      className="pagination-page-input"
+                      value={pageInput}
+                      onChange={handlePageInputChange}
+                      onKeyDown={handlePageInputKeyDown}
+                      placeholder={`${currentPage}`}
+                      min={1}
+                      max={totalPages}
+                    />
+                    <span className="pagination-total"> / {totalPages}</span>
+                  </div>
+                <button
+                  className="pagination-btn"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  ›
+                </button>
+              </div>
+            )}
       </div>
 
       <CreateEventModal

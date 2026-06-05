@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMyTeam, useLeaveTeam, useKickMember } from '../../hooks/useTeam';
 import { useUsersByIds } from '../../hooks/useUsers';
 import { useCurrentUser } from '../../hooks/useAuth';
@@ -11,6 +11,11 @@ interface NavTeamProps {
 
 export function NavTeam({ team: propTeam }: NavTeamProps) {
   const [activeTab, setActiveTab] = useState<'members' | 'score'>('members');
+  const [memberScores, setMemberScores] = useState<Record<number, string>>({});
+  const [openedMenuMemberId, setOpenedMenuMemberId] = useState<number | null>(null);
+  const [isTransferWindowOpen, setIsTransferWindowOpen] = useState(false);
+  const [selectedNewCaptainId, setSelectedNewCaptainId] = useState<number | ''>('');
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const { data: hookTeam, isLoading, refetch } = useMyTeam();
   const { data: currentUser } = useCurrentUser();
   const { mutate: leaveTeam } = useLeaveTeam();
@@ -24,6 +29,23 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
 
   const isCaptain = team?.captain_id === currentUser?.id;
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setOpenedMenuMemberId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Сортируем участников: капитан первый, остальные по порядку (по id)
  const sortedMembers = (() => {
   if (!team) return [];
@@ -35,6 +57,7 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
       return a.id - b.id;
     });
 })();
+
 
   // Обработчик выхода из команды
   const handleLeaveTeam = () => {
@@ -108,18 +131,18 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
         </div>
 
         {activeTab === 'members' && (
-  <div className="nav-team-members">
-    {/* Кнопка только для капитана */}
-    {isCaptain && (
-      <button className="nav-team-invite-btn" onClick={handleCopyInviteLink}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD675" strokeWidth="1.5" strokeLinecap="round">
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-          <path d="M19 8v6M16 11h6"/>
-        </svg>
-        Пригласить участников
-      </button>
-    )}
+        <div className="nav-team-members">
+          {/* Кнопка только для капитана */}
+          {isCaptain && (
+            <button className="nav-team-invite-btn" onClick={handleCopyInviteLink}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD675" strokeWidth="1.5" strokeLinecap="round">
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                <path d="M19 8v6M16 11h6"/>
+              </svg>
+              Пригласить участников
+            </button>
+          )}
 
             {sortedMembers.map((member) => {
               if (!member) return null;
@@ -131,11 +154,11 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
                 <div key={member.id} className="nav-team-member-row">
                   <div className="nav-team-member-left">
                     <div className="nav-team-member-avatar">
-                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="15" stroke="#ccc" strokeWidth="1.2"/>
-                        <circle cx="16" cy="12" r="5" stroke="#ccc" strokeWidth="1.2"/>
-                        <path d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="#ccc" strokeWidth="1.2" strokeLinecap="round"/>
-                      </svg>
+                          <svg width="40" height="40" viewBox="0 0 32 32" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <defs><clipPath id="userCircleClip"><circle cx="16" cy="16" r="15"></circle></clipPath></defs>
+                            <g clip-path="url(#userCircleClip)"><circle cx="16" cy="11" r="5"></circle><path d="M6 27c0-5.5 4.5-9 10-9s10 3.5 10 9"></path></g>
+                            <circle cx="16" cy="16" r="15"></circle>
+                          </svg>
                     </div>
                     <div>
                       <p className="nav-team-member-name">
@@ -149,23 +172,127 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
                   </div>
                   
                   {/* Кнопка удаления/выхода */}
+                  {/* Кнопка действий */}
                   {showRemoveButton && (
-                    <button 
-                      className="nav-team-member-remove"
-                      onClick={() => {
-                        if (isCaptain && !isCurrentUser) {
-                          handleKickMember(member.id, `${member.last_name} ${member.first_name}`);
-                        } else if (isCurrentUser) {
-                          handleLeaveTeam();
-                        }
-                      }}
+                    <div
+                      className="nav-team-member-actions"
+                      ref={openedMenuMemberId === member.id ? menuRef : null}
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round">
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                        <path d="M17 11l4 4m0-4l-4 4"/>
-                      </svg>
-                    </button>
+                      <button
+                        className="nav-team-member-remove"
+                        onClick={() => {
+                          setOpenedMenuMemberId(prev =>
+                            prev === member.id ? null : member.id
+                          );
+                        }}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#999">
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
+                        </svg>
+                      </button>
+
+                      {openedMenuMemberId === member.id && (
+                        <div className="nav-team-member-menu">
+                          {isCaptain && (
+                            <button
+                              className="nav-team-member-menu-item"
+                              onClick={() => {
+                                setOpenedMenuMemberId(null);
+                                setSelectedNewCaptainId('');
+                                setIsTransferWindowOpen(true);
+                              }}
+                            >
+                              Передать капитанство
+                            </button>
+                          )}
+
+                          {isCaptain && !isCurrentUser && (
+                            <button
+                              className="nav-team-member-menu-item danger"
+                              onClick={() => {
+                                setOpenedMenuMemberId(null);
+
+                                handleKickMember(
+                                  member.id,
+                                  `${member.last_name} ${member.first_name}`
+                                );
+                              }}
+                            >
+                              Исключить
+                            </button>
+                          )}
+
+                          {isCurrentUser && !isCaptain && (
+                            <button
+                              className="nav-team-member-menu-item danger"
+                              onClick={() => {
+                                setOpenedMenuMemberId(null);
+                                handleLeaveTeam();
+                              }}
+                            >
+                              Покинуть команду
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {isTransferWindowOpen && (
+                    <div className="nav-team-small-window-backdrop">
+                      <div className="nav-team-small-window">
+                        <p className="nav-team-small-window-title">
+                          Передать капитанство
+                        </p>
+
+                        <select
+                          className="nav-team-small-window-select"
+                          value={selectedNewCaptainId}
+                          onChange={(e) => {
+                            setSelectedNewCaptainId(Number(e.target.value));
+                          }}
+                        >
+                          <option value="">
+                            Выберите участника
+                          </option>
+
+                          {sortedMembers
+                            .filter(item => item.id !== currentUser?.id)
+                            .map(item => (
+                              <option key={item.id} value={item.id}>
+                                {item.last_name} {item.first_name} {item.patronymic || ''}
+                              </option>
+                            ))}
+                        </select>
+
+                        <div className="nav-team-small-window-buttons">
+                          <button
+                            className="nav-team-small-window-cancel"
+                            onClick={() => {
+                              setIsTransferWindowOpen(false);
+                              setSelectedNewCaptainId('');
+                            }}
+                          >
+                            Отмена
+                          </button>
+
+                          <button
+                            className="nav-team-small-window-confirm"
+                            onClick={() => {
+                              console.log('Передать капитанство пользователю:', selectedNewCaptainId);
+
+                              // Здесь потом второй разработчик подключит API
+                              setIsTransferWindowOpen(false);
+                              setSelectedNewCaptainId('');
+                            }}
+                          >
+                            Передать
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               );
@@ -173,9 +300,56 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
           </div>
         )}
 
-        {activeTab === 'score' && (
-          <div className="nav-team-score-empty">Оценки пока не выставлены</div>
-        )}
+          {activeTab === 'score' && (
+            <div className="nav-team-score">
+              <p className="nav-team-score-title">Участник</p>
+
+              <div className="nav-team-score-list">
+                {sortedMembers.map((member) => {
+                  const isCaptainMember = member.id === team.captain_id;
+
+                  return (
+                    <div key={member.id} className="nav-team-score-row">
+                      <div className="nav-team-score-user">
+                        <div className="nav-team-score-avatar">
+                          <svg width="40" height="40" viewBox="0 0 32 32" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <defs><clipPath id="userCircleClip"><circle cx="16" cy="16" r="15"></circle></clipPath></defs>
+                            <g clip-path="url(#userCircleClip)"><circle cx="16" cy="11" r="5"></circle><path d="M6 27c0-5.5 4.5-9 10-9s10 3.5 10 9"></path></g>
+                            <circle cx="16" cy="16" r="15"></circle>
+                          </svg>
+                        </div>
+
+                        <div className="nav-team-score-info">
+                          <p className="nav-team-score-name">
+                            {member.last_name} {member.first_name} {member.patronymic || ''}
+                          </p>
+
+                          <p className="nav-team-score-role">
+                            {isCaptainMember ? 'Капитан' : 'Участник'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <input
+                        className="nav-team-score-input"
+                        value={memberScores[member.id] || ''}
+                        onChange={(event) => {
+                          const value = event.target.value;
+
+                          if (/^\d{0,3}$/.test(value)) {
+                            setMemberScores(prev => ({
+                              ...prev,
+                              [member.id]: value,
+                            }));
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
       </div>
 
       {/* Правая панель — рейтинг */}

@@ -465,3 +465,95 @@ export function CreateNewsSubmitButton({ disabled }: NewsButtonProps) {
     </button>
   );
 }
+
+
+
+interface TeamButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: 'button' | 'submit';
+}
+
+export function TeamModalCancelButton({
+  onClick,
+  disabled,
+  type = 'button',
+}: TeamButtonProps) {
+  return (
+    <button
+      className="team-modal-cancel"
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Отмена
+    </button>
+  );
+}
+
+export function TeamModalSaveButton({
+  onClick,
+  disabled,
+  type = 'button',
+}: TeamButtonProps) {
+  return (
+    <button
+      className="team-modal-confirm"
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Сохранить
+    </button>
+  );
+}
+
+export function TeamRequestAcceptButton({
+  onClick,
+  disabled,
+  type = 'button',
+}: TeamButtonProps) {
+  return (
+    <button
+      className="team-request-accept"
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Принять
+    </button>
+  );
+}
+
+export function TeamRequestRejectButton({
+  onClick,
+  disabled,
+  type = 'button',
+}: TeamButtonProps) {
+  return (
+    <button
+      className="team-request-reject"
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      Отклонить
+    </button>
+  );
+}
+
+export function TeamModalCloseButton({
+  onClick,
+  disabled,
+}: TeamButtonProps) {
+  return (
+    <button
+      className="team-modal-close"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      ×
+    </button>
+  );
+}

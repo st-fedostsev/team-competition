@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HeaderGameAdmin } from '../../../../components/Header/HeaderGameAdmin';
 import '../../../../styles/GameAdminTeamsPage.css';
 
@@ -23,56 +23,68 @@ const MOCK_TEAMS: MockTeam[] = [
   {
     id: 2,
     name: 'Команда Альфа',
-    members: [1, 2, 3, 4],
+    members: [4, 5, 6, 7],
     league: 'pro',
   },
   {
     id: 3,
     name: 'Звёзды знаний',
-    members: [1, 2],
+    members: [8, 9],
     league: 'novice',
   },
   {
     id: 4,
     name: 'Кибер Легенды',
-    members: [1, 2, 3, 4, 5],
+    members: [10, 11, 12, 13, 14],
     league: 'legend',
   },
   {
     id: 5,
     name: 'Умники',
-    members: [1],
+    members: [15],
     league: 'novice',
   },
   {
     id: 6,
     name: 'Профи Тим',
-    members: [1, 2, 3],
+    members: [16, 17, 18],
     league: 'pro',
   },
   {
     id: 7,
     name: 'Феникс',
-    members: [1, 2, 3, 4],
+    members: [19, 20, 21, 22],
     league: 'legend',
   },
   {
     id: 8,
     name: 'Новая волна',
-    members: [1, 2],
+    members: [23, 24],
     league: 'novice',
   },
   {
     id: 9,
     name: 'Победители',
-    members: [1, 2, 3, 4, 5],
+    members: [25, 26, 27, 28, 29],
     league: 'pro',
   },
   {
     id: 10,
     name: 'Вектор',
-    members: [1, 2, 3],
+    members: [30, 31, 32],
     league: 'novice',
+  },
+  {
+    id: 11,
+    name: 'Максимум',
+    members: [33, 34, 35, 36],
+    league: 'legend',
+  },
+  {
+    id: 12,
+    name: 'Север',
+    members: [37, 38],
+    league: 'pro',
   },
 ];
 
@@ -124,7 +136,7 @@ function getMembersText(count: number) {
   return `${count} участников`;
 }
 
-function getLeagueText(league: MockLeague) {
+function getLeagueText(league?: MockLeague) {
   switch (league) {
     case 'novice':
       return 'Новички';
@@ -141,15 +153,17 @@ export function TeamsGameAdminPage() {
   const [searchValue, setSearchValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredTeams = MOCK_TEAMS.filter((team) => {
-    const search = searchValue.trim().toLowerCase();
+  const filteredTeams = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase();
 
-    if (!search) {
-      return true;
+    if (!normalizedSearch) {
+      return MOCK_TEAMS;
     }
 
-    return team.name.toLowerCase().includes(search);
-  });
+    return MOCK_TEAMS.filter((team) => {
+      return team.name.toLowerCase().includes(normalizedSearch);
+    });
+  }, [searchValue]);
 
   const totalPages = Math.ceil(filteredTeams.length / TEAMS_PER_PAGE);
   const startIndex = (currentPage - 1) * TEAMS_PER_PAGE;
@@ -167,6 +181,15 @@ export function TeamsGameAdminPage() {
     }
   };
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleDetailsClick = (team: MockTeam) => {
+    console.log('Открыть подробнее по команде:', team);
+  };
+
   return (
     <div className="game-admin-teams-page">
       <HeaderGameAdmin />
@@ -178,10 +201,7 @@ export function TeamsGameAdminPage() {
             type="text"
             placeholder="Введите название"
             value={searchValue}
-            onChange={(event) => {
-              setSearchValue(event.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearchChange}
           />
 
           <span className="game-admin-teams-search-icon">
@@ -220,9 +240,7 @@ export function TeamsGameAdminPage() {
                 <button
                   className="game-admin-team-more-button"
                   type="button"
-                  onClick={() => {
-                    console.log('Подробнее о команде:', team);
-                  }}
+                  onClick={() => handleDetailsClick(team)}
                 >
                   Подробнее
                 </button>

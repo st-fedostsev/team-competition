@@ -16,6 +16,7 @@ export function RatingTechStudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState('');
   
   const scrollPositionRef = useRef(0);
   const isRestoringScrollRef = useRef(false);
@@ -68,6 +69,25 @@ export function RatingTechStudentsPage() {
     setSearchQuery(event.target.value);
     saveScrollPosition();
     setCurrentPage(1);
+  };
+
+    const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const pageNumber = parseInt(pageInput);
+      if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        saveScrollPosition();
+        setCurrentPage(pageNumber);
+        setPageInput('');
+      } else {
+        alert(`Введите число от 1 до ${totalPages}`);
+      }
+    }
+  };
+  
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
   };
 
   // Все студенты из API
@@ -208,28 +228,37 @@ export function RatingTechStudentsPage() {
           )}
         </div>
 
-        {/* Пагинация */}
         {totalPages > 1 && (
-          <div className="tech-rating-pagination">
-            <button
-              className="pagination-nav-btn"
-              onClick={goToPrevPage}
-              disabled={currentPage === 1}
-            >
-              ‹
-            </button>
+          <div className="users-pagination">
+                <button
+                  className="pagination-btn"
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                >
+                  ‹
+                </button>
             
-            <span className="pagination-counter">
-              {currentPage} / {totalPages}
-            </span>
+            <div className="pagination-page-input-wrapper">
+              <input
+                type="number"
+                className="pagination-page-input"
+                value={pageInput}
+                onChange={handlePageInputChange}
+                onKeyDown={handlePageInputKeyDown}
+                placeholder={`${currentPage}`}
+                min={1}
+                max={totalPages}
+              />
+              <span className="pagination-total"> / {totalPages}</span>
+            </div>
             
-            <button
-              className="pagination-nav-btn"
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages}
-            >
-              ›
-            </button>
+                <button
+                  className="pagination-btn"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  ›
+                </button>
           </div>
         )}
       </main>

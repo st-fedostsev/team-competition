@@ -403,13 +403,13 @@ export function UsersPage() {
 
         {totalPages > 1 && (
           <div className="users-pagination">
-            <button
-              className="pagination-nav-btn"
-              onClick={goToPrevPage}
-              disabled={currentPage === 1}
-            >
-              ‹
-            </button>
+                <button
+                  className="pagination-btn"
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                >
+                  ‹
+                </button>
             
             <div className="pagination-page-input-wrapper">
               <input
@@ -425,13 +425,13 @@ export function UsersPage() {
               <span className="pagination-total"> / {totalPages}</span>
             </div>
             
-            <button
-              className="pagination-nav-btn"
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages}
-            >
-              ›
-            </button>
+                <button
+                  className="pagination-btn"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  ›
+                </button>
           </div>
         )}
       </main>

@@ -26,6 +26,7 @@ export function IntegrationsPage() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [pageInput, setPageInput] = useState('');
   
   const { mutate: importUsers, isPending } = useImportUsers();
 
@@ -126,6 +127,26 @@ export function IntegrationsPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
   }
+  };
+
+  
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const pageNumber = parseInt(pageInput);
+      if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        setCurrentPage(pageNumber);
+        setPageInput('');
+      } else {
+        alert(`Введите число от 1 до ${totalPages}`);
+      }
+    }
+  };
+  
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
   };
 
   return (
@@ -253,9 +274,19 @@ export function IntegrationsPage() {
                 >
                   ‹
                 </button>
-                <span className="pagination-info">
-                   {currentPage} / {totalPages}
-                </span>
+                <div className="pagination-page-input-wrapper">
+                  <input
+                    type="number"
+                    className="pagination-page-input"
+                    value={pageInput}
+                    onChange={handlePageInputChange}
+                    onKeyDown={handlePageInputKeyDown}
+                    placeholder={`${currentPage}`}
+                    min={1}
+                    max={totalPages}
+                  />
+                  <span className="pagination-total"> / {totalPages}</span>
+                </div>
                 <button
                   className="pagination-btn"
                   onClick={goToNextPage}
