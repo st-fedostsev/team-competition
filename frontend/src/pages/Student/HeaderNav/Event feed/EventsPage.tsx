@@ -141,8 +141,8 @@ export function LentaPage() {
   }, [isLoading, currentPage]);
 
   // Все мероприятия из текущей страницы
-  const allEvents = data?.events || [];
-  const totalCount = data?.total || 0;
+  const allEvents = data?.result || [];
+  const totalCount = data?.count || 0;
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const canCreateEvent = !!user;

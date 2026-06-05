@@ -12,7 +12,7 @@ import {
   EventDeleteCancelButton,
   EventDeleteConfirmButton,
 } from '../../../../components/Buttons';
-import { useChallengeReports, useModerateChallengeReport } from '../../../../hooks/useContentManager';
+import { useChallengeReports, useModerateChallengeReport, useCMEventsList, useCMModerateEvent } from '../../../../hooks/useContentManager';
 import { useTeamsByIds } from '../../../../hooks/useTeam';
 import { useChallengesList } from '../../../../hooks/useChallenges';
 import { useFileInfo, useDownloadFile } from '../../../../hooks/useFiles';
@@ -36,11 +36,15 @@ interface ModerationItem {
   file_id?: number;
   status?: string;
   marketType?: string;
+  format?: string;
+  is_official?: boolean;
+  created_by?: number;
 }
 
 export function ModerationPage() {
   const [activeTab, setActiveTab] = useState(MODERATION_TABS[0].value);
   const [selectedReport, setSelectedReport] = useState<ModerationItem | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ModerationItem | null>(null);
   const [eventForDelete, setEventForDelete] = useState<ModerationItem | null>(null);
   const [marketItemForDelete, setMarketItemForDelete] = useState<ModerationItem | null>(null);
   const [deleteComment, setDeleteComment] = useState('');
@@ -51,22 +55,38 @@ export function ModerationPage() {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectComment, setRejectComment] = useState('');
   const [reportToReject, setReportToReject] = useState<ModerationItem | null>(null);
+  const [eventToReject, setEventToReject] = useState<ModerationItem | null>(null);
 
   const scrollPositionRef = useRef(0);
   const isRestoringScrollRef = useRef(false);
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  // Получаем отчёты из API
+  // Получаем отчёты из API (для вкладки /reports)
   const { 
     data: reportsData, 
-    isLoading, 
-    isError, 
-    error, 
-    refetch 
+    isLoading: isReportsLoading, 
+    isError: isReportsError, 
+    error: reportsError, 
+    refetch: refetchReports
   } = useChallengeReports(ITEMS_PER_PAGE, offset);
 
-  // Получаем челленджи для названий
+  // Получаем мероприятия из API контент-менеджера (для вкладки /events)
+  const { 
+    data: eventsData, 
+    isLoading: isEventsLoading, 
+    isError: isEventsError, 
+    error: eventsError, 
+    refetch: refetchEvents
+  } = useCMEventsList(ITEMS_PER_PAGE, offset);
+
+  // Определяем, какие данные загружаются в зависимости от активной вкладки
+  const isLoading = activeTab === '/reports' ? isReportsLoading : isEventsLoading;
+  const isError = activeTab === '/reports' ? isReportsError : isEventsError;
+  const error = activeTab === '/reports' ? reportsError : eventsError;
+  const refetch = activeTab === '/reports' ? refetchReports : refetchEvents;
+
+  // Получаем челленджи для названий (только для отчётов)
   const { data: challengesData } = useChallengesList(1000, 0);
   const challengesMap = new Map();
   challengesData?.result?.forEach((challenge: any) => {
@@ -74,6 +94,7 @@ export function ModerationPage() {
   });
 
   const reports = reportsData?.result || [];
+  const events = eventsData?.result || [];
 
   // Извлекаем ID файлов из URL
   const extractFileIdFromUrl = (url: string) => {
@@ -81,7 +102,7 @@ export function ModerationPage() {
     return match ? parseInt(match[1]) : null;
   };
 
-  // Получаем названия команд через готовый хук
+  // Получаем названия команд через готовый хук (только для отчётов)
   const teamIds = [...new Set(reports.map(report => report.team_id).filter(Boolean))] as number[];
   const teamQueries = useTeamsByIds(teamIds);
   
@@ -97,7 +118,10 @@ export function ModerationPage() {
   const { data: fileInfo, isLoading: isFileLoading } = useFileInfo(fileId);
   const { mutate: downloadFile, isPending: isDownloading } = useDownloadFile();
 
-  const { mutate: moderateReport, isPending: isModerating } = useModerateChallengeReport();
+  const { mutate: moderateReport, isPending: isModeratingReport } = useModerateChallengeReport();
+  const { mutate: moderateEvent, isPending: isModeratingEvent } = useCMModerateEvent();
+
+  const isModerating = activeTab === '/reports' ? isModeratingReport : isModeratingEvent;
 
   const saveScrollPosition = useCallback(() => {
     scrollPositionRef.current = window.scrollY;
@@ -119,7 +143,7 @@ export function ModerationPage() {
   }, [isLoading, currentPage]);
 
   // Формируем список отчётов
-  const moderationItems = useMemo(() => {
+  const reportsItems = useMemo(() => {
     return reports.map((report) => ({
       id: report.id,
       type: '/reports',
@@ -135,18 +159,44 @@ export function ModerationPage() {
     }));
   }, [reports, challengesMap, teamNameMap]);
 
-  const totalCount = reportsData?.count || 0;
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  // Формируем список мероприятий
+  const eventsItems = useMemo(() => {
+    return events.map((event: any) => ({
+      id: event.id,
+      type: '/events',
+      title: event.title,
+      description: event.description,
+      date: event.date ? new Date(event.date).toLocaleDateString() : '—',
+      status: event.status,
+      format: event.format,
+      is_official: event.is_official,
+      created_by: event.created_by,
+    }));
+  }, [events]);
+
+  const reportsTotalCount = reportsData?.count || 0;
+  const reportsTotalPages = Math.ceil(reportsTotalCount / ITEMS_PER_PAGE);
+
+  const eventsTotalCount = eventsData?.count || 0;
+  const eventsTotalPages = Math.ceil(eventsTotalCount / ITEMS_PER_PAGE);
 
   const filteredItems = useMemo(() => {
     if (activeTab === '/reports') {
-      return moderationItems;
+      return reportsItems;
+    }
+    if (activeTab === '/events') {
+      return eventsItems;
     }
     return [];
-  }, [activeTab, moderationItems]);
+  }, [activeTab, reportsItems, eventsItems]);
 
   const closeReportModal = () => {
     setSelectedReport(null);
+    setDeleteComment('');
+  };
+
+  const closeEventModal = () => {
+    setSelectedEvent(null);
     setDeleteComment('');
   };
 
@@ -165,19 +215,36 @@ export function ModerationPage() {
     setIsRejectModalOpen(false);
     setRejectComment('');
     setReportToReject(null);
+    setEventToReject(null);
   };
 
-  // Обработка одобрения (без модального окна)
+  // Обработка одобрения отчёта (без модального окна)
   const handleReportAccept = () => {
     if (selectedReport) {
       moderateReport({
-        id: selectedReport.id,
+        report_id: selectedReport.id,
+        status: 'approved',
+        moderator_comment: 'Одобрено модератором',
+      }, {
+        onSuccess: () => {
+          closeReportModal();
+          refetchReports();
+        }
+      });
+    }
+  };
+
+  // Обработка одобрения мероприятия (без модального окна)
+  const handleEventAccept = () => {
+    if (selectedEvent) {
+      moderateEvent({
+        id: selectedEvent.id,
         new_status: 'approved',
         moderation_comment: 'Одобрено модератором',
       }, {
         onSuccess: () => {
-          closeReportModal();
-          refetch();
+          closeEventModal();
+          refetchEvents();
         }
       });
     }
@@ -185,15 +252,18 @@ export function ModerationPage() {
 
   // Открытие модального окна для отклонения
   const handleRejectClick = () => {
-    if (selectedReport) {
+    if (activeTab === '/reports' && selectedReport) {
       setReportToReject(selectedReport);
+      setIsRejectModalOpen(true);
+    } else if (activeTab === '/events' && selectedEvent) {
+      setEventToReject(selectedEvent);
       setIsRejectModalOpen(true);
     }
   };
 
   // Подтверждение отклонения с комментарием
   const handleConfirmReject = () => {
-    if (reportToReject && rejectComment.trim()) {
+    if (activeTab === '/reports' && reportToReject && rejectComment.trim()) {
       moderateReport({
         report_id: reportToReject.id,
         status: 'rejected',
@@ -202,7 +272,19 @@ export function ModerationPage() {
         onSuccess: () => {
           closeRejectModal();
           closeReportModal();
-          refetch();
+          refetchReports();
+        }
+      });
+    } else if (activeTab === '/events' && eventToReject && rejectComment.trim()) {
+      moderateEvent({
+        id: eventToReject.id,
+        new_status: 'rejected',
+        moderation_comment: rejectComment,
+      }, {
+        onSuccess: () => {
+          closeRejectModal();
+          closeEventModal();
+          refetchEvents();
         }
       });
     }
@@ -253,6 +335,7 @@ export function ModerationPage() {
   };
 
   const goToNextPage = () => {
+    const totalPages = activeTab === '/reports' ? reportsTotalPages : eventsTotalPages;
     if (currentPage < totalPages) {
       saveScrollPosition();
       setCurrentPage(prev => prev + 1);
@@ -273,6 +356,7 @@ export function ModerationPage() {
   };
 
   const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const totalPages = activeTab === '/reports' ? reportsTotalPages : eventsTotalPages;
     if (e.key === 'Enter') {
       e.preventDefault();
       const pageNumber = parseInt(pageInput);
@@ -291,7 +375,7 @@ export function ModerationPage() {
       <div className="cm-moderation-page">
         <HeaderContentManager />
         <main className="cm-moderation-content">
-          <div className="loading">Загрузка отчётов...</div>
+          <div className="loading">Загрузка...</div>
         </main>
       </div>
     );
@@ -343,7 +427,7 @@ export function ModerationPage() {
                       <path d="M8 34c0-7.2 5.8-13 13-13s13 5.8 13 13" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
                       <circle cx="21" cy="21" r="19" stroke="#111" strokeWidth="1.5" />
                     </svg>
-                    <span>{item.team}</span>
+                    <span>{item.team || (item.format === 'online' ? 'Онлайн' : 'Офлайн')}</span>
                   </div>
                 </div>
 
@@ -351,15 +435,21 @@ export function ModerationPage() {
                   <p className="cm-moderation-date">
                     {item.date}
                   </p>
-                  <DetailsButton onClick={() => setSelectedReport(item)} />
+                  <DetailsButton onClick={() => {
+                    if (activeTab === '/reports') {
+                      setSelectedReport(item);
+                    } else if (activeTab === '/events') {
+                      setSelectedEvent(item);
+                    }
+                  }} />
                 </div>
               </article>
             ))
           )}
         </div>
 
-        {/* Пагинация */}
-        {totalPages > 1 && (
+        {/* Пагинация для отчётов */}
+        {activeTab === '/reports' && reportsTotalPages > 1 && (
           <div className="cm-moderation-pagination">
             <button className="pagination-nav-btn" onClick={goToPrevPage} disabled={currentPage === 1}>‹</button>
             
@@ -372,18 +462,41 @@ export function ModerationPage() {
                 onKeyDown={handlePageInputKeyDown}
                 placeholder={`${currentPage}`}
                 min={1}
-                max={totalPages}
+                max={reportsTotalPages}
               />
-              <span className="pagination-total"> / {totalPages}</span>
+              <span className="pagination-total"> / {reportsTotalPages}</span>
             </div>
             
-            <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === totalPages}>›</button>
+            <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === reportsTotalPages}>›</button>
+          </div>
+        )}
+
+        {/* Пагинация для мероприятий */}
+        {activeTab === '/events' && eventsTotalPages > 1 && (
+          <div className="cm-moderation-pagination">
+            <button className="pagination-nav-btn" onClick={goToPrevPage} disabled={currentPage === 1}>‹</button>
+            
+            <div className="pagination-page-input-wrapper">
+              <input
+                type="number"
+                className="pagination-page-input"
+                value={pageInput}
+                onChange={handlePageInputChange}
+                onKeyDown={handlePageInputKeyDown}
+                placeholder={`${currentPage}`}
+                min={1}
+                max={eventsTotalPages}
+              />
+              <span className="pagination-total"> / {eventsTotalPages}</span>
+            </div>
+            
+            <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === eventsTotalPages}>›</button>
           </div>
         )}
       </main>
 
       {/* Модальное окно отчёта */}
-      {selectedReport && (
+      {selectedReport && activeTab === '/reports' && (
         <Modal closeModal={closeReportModal}>
           <div className="cm-report-modal-body">
             <h2 className="cm-report-modal-title">
@@ -468,15 +581,61 @@ export function ModerationPage() {
         </Modal>
       )}
 
+      {/* Модальное окно мероприятия */}
+      {selectedEvent && activeTab === '/events' && (
+        <Modal closeModal={closeEventModal}>
+          <div className="cm-report-modal-body">
+            <h2 className="cm-report-modal-title">Мероприятие</h2>
+
+            <div className="cm-report-modal-fields">
+              <div className="cm-report-modal-field">
+                <p className="cm-report-modal-field-title">Название</p>
+                <p className="cm-report-modal-field-text">{selectedEvent.title}</p>
+              </div>
+
+              <div className="cm-report-modal-field">
+                <p className="cm-report-modal-field-title">Описание</p>
+                <p className="cm-report-modal-field-text">{selectedEvent.description}</p>
+              </div>
+
+              <div className="cm-report-modal-field">
+                <p className="cm-report-modal-field-title">Дата</p>
+                <p className="cm-report-modal-field-text">{selectedEvent.date}</p>
+              </div>
+
+              <div className="cm-report-modal-field">
+                <p className="cm-report-modal-field-title">Формат</p>
+                <p className="cm-report-modal-field-text">{selectedEvent.format === 'online' ? 'Онлайн' : 'Офлайн'}</p>
+              </div>
+
+              <div className="cm-report-modal-field">
+                <p className="cm-report-modal-field-title">Официальное</p>
+                <p className="cm-report-modal-field-text">{selectedEvent.is_official ? 'Да' : 'Нет'}</p>
+              </div>
+            </div>
+
+            <div className="cm-report-modal-actions">
+              <ReportRejectButton onClick={handleRejectClick} disabled={isModerating} />
+              <ReportAcceptButton onClick={handleEventAccept} disabled={isModerating} />
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* Модальное окно для отклонения с комментарием */}
-      {isRejectModalOpen && reportToReject && (
+      {isRejectModalOpen && (reportToReject || eventToReject) && (
         <Modal closeModal={closeRejectModal}>
           <div className="cm-event-delete-modal-body">
             <div className="cm-event-delete-info">
-              <p className="cm-event-delete-title">Отклонение отчёта</p>
+              <p className="cm-event-delete-title">
+                Отклонение {activeTab === '/reports' ? 'отчёта' : 'мероприятия'}
+              </p>
               <p className="cm-event-delete-description">
-                Челлендж: {reportToReject.title}<br />
-                Команда: {reportToReject.team}
+                {activeTab === '/reports' ? (
+                  <>Челлендж: {reportToReject?.title}<br />Команда: {reportToReject?.team}</>
+                ) : (
+                  <>Мероприятие: {eventToReject?.title}<br />Дата: {eventToReject?.date}</>
+                )}
               </p>
             </div>
 
@@ -485,7 +644,7 @@ export function ModerationPage() {
               className="cm-event-delete-textarea"
               value={rejectComment}
               onChange={(event) => setRejectComment(event.target.value)}
-              placeholder="Укажите причину отклонения отчёта..."
+              placeholder={`Укажите причину отклонения ${activeTab === '/reports' ? 'отчёта' : 'мероприятия'}...`}
               rows={4}
             />
 

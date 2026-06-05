@@ -17,6 +17,7 @@ import { useEventsList, useCreateEvent } from '../../../../hooks/useEvents';
 import { FEED_TABS } from '../../../../constants';
 import '../../../../styles/NewsContentManagerPage.css';
 
+
 const ITEMS_PER_PAGE = 1;
 
 interface FeedItem {
@@ -110,7 +111,10 @@ export function NewsContentManagerPage() {
                       activeTab === '/challenges' ? challengesData :
                       eventsData;
   
-  const currentItems = currentData?.result || [];
+  const currentItems = useMemo(() => {
+  return currentData?.result || [];
+}, [currentData]);
+
   const totalCount = currentData?.count || 0;
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   
@@ -236,9 +240,9 @@ export function NewsContentManagerPage() {
     );
   };
 
-  const handleTabChange = (tab: ContentManagerFeedTab) => {
+  const handleTabChange = (tab: string) => {
     saveScrollPosition();
-    setActiveTab(tab);
+    setActiveTab(tab as ContentManagerFeedTab);
     setCurrentPage(1);
     setPageInput('');
   };

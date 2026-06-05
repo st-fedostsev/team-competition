@@ -30,6 +30,37 @@ export interface ModerateReportData {
   moderator_comment?: string;
 }
 
+export interface CMEventData {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  format: 'offline' | 'online';
+  is_official: boolean;
+  created_by: number;
+  status: 'on_moderation' | 'approved' | 'rejected';
+}
+
+
+export interface CMEventsListResponse {
+  count: number;
+  result: CMEventData[];
+}
+
+export interface CMCreateEventRequest {
+  title: string;
+  description: string;
+  date: string;
+  format: 'offline' | 'online';
+  is_official: boolean;
+}
+
+export interface CMModerateEventData {
+  id: number;
+  new_status: 'on_moderation' | 'approved' | 'rejected';
+  moderation_comment: string;
+}
+
 export const contentManagerApi = {
   // Отправить рассылку
   sendNotification: (data: SendNotificationData) =>
@@ -42,4 +73,12 @@ export const contentManagerApi = {
   // Одобрить/отклонить отчёт
   moderateChallengeReport: (data: ModerateReportData) =>
     apiClient.post('/api/content_manager/moderate_challenge_report', data),
+
+  // Получить список мероприятий
+  getCMEventsList: (params: { offset: number; limit: number }) =>
+    apiClient.post<CMEventsListResponse>('/api/content_manager/get_events', params),
+
+  // Модерация мероприятия
+  moderateCMEvent: (data: CMModerateEventData) =>
+    apiClient.post('/api/content_manager/moderate_event', data),
 };

@@ -1,5 +1,7 @@
 import '../../styles/NewsContentManagerPage.css';
 
+export type ContentManagerFeedTab = '/all' | '/news' | '/challenges' | '/events';
+
 interface ContentManagerTabItem {
   label: string;
   value: string;

@@ -9,8 +9,7 @@ export interface Challenge {
 export interface CreateChallengeData {
   title: string;
   description: string;
-  start_date: string;
-  end_date: string;
+  deadline: string;
   points: number;
 }
 
