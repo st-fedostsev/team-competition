@@ -3,6 +3,7 @@ import { useMyTeam, useLeaveTeam, useKickMember } from '../../hooks/useTeam';
 import { useUsersByIds } from '../../hooks/useUsers';
 import { useCurrentUser } from '../../hooks/useAuth';
 import type { Team } from '../../types/team.types';
+import { useTeamPosition } from '../../hooks/useRating';
 import '../../styles/NavTeam.css';
 
 interface NavTeamProps {
@@ -29,6 +30,7 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
 
   const isCaptain = team?.captain_id === currentUser?.id;
 
+<<<<<<< Updated upstream
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -46,6 +48,9 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
     };
   }, []);
 
+=======
+    const { data: teamPosition, isLoading: positionLoading } = useTeamPosition(team?.id || 0);
+>>>>>>> Stashed changes
   // Сортируем участников: капитан первый, остальные по порядку (по id)
  const sortedMembers = (() => {
   if (!team) return [];
@@ -364,10 +369,12 @@ export function NavTeam({ team: propTeam }: NavTeamProps) {
             </svg>
             Позиция
           </p>
-          <p className="nav-team-rating-value">Скоро будет доступно</p>
+           <p className="nav-team-rating-value">
+            {positionLoading ? 'Загрузка...' : teamPosition ? `${teamPosition.position}/${teamPosition.total}` : '—'}
+          </p>
         </div>
         <div className="nav-team-rating-block">
-          <p className="nav-team-rating-label">CRC</p>
+          <p className="nav-team-rating-label">Баллы</p>
           <p className="nav-team-rating-value">{team.crc?.toFixed(2) || '—'}</p>
         </div>
         <div className="nav-team-rating-block">

@@ -27,3 +27,8 @@ export interface LeaderboardPage<T> {
   hasMore: boolean;
   total: number;
 }
+
+export interface LeaderboardResponse {
+    count: number,
+    result: LeaderboardTeam[] | LeaderboardUser[];
+}

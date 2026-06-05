@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ratingApi } from '../api/rating';
 import { useCurrentUser } from './useAuth';
-import type { LeaderboardTeam, LeaderboardUser } from '../types/leaderboard.types';
+import type { LeaderboardTeam, LeaderboardUser, LeaderboardResponse } from '../types/leaderboard.types';
 
 export const ratingKeys = {
   all: ['rating'] as const,
@@ -70,8 +70,11 @@ export function useUserRatingPosition() {
         limit: 1000,
         query: '', 
       });
-      const users = response.data as unknown as LeaderboardUser[];
-
+      
+      const data = response.data as { count: number; result: LeaderboardUser[] };
+      const users = data.result || [];
+      
+      // Сортируем по personal_rating (по убыванию)
       const sorted = [...users].sort(
         (a, b) => b.personal_rating - a.personal_rating,
       );
@@ -93,4 +96,19 @@ export function useUserRatingPosition() {
     rating: user?.personal_rating || 0,
     isLoading,
   };
+}
+
+// Хук для получения текущей позиции команды
+export function useTeamPosition(teamId: number) {
+  return useQuery({
+    queryKey: ['team', 'position', teamId],
+    queryFn: async () => {
+      const response = await ratingApi.getTeamsLeaderboard({ offset: 0, limit: 1000, query: '' });
+      const data = response.data as LeaderboardResponse;
+      const teams = data.result || [];
+      const position = teams.findIndex(t => t.id === teamId) + 1;
+      return { position, total: teams.length };
+    },
+    enabled: !!teamId,
+  });
 }

@@ -1,34 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderContentManager as TopMenu } from '../../../components/Header/HeaderContentManager';
 import { CreateSletter } from '../../../components/Buttons';
 import { SearchContentModal } from '../../../components/SearchContentModal';
-import '../../../styles/ProfileContentManagerPage.css';
+import { useLeaderboard } from '../../../hooks/useRating';
+import { useSendNotification } from '../../../hooks/useContentManager';
 import { useCurrentUser } from '../../../hooks/useAuth';
+import type { LeaderboardUser } from '../../../types/leaderboard.types';
+import '../../../styles/ProfileContentManagerPage.css';
 
-interface NewsletterTarget {
-  id: number;
-  title: string;
-  membersCount: number;
-}
-
-const NEWSLETTER_TARGETS: NewsletterTarget[] = [
-  {
-    id: 1,
-    title: 'Название',
-    membersCount: 3,
-  },
-  {
-    id: 2,
-    title: 'Название',
-    membersCount: 3,
-  },
-  {
-    id: 3,
-    title: 'Название',
-    membersCount: 3,
-  },
-];
+const ITEMS_PER_PAGE = 5;
 
 export function ProfileContentManagerPage() {
   const navigate = useNavigate();
@@ -37,110 +18,149 @@ export function ProfileContentManagerPage() {
   const [modalStep, setModalStep] = useState<'select' | 'message'>('select');
 
   const [searchValue, setSearchValue] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedTargetIds, setSelectedTargetIds] = useState<number[]>([]);
 
   const [newsletterTitle, setNewsletterTitle] = useState('');
   const [newsletterText, setNewsletterText] = useState('');
 
-  const { data: user, isLoading, isError, error, refetch } = useCurrentUser();
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
 
-  const filteredTargets = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase();
+  const { data: user, isLoading: userLoading } = useCurrentUser();
+  const { mutate: sendNotification, isPending } = useSendNotification();
 
-    if (!normalizedSearch) {
-      return NEWSLETTER_TARGETS;
-    }
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  
+  // ✅ Используем useLeaderboard для получения пользователей
+  const { 
+    data, 
+    isLoading: usersLoading,
+    refetch: refetchUsers
+  } = useLeaderboard<LeaderboardUser>('users', debouncedSearch, ITEMS_PER_PAGE, offset);
 
-    return NEWSLETTER_TARGETS.filter((target) =>
-      target.title.toLowerCase().includes(normalizedSearch)
-    );
+  // Debounce поиска
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [searchValue]);
 
-  const isAllSelected =
-    filteredTargets.length > 0 &&
-    filteredTargets.every((target) => selectedTargetIds.includes(target.id));
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!usersLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [usersLoading, currentPage]);
+
+  // Данные из useLeaderboard: data.result и data.count
+  const allUsers = data?.result || [];
+  const totalCount = data?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  // Формируем список для отображения
+  const filteredTargets = useMemo(() => {
+    return allUsers.map(user => ({
+      id: user.id,
+      title: `${user.last_name} ${user.first_name} ${user.patronymic || ''}`.trim()
+    }));
+  }, [allUsers]);
+
+  const isAllSelected = filteredTargets.length > 0 &&
+    filteredTargets.every(target => selectedTargetIds.includes(target.id));
 
   const openModal = () => {
     setModalStep('select');
     setIsModalOpen(true);
+    refetchUsers();
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setModalStep('select');
     setSearchValue('');
+    setDebouncedSearch('');
     setSelectedTargetIds([]);
     setNewsletterTitle('');
     setNewsletterText('');
+    setCurrentPage(1);
   };
 
   const toggleTarget = (targetId: number) => {
-    setSelectedTargetIds((prev) =>
+    setSelectedTargetIds(prev =>
       prev.includes(targetId)
-        ? prev.filter((id) => id !== targetId)
+        ? prev.filter(id => id !== targetId)
         : [...prev, targetId]
     );
   };
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
-      setSelectedTargetIds((prev) =>
-        prev.filter((id) => !filteredTargets.some((target) => target.id === id))
-      );
-
-      return;
+      setSelectedTargetIds([]);
+    } else {
+      setSelectedTargetIds(filteredTargets.map(target => target.id));
     }
-
-    const filteredIds = filteredTargets.map((target) => target.id);
-
-    setSelectedTargetIds((prev) =>
-      Array.from(new Set([...prev, ...filteredIds]))
-    );
   };
 
   const handleNext = () => {
-    if (selectedTargetIds.length === 0) {
-      return;
-    }
-
+    if (selectedTargetIds.length === 0) return;
     setModalStep('message');
   };
 
   const handleSendNewsletter = () => {
-    console.log('Рассылка:', {
-      recipients: selectedTargetIds,
-      title: newsletterTitle,
-      text: newsletterText,
-    });
+    if (!newsletterTitle.trim() || !newsletterText.trim()) {
+      alert('Заполните заголовок и текст рассылки');
+      return;
+    }
 
-    closeModal();
+    sendNotification({
+      user_ids: selectedTargetIds,
+      send_all: selectedTargetIds.length === totalCount,
+      title: newsletterTitle.trim(),
+      body: newsletterText.trim(),
+    }, {
+      onSuccess: () => {
+        closeModal();
+      }
+    });
   };
 
-  if (isLoading) {
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  if (userLoading) {
     return (
       <div className="profile-container">
         <TopMenu />
-
         <div className="profile-content content-manager-profile-content">
           <div className="profile-card content-manager-profile-card">
             <div className="loading">Загрузка профиля...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="profile-container">
-        <TopMenu />
-
-        <div className="profile-content content-manager-profile-content">
-          <div className="profile-card content-manager-profile-card">
-            <div className="error">
-              <p>Ошибка загрузки: {error?.message || 'Неизвестная ошибка'}</p>
-              <button onClick={() => refetch()}>Повторить</button>
-            </div>
           </div>
         </div>
       </div>
@@ -165,42 +185,16 @@ export function ProfileContentManagerPage() {
                   <circle cx="43" cy="43" r="40" />
                 </clipPath>
               </defs>
-
               <g clipPath="url(#contentManagerAvatarClip)">
-                <circle
-                  cx="43"
-                  cy="31"
-                  r="12"
-                  stroke="#3B3B3B"
-                  strokeWidth="1.5"
-                />
-
-                <path
-                  d="M15 75c0-16 12.5-28 28-28s28 12 28 28"
-                  stroke="#3B3B3B"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+                <circle cx="43" cy="31" r="12" stroke="#3B3B3B" strokeWidth="1.5" />
+                <path d="M15 75c0-16 12.5-28 28-28s28 12 28 28" stroke="#3B3B3B" strokeWidth="1.5" strokeLinecap="round" />
               </g>
-
-              <circle
-                cx="43"
-                cy="43"
-                r="40"
-                stroke="#3B3B3B"
-                strokeWidth="1.5"
-              />
+              <circle cx="43" cy="43" r="40" stroke="#3B3B3B" strokeWidth="1.5" />
             </svg>
           </div>
-
           <div className="profile-info content-manager-profile-info">
-            <p className="profile-name">
-              {user.login || 'Логин?'}
-            </p>
-
-            <p className="profile-role">
-              Роль: контент-менеджер
-            </p>
+            <p className="profile-name">{user.login || 'Логин?'}</p>
+            <p className="profile-role">Роль: контент-менеджер</p>
           </div>
         </div>
 
@@ -209,32 +203,21 @@ export function ProfileContentManagerPage() {
         </div>
       </div>
 
+      {/* Модалка выбора получателей */}
       {isModalOpen && modalStep === 'select' && (
         <SearchContentModal closeModal={closeModal}>
           <div className="newsletter-selection-search-wrapper">
             <input
               className="newsletter-selection-search-input"
               type="text"
-              placeholder="Введите название"
+              placeholder="Введите ФИО"
               value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
+              onChange={(e) => setSearchValue(e.target.value)}
             />
-
             <span className="newsletter-selection-search-icon">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle
-                  cx="9"
-                  cy="9"
-                  r="6.5"
-                  stroke="#333"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M14 14L18 18"
-                  stroke="#333"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+                <circle cx="9" cy="9" r="6.5" stroke="#333" strokeWidth="1.5" />
+                <path d="M14 14L18 18" stroke="#333" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </span>
           </div>
@@ -242,136 +225,85 @@ export function ProfileContentManagerPage() {
           <div className="newsletter-selection-header">
             <label className="newsletter-selection-all">
               <span>Выбрать все</span>
-
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                onChange={toggleSelectAll}
-              />
+              <input type="checkbox" checked={isAllSelected} onChange={toggleSelectAll} />
             </label>
-
-            <div className="newsletter-selection-count">
-              Выбрано: {selectedTargetIds.length}
-            </div>
+            <div className="newsletter-selection-count">Выбрано: {selectedTargetIds.length}</div>
           </div>
 
           <div className="newsletter-selection-list">
-            {filteredTargets.map((target) => {
-              const isSelected = selectedTargetIds.includes(target.id);
-
-              return (
-                <div key={target.id} className="newsletter-selection-card">
-                  <div className="newsletter-selection-card-left">
-                    <div className="newsletter-selection-avatar">
-                      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-                        <circle
-                          cx="26"
-                          cy="20"
-                          r="7"
-                          stroke="#111"
-                          strokeWidth="1.5"
-                        />
-                        <path
-                          d="M10 43c0-8.8 7.2-16 16-16s16 7.2 16 16"
-                          stroke="#111"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                        <circle
-                          cx="26"
-                          cy="26"
-                          r="24"
-                          stroke="#111"
-                          strokeWidth="1.5"
-                        />
-                      </svg>
+            {usersLoading ? (
+              <div className="loading">Загрузка пользователей...</div>
+            ) : filteredTargets.length === 0 ? (
+              <div className="empty">Пользователи не найдены</div>
+            ) : (
+              filteredTargets.map((target) => {
+                const isSelected = selectedTargetIds.includes(target.id);
+                return (
+                  <div key={target.id} className="newsletter-selection-card">
+                    <div className="newsletter-selection-card-left">
+                      <div className="newsletter-selection-avatar">
+                        <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+                          <circle cx="26" cy="20" r="7" stroke="#111" strokeWidth="1.5" />
+                          <path d="M10 43c0-8.8 7.2-16 16-16s16 7.2 16 16" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
+                          <circle cx="26" cy="26" r="24" stroke="#111" strokeWidth="1.5" />
+                        </svg>
+                      </div>
+                      <div className="newsletter-selection-info">
+                        <p className="newsletter-selection-title">{target.title}</p>
+                      </div>
                     </div>
-
-                    <div className="newsletter-selection-info">
-                      <p className="newsletter-selection-title">
-                        {target.title}
-                      </p>
-
-                      <p className="newsletter-selection-members">
-                        {target.membersCount} участника
-                      </p>
-                    </div>
+                    <button
+                      className={`newsletter-selection-card-button ${isSelected ? 'selected' : ''}`}
+                      type="button"
+                      onClick={() => toggleTarget(target.id)}
+                    >
+                      {isSelected ? 'Отмена' : 'Выбрать'}
+                    </button>
                   </div>
-
-                  <button
-                    className={`newsletter-selection-card-button ${
-                      isSelected ? 'selected' : ''
-                    }`}
-                    type="button"
-                    onClick={() => toggleTarget(target.id)}
-                  >
-                    {isSelected ? 'Отмена' : 'Выбрать'}
-                  </button>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
-          <div className="newsletter-selection-footer">
-            <button
-              className="newsletter-selection-cancel"
-              type="button"
-              onClick={closeModal}
-            >
-              Отмена
-            </button>
+          {/* Пагинация */}
+          {totalPages > 1 && (
+            <div className="newsletter-pagination">
+              <button className="pagination-nav-btn" onClick={goToPrevPage} disabled={currentPage === 1}>‹</button>
+              <span className="pagination-counter">{currentPage} / {totalPages}</span>
+              <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === totalPages}>›</button>
+            </div>
+          )}
 
-            <button
-              className="newsletter-selection-next"
-              type="button"
-              onClick={handleNext}
-              disabled={selectedTargetIds.length === 0}
-            >
-              Далее
-            </button>
+          <div className="newsletter-selection-footer">
+            <button className="newsletter-selection-cancel" type="button" onClick={closeModal}>Отмена</button>
+            <button className="newsletter-selection-next" type="button" onClick={handleNext} disabled={selectedTargetIds.length === 0}>Далее</button>
           </div>
         </SearchContentModal>
       )}
 
+      {/* Модалка создания сообщения */}
       {isModalOpen && modalStep === 'message' && (
         <SearchContentModal closeModal={closeModal}>
           <div className="newsletter-message-body">
-            <label className="newsletter-message-label">
-              Введите заголовок
-            </label>
-
+            <label className="newsletter-message-label">Введите заголовок</label>
             <input
               className="newsletter-message-input"
               type="text"
               value={newsletterTitle}
-              onChange={(event) => setNewsletterTitle(event.target.value)}
+              onChange={(e) => setNewsletterTitle(e.target.value)}
             />
 
-            <label className="newsletter-message-label">
-              Введите текст рассылки
-            </label>
-
+            <label className="newsletter-message-label">Введите текст рассылки</label>
             <textarea
               className="newsletter-message-textarea"
               value={newsletterText}
-              onChange={(event) => setNewsletterText(event.target.value)}
+              onChange={(e) => setNewsletterText(e.target.value)}
             />
 
             <div className="newsletter-message-footer">
-              <button
-                className="newsletter-message-cancel"
-                type="button"
-                onClick={closeModal}
-              >
-                Отмена
-              </button>
-
-              <button
-                className="newsletter-message-send"
-                type="button"
-                onClick={handleSendNewsletter}
-              >
-                Отправить
+              <button className="newsletter-message-cancel" type="button" onClick={closeModal}>Отмена</button>
+              <button className="newsletter-message-send" type="button" onClick={handleSendNewsletter} disabled={isPending}>
+                {isPending ? 'Отправка...' : 'Отправить'}
               </button>
             </div>
           </div>

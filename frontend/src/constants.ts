@@ -25,7 +25,7 @@ export const HEADERS_LIST_GAME_ADMIN =[
 ]
 
 export const FEED_TABS = [
-  { label: 'Мероприятия', value: '/all' },
+  { label: 'Мероприятия', value: '/events' },
   { label: 'Челленджи', value: '/challenges' },
   { label: 'Новости', value: '/news' },
 ];

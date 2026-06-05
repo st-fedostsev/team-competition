@@ -30,8 +30,8 @@ export function useEventsList(limit: number = 5, offset: number = 0) {
       const total = data.count || 0;
 
       return {
-        events: events,
-        total: total,
+        result: events,
+        count: total,
       };
     },
     enabled: !!currentUser,

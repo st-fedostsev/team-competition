@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { HeaderContentManager } from '../../../../components/Header/HeaderContentManager';
 import { NavContentManagerModeration } from '../../../../components/Nav/NavNewsContentManager';
 import { Modal } from '../../../../components/ModalWindowComponent';
@@ -12,55 +12,31 @@ import {
   EventDeleteCancelButton,
   EventDeleteConfirmButton,
 } from '../../../../components/Buttons';
+import { useChallengeReports, useModerateChallengeReport } from '../../../../hooks/useContentManager';
+import { useTeamsByIds } from '../../../../hooks/useTeam';
+import { useChallengesList } from '../../../../hooks/useChallenges';
+import { useFileInfo, useDownloadFile } from '../../../../hooks/useFiles';
 import { MODERATION_TABS } from '../../../../constants';
 import '../../../../styles/NewsContentManagerPage.css';
 import '../../../../styles/ModerationContentManagerPage.css';
+
+const ITEMS_PER_PAGE = 1;
 
 interface ModerationItem {
   id: number;
   type: string;
   title: string;
   team?: string;
+  team_id?: number;
+  challenge_id?: number;
   date?: string;
   description?: string;
+  comment?: string;
+  file_url?: string;
+  file_id?: number;
+  status?: string;
   marketType?: string;
 }
-
-const MODERATION_ITEMS: ModerationItem[] = [
-  {
-    id: 1,
-    type: '/reports',
-    title: 'Название чего-то',
-    team: 'Команда',
-    date: '01.01.2026',
-  },
-  {
-    id: 2,
-    type: '/reports',
-    title: 'Название чего-то',
-    team: 'Команда',
-    date: '01.01.2026',
-  },
-  {
-    id: 3,
-    type: '/market',
-    title: 'Название объявления',
-    description: 'Описание',
-    marketType: 'Тип',
-  },
-  {
-    id: 4,
-    type: '/events',
-    title: 'Название мероприятия',
-    description: 'Описание',
-  },
-  {
-    id: 5,
-    type: '/events',
-    title: 'Название мероприятия',
-    description: 'Описание',
-  },
-];
 
 export function ModerationPage() {
   const [activeTab, setActiveTab] = useState(MODERATION_TABS[0].value);
@@ -68,13 +44,110 @@ export function ModerationPage() {
   const [eventForDelete, setEventForDelete] = useState<ModerationItem | null>(null);
   const [marketItemForDelete, setMarketItemForDelete] = useState<ModerationItem | null>(null);
   const [deleteComment, setDeleteComment] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState('');
+  
+  // Состояния для модального окна отклонения
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectComment, setRejectComment] = useState('');
+  const [reportToReject, setReportToReject] = useState<ModerationItem | null>(null);
+
+  const scrollPositionRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
+
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  // Получаем отчёты из API
+  const { 
+    data: reportsData, 
+    isLoading, 
+    isError, 
+    error, 
+    refetch 
+  } = useChallengeReports(ITEMS_PER_PAGE, offset);
+
+  // Получаем челленджи для названий
+  const { data: challengesData } = useChallengesList(1000, 0);
+  const challengesMap = new Map();
+  challengesData?.result?.forEach((challenge: any) => {
+    challengesMap.set(challenge.id, challenge.title);
+  });
+
+  const reports = reportsData?.result || [];
+
+  // Извлекаем ID файлов из URL
+  const extractFileIdFromUrl = (url: string) => {
+    const match = url?.match(/\/files\/download\/(\d+)/);
+    return match ? parseInt(match[1]) : null;
+  };
+
+  // Получаем названия команд через готовый хук
+  const teamIds = [...new Set(reports.map(report => report.team_id).filter(Boolean))] as number[];
+  const teamQueries = useTeamsByIds(teamIds);
+  
+  const teamNameMap = new Map();
+  teamQueries.forEach((query, index) => {
+    if (query.data?.name) {
+      teamNameMap.set(teamIds[index], query.data.name);
+    }
+  });
+
+  // Получаем информацию о файле для выбранного отчёта
+  const fileId = selectedReport?.file_url ? extractFileIdFromUrl(selectedReport.file_url) : null;
+  const { data: fileInfo, isLoading: isFileLoading } = useFileInfo(fileId);
+  const { mutate: downloadFile, isPending: isDownloading } = useDownloadFile();
+
+  const { mutate: moderateReport, isPending: isModerating } = useModerateChallengeReport();
+
+  const saveScrollPosition = useCallback(() => {
+    scrollPositionRef.current = window.scrollY;
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && scrollPositionRef.current > 0 && !isRestoringScrollRef.current) {
+      isRestoringScrollRef.current = true;
+      const restoreScroll = () => {
+        window.scrollTo(0, scrollPositionRef.current);
+      };
+      restoreScroll();
+      setTimeout(restoreScroll, 50);
+      setTimeout(restoreScroll, 100);
+      setTimeout(() => {
+        isRestoringScrollRef.current = false;
+      }, 150);
+    }
+  }, [isLoading, currentPage]);
+
+  // Формируем список отчётов
+  const moderationItems = useMemo(() => {
+    return reports.map((report) => ({
+      id: report.id,
+      type: '/reports',
+      title: challengesMap.get(report.challenge_id) || `Челлендж ${report.challenge_id}`,
+      team: teamNameMap.get(report.team_id) || `Команда ${report.team_id}`,
+      team_id: report.team_id,
+      challenge_id: report.challenge_id,
+      date: report.created_at ? new Date(report.created_at).toLocaleDateString() : '—',
+      comment: report.comment,
+      file_url: report.file_url,
+      file_id: extractFileIdFromUrl(report.file_url),
+      status: report.status,
+    }));
+  }, [reports, challengesMap, teamNameMap]);
+
+  const totalCount = reportsData?.count || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const filteredItems = useMemo(() => {
-    return MODERATION_ITEMS.filter((item) => item.type === activeTab);
-  }, [activeTab]);
+    if (activeTab === '/reports') {
+      return moderationItems;
+    }
+    return [];
+  }, [activeTab, moderationItems]);
 
   const closeReportModal = () => {
     setSelectedReport(null);
+    setDeleteComment('');
   };
 
   const closeDeleteEventModal = () => {
@@ -87,14 +160,72 @@ export function ModerationPage() {
     setDeleteComment('');
   };
 
-  const handleReportReject = () => {
-    console.log('Отклонить отчет:', selectedReport);
-    closeReportModal();
+  // Закрытие модального окна отклонения
+  const closeRejectModal = () => {
+    setIsRejectModalOpen(false);
+    setRejectComment('');
+    setReportToReject(null);
   };
 
+  // Обработка одобрения (без модального окна)
   const handleReportAccept = () => {
-    console.log('Принять отчет:', selectedReport);
-    closeReportModal();
+    if (selectedReport) {
+      moderateReport({
+        id: selectedReport.id,
+        new_status: 'approved',
+        moderation_comment: 'Одобрено модератором',
+      }, {
+        onSuccess: () => {
+          closeReportModal();
+          refetch();
+        }
+      });
+    }
+  };
+
+  // Открытие модального окна для отклонения
+  const handleRejectClick = () => {
+    if (selectedReport) {
+      setReportToReject(selectedReport);
+      setIsRejectModalOpen(true);
+    }
+  };
+
+  // Подтверждение отклонения с комментарием
+  const handleConfirmReject = () => {
+    if (reportToReject && rejectComment.trim()) {
+      moderateReport({
+        report_id: reportToReject.id,
+        status: 'rejected',
+        moderator_comment: rejectComment,
+      }, {
+        onSuccess: () => {
+          closeRejectModal();
+          closeReportModal();
+          refetch();
+        }
+      });
+    }
+  };
+
+  const handleDownloadFile = () => {
+    if (fileId) {
+      downloadFile(fileId, {
+        onSuccess: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileInfo?.display_name || 'report';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        onError: (err) => {
+          alert('Ошибка скачивания файла: ' + err.message);
+        },
+      });
+    }
   };
 
   const handleDeleteMarketItem = (item: ModerationItem) => {
@@ -110,7 +241,6 @@ export function ModerationPage() {
       event: eventForDelete,
       comment: deleteComment,
     });
-
     closeDeleteEventModal();
   };
 
@@ -119,9 +249,67 @@ export function ModerationPage() {
       marketItem: marketItemForDelete,
       comment: deleteComment,
     });
-
     closeDeleteMarketModal();
   };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev + 1);
+      setPageInput('');
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      saveScrollPosition();
+      setCurrentPage(prev => prev - 1);
+      setPageInput('');
+    }
+  };
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const pageNumber = parseInt(pageInput);
+      if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        saveScrollPosition();
+        setCurrentPage(pageNumber);
+        setPageInput('');
+      } else {
+        alert(`Введите число от 1 до ${totalPages}`);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="cm-moderation-page">
+        <HeaderContentManager />
+        <main className="cm-moderation-content">
+          <div className="loading">Загрузка отчётов...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="cm-moderation-page">
+        <HeaderContentManager />
+        <main className="cm-moderation-content">
+          <div className="error">
+            <p>Ошибка загрузки: {(error as any)?.message || 'Неизвестная ошибка'}</p>
+            <button onClick={() => refetch()}>Повторить</button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="cm-moderation-page">
@@ -142,189 +330,156 @@ export function ModerationPage() {
               Нет данных для модерации
             </div>
           ) : (
-            filteredItems.map((item) => {
-              if (item.type === '/market') {
-                return (
-                  <article key={item.id} className="cm-moderation-market-card">
-                    <div className="cm-moderation-market-top">
-                      <div className="cm-moderation-market-info">
-                        <p className="cm-moderation-market-title">
-                          {item.title}
-                        </p>
+            filteredItems.map((item) => (
+              <article key={item.id} className="cm-moderation-card">
+                <div className="cm-moderation-card-left">
+                  <p className="cm-moderation-card-title">
+                    {item.title}
+                  </p>
 
-                        <p className="cm-moderation-market-description">
-                          {item.description}
-                        </p>
-                      </div>
-
-                      <span className="cm-moderation-market-type">
-                        {item.marketType}
-                      </span>
-                    </div>
-
-                    <div className="cm-moderation-market-actions">
-                      <ModerationDeleteButton
-                        onClick={() => handleDeleteMarketItem(item)}
-                      />
-
-                      <ModerationPublishButton
-                        onClick={() => handlePublishMarketItem(item)}
-                      />
-                    </div>
-                  </article>
-                );
-              }
-
-              if (item.type === '/events') {
-                return (
-                  <article key={item.id} className="cm-moderation-event-card">
-                    <div className="cm-moderation-event-info">
-                      <p className="cm-moderation-event-title">
-                        {item.title}
-                      </p>
-
-                      <p className="cm-moderation-event-description">
-                        {item.description}
-                      </p>
-                    </div>
-
-                    <EventDeleteButton
-                      onClick={() => setEventForDelete(item)}
-                    />
-                  </article>
-                );
-              }
-
-              return (
-                <article key={item.id} className="cm-moderation-card">
-                  <div className="cm-moderation-card-left">
-                    <p className="cm-moderation-card-title">
-                      {item.title}
-                    </p>
-
-                    <div className="cm-moderation-team">
-                      <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
-                        <circle
-                          cx="21"
-                          cy="16"
-                          r="6"
-                          stroke="#111"
-                          strokeWidth="1.5"
-                        />
-
-                        <path
-                          d="M8 34c0-7.2 5.8-13 13-13s13 5.8 13 13"
-                          stroke="#111"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-
-                        <circle
-                          cx="21"
-                          cy="21"
-                          r="19"
-                          stroke="#111"
-                          strokeWidth="1.5"
-                        />
-                      </svg>
-
-                      <span>{item.team}</span>
-                    </div>
+                  <div className="cm-moderation-team">
+                    <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+                      <circle cx="21" cy="16" r="6" stroke="#111" strokeWidth="1.5" />
+                      <path d="M8 34c0-7.2 5.8-13 13-13s13 5.8 13 13" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
+                      <circle cx="21" cy="21" r="19" stroke="#111" strokeWidth="1.5" />
+                    </svg>
+                    <span>{item.team}</span>
                   </div>
+                </div>
 
-                  <div className="cm-moderation-card-right">
-                    <p className="cm-moderation-date">
-                      {item.date}
-                    </p>
-
-                    <DetailsButton onClick={() => setSelectedReport(item)} />
-                  </div>
-                </article>
-              );
-            })
+                <div className="cm-moderation-card-right">
+                  <p className="cm-moderation-date">
+                    {item.date}
+                  </p>
+                  <DetailsButton onClick={() => setSelectedReport(item)} />
+                </div>
+              </article>
+            ))
           )}
         </div>
+
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="cm-moderation-pagination">
+            <button className="pagination-nav-btn" onClick={goToPrevPage} disabled={currentPage === 1}>‹</button>
+            
+            <div className="pagination-page-input-wrapper">
+              <input
+                type="number"
+                className="pagination-page-input"
+                value={pageInput}
+                onChange={handlePageInputChange}
+                onKeyDown={handlePageInputKeyDown}
+                placeholder={`${currentPage}`}
+                min={1}
+                max={totalPages}
+              />
+              <span className="pagination-total"> / {totalPages}</span>
+            </div>
+            
+            <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === totalPages}>›</button>
+          </div>
+        )}
       </main>
 
+      {/* Модальное окно отчёта */}
       {selectedReport && (
         <Modal closeModal={closeReportModal}>
           <div className="cm-report-modal-body">
-            <h2 className="cm-report-modal-title">
-              Отчет
-            </h2>
+            <h2 className="cm-report-modal-title">Отчёт</h2>
 
             <div className="cm-report-modal-team">
               <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
-                <circle
-                  cx="21"
-                  cy="16"
-                  r="6"
-                  stroke="#111"
-                  strokeWidth="1.5"
-                />
-
-                <path
-                  d="M8 34c0-7.2 5.8-13 13-13s13 5.8 13 13"
-                  stroke="#111"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-
-                <circle
-                  cx="21"
-                  cy="21"
-                  r="19"
-                  stroke="#111"
-                  strokeWidth="1.5"
-                />
+                <circle cx="21" cy="16" r="6" stroke="#111" strokeWidth="1.5" />
+                <path d="M8 34c0-7.2 5.8-13 13-13s13 5.8 13 13" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="21" cy="21" r="19" stroke="#111" strokeWidth="1.5" />
               </svg>
-
               <span>{selectedReport.team}</span>
             </div>
 
             <div className="cm-report-modal-fields">
               <div className="cm-report-modal-field">
-                <p className="cm-report-modal-field-title">Поле 1</p>
-                <p className="cm-report-modal-field-text">Текст</p>
+                <p className="cm-report-modal-field-title">Челлендж</p>
+                <p className="cm-report-modal-field-text">{selectedReport.title}</p>
               </div>
 
               <div className="cm-report-modal-field">
-                <p className="cm-report-modal-field-title">Поле 1</p>
-                <p className="cm-report-modal-field-text">Текст</p>
+                <p className="cm-report-modal-field-title">Комментарий</p>
+                <p className="cm-report-modal-field-text">{selectedReport.comment}</p>
               </div>
 
               <div className="cm-report-modal-field">
-                <p className="cm-report-modal-field-title">Поле 1</p>
-                <p className="cm-report-modal-field-text">Текст</p>
+                <p className="cm-report-modal-field-title">Файл</p>
+                {isFileLoading ? (
+                  <p>Загрузка информации...</p>
+                ) : fileInfo ? (
+                  <div className="file-info">
+                    <p>Имя: {fileInfo.display_name}</p>
+                    <p>Размер: {(fileInfo.size / 1024).toFixed(2)} KB</p>
+                    <button 
+                      onClick={handleDownloadFile} 
+                      disabled={isDownloading}
+                      className="download-file-btn"
+                    >
+                      {isDownloading ? 'Скачивание...' : 'Скачать файл'}
+                    </button>
+                  </div>
+                ) : (
+                  <p>Файл не найден</p>
+                )}
               </div>
             </div>
 
             <div className="cm-report-modal-actions">
-              <ReportRejectButton onClick={handleReportReject} />
-
-              <ReportAcceptButton onClick={handleReportAccept} />
+              <ReportRejectButton onClick={handleRejectClick} disabled={isModerating} />
+              <ReportAcceptButton onClick={handleReportAccept} disabled={isModerating} />
             </div>
           </div>
         </Modal>
       )}
 
+      {/* Модальное окно для отклонения с комментарием */}
+      {isRejectModalOpen && reportToReject && (
+        <Modal closeModal={closeRejectModal}>
+          <div className="cm-event-delete-modal-body">
+            <div className="cm-event-delete-info">
+              <p className="cm-event-delete-title">Отклонение отчёта</p>
+              <p className="cm-event-delete-description">
+                Челлендж: {reportToReject.title}<br />
+                Команда: {reportToReject.team}
+              </p>
+            </div>
+
+            <label className="cm-event-delete-label">Введите причину отклонения (комментарий)</label>
+            <textarea
+              className="cm-event-delete-textarea"
+              value={rejectComment}
+              onChange={(event) => setRejectComment(event.target.value)}
+              placeholder="Укажите причину отклонения отчёта..."
+              rows={4}
+            />
+
+            <div className="cm-event-delete-actions">
+              <EventDeleteCancelButton onClick={closeRejectModal} />
+              <EventDeleteConfirmButton 
+                onClick={handleConfirmReject} 
+                disabled={!rejectComment.trim() || isModerating}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Модалка удаления мероприятия */}
       {eventForDelete && (
         <Modal closeModal={closeDeleteEventModal}>
           <div className="cm-event-delete-modal-body">
             <div className="cm-event-delete-info">
-              <p className="cm-event-delete-title">
-                {eventForDelete.title}
-              </p>
-
-              <p className="cm-event-delete-description">
-                {eventForDelete.description}
-              </p>
+              <p className="cm-event-delete-title">{eventForDelete.title}</p>
+              <p className="cm-event-delete-description">{eventForDelete.description}</p>
             </div>
 
-            <label className="cm-event-delete-label">
-              Введите комментарий
-            </label>
-
+            <label className="cm-event-delete-label">Введите комментарий</label>
             <textarea
               className="cm-event-delete-textarea"
               value={deleteComment}
@@ -333,29 +488,22 @@ export function ModerationPage() {
 
             <div className="cm-event-delete-actions">
               <EventDeleteCancelButton onClick={closeDeleteEventModal} />
-
               <EventDeleteConfirmButton onClick={handleDeleteEvent} />
             </div>
           </div>
         </Modal>
       )}
+
+      {/* Модалка удаления объявления */}
       {marketItemForDelete && (
         <Modal closeModal={closeDeleteMarketModal}>
           <div className="cm-event-delete-modal-body">
             <div className="cm-event-delete-info">
-              <p className="cm-event-delete-title">
-                {marketItemForDelete.title}
-              </p>
-
-              <p className="cm-event-delete-description">
-                {marketItemForDelete.description}
-              </p>
+              <p className="cm-event-delete-title">{marketItemForDelete.title}</p>
+              <p className="cm-event-delete-description">{marketItemForDelete.description}</p>
             </div>
 
-            <label className="cm-event-delete-label">
-              Введите комментарий
-            </label>
-
+            <label className="cm-event-delete-label">Введите комментарий</label>
             <textarea
               className="cm-event-delete-textarea"
               value={deleteComment}
@@ -364,7 +512,6 @@ export function ModerationPage() {
 
             <div className="cm-event-delete-actions">
               <EventDeleteCancelButton onClick={closeDeleteMarketModal} />
-
               <EventDeleteConfirmButton onClick={handleConfirmDeleteMarketItem} />
             </div>
           </div>

@@ -20,7 +20,7 @@ import { UsersPage } from '../pages/Tech Admin/HeaderNav/UsersPage';
 import { RatingTechTeamsPage } from '../pages/Tech Admin/HeaderNav/Rating/RatingTechTeamsPage';
 import { RatingTechStudentsPage } from '../pages/Tech Admin/HeaderNav/Rating/RatingTechStudentPage';
 import { IntegrationsPage } from '../pages/Tech Admin/HeaderNav/IntegrationsPage';
-import { NewsContentManagerPage } from '../pages/Content Manager/Profile/HeaderNav/NewsContentManagerPage';
+import { NewsContentManagerPage } from '../pages/Content Manager/Profile/HeaderNav/LentaContentManagerPage';
 import { ModerationPage } from '../pages/Content Manager/Profile/HeaderNav/ModerationPage';
 import { ProfileGameAdminPage } from '../pages/GameAdmin/Profile/ProfileGameAdminPage';
 import { TeamsGameAdminPage } from '../pages/GameAdmin/Profile/HeaderNav/TeamsGameAdminPage';
