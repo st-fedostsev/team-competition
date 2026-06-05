@@ -586,7 +586,7 @@ async def transfer_captain(transfer_captain_data: TransferCaptainData, response:
     team.captain_id = target_user.id
     user.is_captain = False
     target_user.is_captain = True
-    session.add_all([user, target_user])
+    session.add_all([team, user, target_user])
     session.commit()
 
     return Message(msg='Капитанство передано')
