@@ -11,3 +11,8 @@ class SendNotificationData(BaseModel):
 class ModerationData(BaseModel):
     id: int
     new_status: ModerationStatus
+
+class CommentModerationData(BaseModel):
+    id: int
+    new_status: ModerationStatus
+    moderation_comment: Optional[str]

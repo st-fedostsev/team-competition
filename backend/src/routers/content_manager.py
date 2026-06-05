@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends, Security, Response, status, Upl
 from sqlmodel import Session, select, column
 from database.session import get_session
 from models import User, UserRole, Notification, KnowledgePost, ModerationStatus, \
-                    ChallengeReport, Achievement
+                    ChallengeReport, Achievement, Event
 from models.achievement_templates import ACHIEVEMENTS
 from pwdlib import PasswordHash
 from schemas.content_manager import *
@@ -122,7 +122,7 @@ async def get_challenge_reports(paged_request_data: PagedRequestData, response: 
     '/moderate_challenge_report',
     summary='Установить статус отчета по челленджу(одобрено/отклонено)'
 )
-async def moderate_challenge_report(moderation_data: ModerationData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+async def moderate_challenge_report(moderation_data: CommentModerationData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
     if credentials['role'] != UserRole.content_manager:
         response.status_code = status.HTTP_403_FORBIDDEN
         return Message(msg='Доступ запрещен')
@@ -134,6 +134,8 @@ async def moderate_challenge_report(moderation_data: ModerationData, response: R
         return Message(msg='Пост не найден')
     
     report.status = moderation_data.new_status
+    if moderation_data.moderation_comment is not None:
+        report.moderation_comment = moderation_data.moderation_comment
     session.add(report)
     session.commit()
 
@@ -146,3 +148,48 @@ async def moderate_challenge_report(moderation_data: ModerationData, response: R
             Achievement.give(session, member.id, ACHIEVEMENTS['beginning_of_the_path'])
 
     return Message(msg='Данные сохранены')
+
+
+@router.post(
+    '/get_events',
+    summary='Получить список мероприятий'
+)
+async def get_challenge_reports(paged_request_data: PagedRequestData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    if credentials['role'] != UserRole.content_manager:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = select(Event).where(Event.status == ModerationStatus.on_moderation)
+    events = session.exec(q.limit(paged_request_data.limit).offset(paged_request_data.offset)).all()
+    events_all = session.exec(q).all()
+    return {
+        'count': len(events_all),
+        'result': events
+    }
+
+@router.post(
+    '/moderate_event',
+    summary='Установить статус мероприятия(одобрено/отклонено)'
+)
+async def moderate_event(moderation_data: CommentModerationData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    if credentials['role'] != UserRole.content_manager:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return Message(msg='Доступ запрещен')
+    
+    q = select(Event).where(Event.id == moderation_data.id)
+    event = session.exec(q).first()
+    if not event or event.status != ModerationStatus.on_moderation:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Мероприятие не найдено')
+    
+    event.status = moderation_data.new_status
+    session.add(event)
+    session.commit()
+
+    q = select(Event).where((Event.created_by == event.created_by) & (Event.status == ModerationStatus.approved))
+    events = session.exec(q).all()
+    if len(events) >= 2:
+        Achievement.give(session, event.created_by, ACHIEVEMENTS['beginning_of_the_path'])
+
+    return Message(msg='Данные сохранены')
+

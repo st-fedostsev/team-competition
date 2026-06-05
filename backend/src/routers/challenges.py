@@ -127,6 +127,13 @@ async def send_report(challenge_report_data: ChallengeReportData, response: Resp
     q = select(Challenge).where(Challenge.id == challenge_report_data.challenge_id)
     challenge = session.exec(q).first()
 
+    q = select(ChallengeReport).where((ChallengeReport.challenge_id == challenge_report_data.challenge_id) & (ChallengeReport.team_id == user.team_id))
+    report = session.exec(q).first()
+
+    if report is not None:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Вы уже отправили отчет по данному челленджу')
+
     if not challenge:
         response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
         return Message(msg='Челлендж не найден')
@@ -135,10 +142,34 @@ async def send_report(challenge_report_data: ChallengeReportData, response: Resp
         challenge_id=challenge_report_data.challenge_id,
         team_id=user.team_id,
         file_url=challenge_report_data.file_url,
-        comment=challenge_report_data.comment
+        comment=challenge_report_data.comment,
+        created_at=datetime.utcnow()
     )
 
     session.add(challenge)
     session.commit()
 
     return Message(msg='Отчет отправлен')
+
+@router.post(
+    '/get_report',
+    summary='Получить свой отчет по челленджу'
+)
+async def get_report(get_report_data: GetReportData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+
+    if not user.team_id:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+        return Message(msg='Пользователь должен состоять в команде')
+    
+    q = select(ChallengeReport).where((ChallengeReport.challenge_id == get_report_data.challenge_id) & (ChallengeReport.team_id == user.team_id))
+    report = session.exec(q).first()
+    if report is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Отчет не найден')
+    
+    return report

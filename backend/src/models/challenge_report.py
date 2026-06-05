@@ -13,3 +13,5 @@ class ChallengeReport(SQLModel, table=True):
     status: ModerationStatus = Field(default=ModerationStatus.on_moderation, sa_column=Column(Enum(ModerationStatus)))
     moderated_by: int = Field(foreign_key='users.id', nullable=True, default=None)
     moderated_at: datetime | None = None
+    moderation_comment: str | None = None
+    created_at: datetime = Field()

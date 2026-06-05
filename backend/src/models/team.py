@@ -5,7 +5,8 @@ from datetime import datetime
 import uuid
 from typing import Any
 from .user import User
-from .rescue_request import RescueRequest
+from .challenge_report import ChallengeReport
+from .moderation_status import ModerationStatus
 from .vote import Vote
 from .achievement import Achievement
 from .achievement_templates import ACHIEVEMENTS
@@ -37,10 +38,10 @@ class Team(SQLModel, table=True):
         if len(votes) > 0:
             unity = sum(map(lambda x: x.score, votes)) / len(votes)
 
-        q = select(RescueRequest).where(RescueRequest.helper_team_id == self.id)
-        rescue_requests = session.exec(q).all()
-        bonus = sum(map(lambda x: x.bonus_points, rescue_requests))
-        self.crc = members_mean * 0.6 + unity * 0.3 + bonus # * 0.1 <---- UNCOMMENT LATER!!
+        q = select(ChallengeReport).where((ChallengeReport.team_id == self.id) & (ChallengeReport.status == ModerationStatus.approved))
+        approved_reports = session.exec(q).all()
+        bonus = len(approved_reports) * 10
+        self.crc = members_mean * 0.6 + unity * 0.3 + bonus * 0.1
         session.add(self)
         session.commit()
 

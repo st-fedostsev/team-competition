@@ -24,3 +24,6 @@ class ChallengeReportData(BaseModel):
 
 class GetChallengeByIdData(BaseModel):
     id: int
+
+class GetReportData(BaseModel):
+    challenge_id: int

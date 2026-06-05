@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Security, Response, status
 from sqlmodel import Session, select, column
 from database.session import get_session
-from models import User, UserRole, Event, Achievement, Notification
+from models import User, UserRole, Event, Achievement, Notification, ModerationStatus
 from models.achievement_templates import ACHIEVEMENTS
 from models.notification_templates import NOTIFICATIONS
 from schemas.events import *
@@ -62,8 +62,8 @@ async def create_event(event_create_data: EventCreateData, response: Response, c
 
     q = select(Event).where(Event.created_by == user.id)
     events = session.exec(q).all()
-    if len(events) >= 2:
-        Achievement.give(session, user.id, ACHIEVEMENTS['event_master'])
+    #if len(events) >= 2:
+    #    Achievement.give(session, user.id, ACHIEVEMENTS['event_master'])
     
     Notification.send(session, user.id, NOTIFICATIONS['event_created'])
 
@@ -80,7 +80,7 @@ async def list_events(event_list_data: PagedRequestData, response: Response, cre
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return Message(msg='Пользователь не найден')
     
-    q = select(Event)
+    q = select(Event).where(Event.status == ModerationStatus.approved)
     events = session.exec(q.limit(event_list_data.limit).offset(event_list_data.offset)).all()
     events_all = session.exec(q).all()
 
