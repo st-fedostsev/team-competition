@@ -44,6 +44,7 @@ function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps)
   if (!isOpen) return null;
 
 
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -235,8 +236,9 @@ export function LentaPage() {
         </div>
 
             {/* Пагинация */}
+            {/* Пагинация */}
             {totalPages > 1 && (
-              <div className="preview-pagination">
+              <div className="users-pagination">
                 <button
                   className="pagination-btn"
                   onClick={goToPrevPage}
@@ -244,19 +246,25 @@ export function LentaPage() {
                 >
                   ‹
                 </button>
-                  <div className="pagination-page-input-wrapper">
-                    <input
-                      type="number"
-                      className="pagination-page-input"
-                      value={pageInput}
-                      onChange={handlePageInputChange}
-                      onKeyDown={handlePageInputKeyDown}
-                      placeholder={`${currentPage}`}
-                      min={1}
-                      max={totalPages}
-                    />
-                    <span className="pagination-total"> / {totalPages}</span>
-                  </div>
+
+                <div className="pagination-page-input-wrapper">
+                  <input
+                    type="number"
+                    className="pagination-page-input"
+                    value={pageInput}
+                    onChange={handlePageInputChange}
+                    onKeyDown={handlePageInputKeyDown}
+                    placeholder={`${currentPage}`}
+                    min={1}
+                    max={totalPages}
+                  />
+
+                  <span className="pagination-total">
+                    {' '}
+                    / {totalPages}
+                  </span>
+                </div>
+
                 <button
                   className="pagination-btn"
                   onClick={goToNextPage}

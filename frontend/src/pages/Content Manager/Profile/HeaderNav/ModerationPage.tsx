@@ -386,7 +386,9 @@ export function ModerationPage() {
       {selectedReport && (
         <Modal closeModal={closeReportModal}>
           <div className="cm-report-modal-body">
-            <h2 className="cm-report-modal-title">Отчёт</h2>
+            <h2 className="cm-report-modal-title">
+              {`Отчёт по челленджу\n«${selectedReport.title}»`}
+            </h2>
 
             <div className="cm-report-modal-team">
               <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
@@ -398,10 +400,7 @@ export function ModerationPage() {
             </div>
 
             <div className="cm-report-modal-fields">
-              <div className="cm-report-modal-field">
-                <p className="cm-report-modal-field-title">Челлендж</p>
-                <p className="cm-report-modal-field-text">{selectedReport.title}</p>
-              </div>
+
 
               <div className="cm-report-modal-field">
                 <p className="cm-report-modal-field-title">Комментарий</p>
@@ -409,23 +408,54 @@ export function ModerationPage() {
               </div>
 
               <div className="cm-report-modal-field">
-                <p className="cm-report-modal-field-title">Файл</p>
+                <p className="cm-report-modal-field-title"></p>
+
                 {isFileLoading ? (
-                  <p>Загрузка информации...</p>
+                  <div className="cm-report-file-loading">
+                    Загрузка информации...
+                  </div>
                 ) : fileInfo ? (
-                  <div className="file-info">
-                    <p>Имя: {fileInfo.display_name}</p>
-                    <p>Размер: {(fileInfo.size / 1024).toFixed(2)} KB</p>
-                    <button 
-                      onClick={handleDownloadFile} 
+                  <div className="cm-report-file-card">
+                    <div className="cm-report-file-icon">
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M7 3h7l5 5v13H7V3Z"
+                          stroke="#555"
+                          strokeWidth="1.5"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14 3v5h5"
+                          stroke="#555"
+                          strokeWidth="1.5"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+
+                    <div className="cm-report-file-info">
+                      <p className="cm-report-file-name">
+                        {fileInfo.display_name}
+                      </p>
+
+                      <p className="cm-report-file-size">
+                        Размер: {(fileInfo.size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+
+                    <button
+                      className="cm-report-file-download"
+                      type="button"
+                      onClick={handleDownloadFile}
                       disabled={isDownloading}
-                      className="download-file-btn"
                     >
-                      {isDownloading ? 'Скачивание...' : 'Скачать файл'}
+                      {isDownloading ? 'Скачивание...' : 'Скачать'}
                     </button>
                   </div>
                 ) : (
-                  <p>Файл не найден</p>
+                  <div className="cm-report-file-empty">
+                    Файл не найден
+                  </div>
                 )}
               </div>
             </div>

@@ -329,11 +329,16 @@ export function NewsContentManagerPage() {
           )}
         </div>
 
-        {/* Пагинация с вводом номера страницы */}
         {totalPages > 1 && (
-          <div className="cm-news-pagination">
-            <button className="pagination-nav-btn" onClick={goToPrevPage} disabled={currentPage === 1}>‹</button>
-            
+          <div className="users-pagination">
+            <button
+              className="pagination-btn"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
+            >
+              ‹
+            </button>
+
             <div className="pagination-page-input-wrapper">
               <input
                 type="number"
@@ -345,10 +350,20 @@ export function NewsContentManagerPage() {
                 min={1}
                 max={totalPages}
               />
-              <span className="pagination-total"> / {totalPages}</span>
+
+              <span className="pagination-total">
+                {' '}
+                / {totalPages}
+              </span>
             </div>
-            
-            <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === totalPages}>›</button>
+
+            <button
+              className="pagination-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              ›
+            </button>
           </div>
         )}
       </main>

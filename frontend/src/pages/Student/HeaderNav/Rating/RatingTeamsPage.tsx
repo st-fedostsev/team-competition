@@ -13,6 +13,7 @@ export function RatingTeamsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+    const [pageInput, setPageInput] = useState('');
   
   const scrollPositionRef = useRef(0);
   const isRestoringScrollRef = useRef(false);
@@ -130,6 +131,26 @@ export function RatingTeamsPage() {
     );
   }
 
+      const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+  
+        const pageNumber = parseInt(pageInput);
+  
+        if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+          saveScrollPosition();
+          setCurrentPage(pageNumber);
+          setPageInput('');
+        } else {
+          alert(`Введите число от 1 до ${totalPages}`);
+        }
+      }
+    };
+  
+    const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPageInput(e.target.value);
+    };
+
   return (
     <div className="rating-page">
       <HeaderStudent />
@@ -172,21 +193,35 @@ export function RatingTeamsPage() {
 
         {/* Пагинация */}
         {totalPages > 1 && (
-          <div className="rating-pagination">
+          <div className="users-pagination">
             <button
-              className="pagination-nav-btn"
+              className="pagination-btn"
               onClick={goToPrevPage}
               disabled={currentPage === 1}
             >
               ‹
             </button>
-            
-            <span className="pagination-counter">
-              {currentPage} / {totalPages}
-            </span>
-            
+
+            <div className="pagination-page-input-wrapper">
+              <input
+                type="number"
+                className="pagination-page-input"
+                value={pageInput}
+                onChange={handlePageInputChange}
+                onKeyDown={handlePageInputKeyDown}
+                placeholder={`${currentPage}`}
+                min={1}
+                max={totalPages}
+              />
+
+              <span className="pagination-total">
+                {' '}
+                / {totalPages}
+              </span>
+            </div>
+
             <button
-              className="pagination-nav-btn"
+              className="pagination-btn"
               onClick={goToNextPage}
               disabled={currentPage === totalPages}
             >

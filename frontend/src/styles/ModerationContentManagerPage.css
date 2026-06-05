@@ -460,6 +460,8 @@
 .cm-report-modal-fields {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  margin-left: 40px;
   gap: 62px;
 }
 
@@ -467,6 +469,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
 }
 
 .cm-report-modal-field-title {
@@ -474,6 +477,7 @@
   color: #000;
   font-size: 21px;
   font-weight: 400;
+  text-align: left;
 }
 
 .cm-report-modal-field-text {
@@ -481,6 +485,7 @@
   color: #000;
   font-size: 21px;
   font-weight: 400;
+    text-align: left;
 }
 
 .cm-report-modal-actions {
@@ -553,4 +558,110 @@
   width: 196px;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+
+.cm-report-file-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 14px;
+
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+
+.cm-report-file-icon {
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  background: #f7f7f7;
+  border-radius: 12px;
+}
+
+.cm-report-file-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.cm-report-file-name {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 500;
+  color: #222;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cm-report-file-size {
+  margin: 4px 0 0;
+
+  font-size: 13px;
+  color: #888;
+}
+
+.cm-report-file-download {
+  height: 36px;
+  padding: 0 14px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #ffd675;
+  color: #222;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cm-report-file-download:hover:not(:disabled) {
+  background: #f3c85f;
+}
+
+.cm-report-file-download:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cm-report-file-loading,
+.cm-report-file-empty {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 16px;
+
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+
+  background: #f8f8f8;
+  border: 1px dashed #ddd;
+  border-radius: 14px;
+}
+
+
+.cm-report-modal-title {
+  white-space: pre-line;
 }
