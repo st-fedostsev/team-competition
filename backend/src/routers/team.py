@@ -469,6 +469,25 @@ async def cancel_request(response: Response, credentials: JwtAuthorizationCreden
 
     return Message(msg='Заявка отменена')
 
+@router.get(
+    '/get_awaiting_request',
+    summary='Получить текущую заявку'
+)
+async def get_awaiting_request(response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(JoinTeamRequest).where((JoinTeamRequest.from_id == user.id) & (JoinTeamRequest.status == RequestStatus.awaiting))
+    request = session.exec(q).first()
+    if request is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return Message(msg='Нет текущей заявки')
+
+    return request
+
 @router.post(
     '/get_my_requests',
     summary='Получить отправленные заявки'
@@ -483,8 +502,8 @@ async def get_my_requests(paged_request_data: PagedRequestData, response: Respon
     q = (select(JoinTeamRequest).where(JoinTeamRequest.from_id == user.id)
                                 .limit(paged_request_data.limit)
                                 .offset(paged_request_data.offset))
-    request = session.exec(q).all()
-    return request
+    requests = session.exec(q).all()
+    return requests
 
 @router.get(
     '/get_requests',
