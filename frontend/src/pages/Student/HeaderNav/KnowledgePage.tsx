@@ -3,6 +3,7 @@ import { HeaderStudent } from '../../../components/Header/HeaderStudent';
 import { PostAnnouncementButton, ReplyButton, PublishButton } from '../../../components/Buttons';
 import { Modal } from '../../../components/ModalWindowComponent';
 import { useKnowledgePosts, useCreateKnowledgePost } from '../../../hooks/useKnowledge';
+import { NavKnowledge } from '../../../components/Nav/NavKnowledge';
 import '../../../styles/KnowledgePage.css';
 
 const ITEMS_PER_PAGE = 1;
@@ -15,6 +16,7 @@ export function KnowledgePage() {
   const [tags, setTags] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
     const [pageInput, setPageInput] = useState('');
+    const [isRespondModalOpen, setIsRespondModalOpen] = useState(false);
   
   const scrollPositionRef = useRef(0);
   const isRestoringScrollRef = useRef(false);
@@ -127,12 +129,26 @@ export function KnowledgePage() {
       setPageInput(e.target.value);
     };
 
+    const openRespondModal = () => {
+      setIsRespondModalOpen(true);
+    };
+
+    const closeRespondModal = () => {
+      setIsRespondModalOpen(false);
+    };
+
+    const confirmRespond = () => {
+      setIsRespondModalOpen(false);
+      alert('Вы отправили отклик');
+    };
+
   return (
     <div className="knowledge-container">
       <HeaderStudent />
 
       <div className="knowledge-content">
         <div className="knowledge-header">
+          <NavKnowledge />
           <PostAnnouncementButton onClick={() => setIsPublishModalOpen(true)} />
         </div>
 
@@ -160,13 +176,43 @@ export function KnowledgePage() {
                     </span>
                   </div>
                   <div className="knowledge-card-footer">
-                    <ReplyButton />
+                    <ReplyButton onClick={openRespondModal}/>
                   </div>
                 </div>
               )
             ))
           )}
         </div>
+
+        {isRespondModalOpen && (
+          <div className="knowledge-confirm-overlay">
+            <div className="knowledge-confirm-modal">
+              <h3 className="knowledge-confirm-title">Откликнуться</h3>
+
+              <p className="knowledge-confirm-text">
+                Вы уверены, что хотите откликнуться?
+              </p>
+
+              <div className="knowledge-confirm-actions">
+                <button
+                  className="knowledge-confirm-cancel"
+                  type="button"
+                  onClick={closeRespondModal}
+                >
+                  Отмена
+                </button>
+
+                <button
+                  className="knowledge-confirm-submit"
+                  type="button"
+                  onClick={confirmRespond}
+                >
+                  Подтвердить
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Пагинация */}
         {totalPages > 1 && (

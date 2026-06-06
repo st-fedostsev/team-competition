@@ -5,6 +5,12 @@ export const HEADERS_LIST_STUDENT = [
   { label: 'Рейтинг', path: '/rating' },
 ];
 
+export const KNOWLEDGE_TABS = [
+  { label: 'Все объявл.', value: 'all', path: '/knowledge' },
+  { label: 'Мои объявл.', value: 'mine', path: '/knowledge/my' },
+  { label: 'Отклики', value: 'responses', path: '/knowledge/responses' },
+];
+
 export const HEADERS_LIST_TECH_ADMIN = [
   { label: 'Пользователи', path: '/admin/users' },
   // { label: 'Логи', path: '/admin/logs' },

@@ -515,12 +515,14 @@ export function TeamRequestAcceptButton({
 }: TeamButtonProps) {
   return (
     <button
-      className="team-request-accept"
+      className="button button-small drop-shadow"
       type={type}
       onClick={onClick}
       disabled={disabled}
     >
+    <p className="button-text button-text-small">
       Принять
+    </p>
     </button>
   );
 }
@@ -532,12 +534,14 @@ export function TeamRequestRejectButton({
 }: TeamButtonProps) {
   return (
     <button
-      className="team-request-reject"
+      className="button-close button-small drop-shadow"
       type={type}
       onClick={onClick}
       disabled={disabled}
     >
-      Отклонить
+      <p className='button-text button-text-small'>
+        Отклонить
+      </p>
     </button>
   );
 }
@@ -554,6 +558,34 @@ export function TeamModalCloseButton({
       disabled={disabled}
     >
       ×
+    </button>
+  );
+}
+
+
+interface CancelRequestButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+  isCancelling?: boolean;
+  type?: 'button' | 'submit';
+}
+
+export function CancelRequestButton({
+  onClick,
+  disabled,
+  isCancelling = false,
+  type = 'button',
+}: CancelRequestButtonProps) {
+  return (
+    <button
+      className="button-close button-small drop-shadow"
+      type={type}
+      onClick={onClick}
+      disabled={disabled || isCancelling}
+    >
+      <p className='button-text button-text-small'>
+        {isCancelling ? 'Отмена...' : 'Отменить заявку'}
+      </p>
     </button>
   );
 }

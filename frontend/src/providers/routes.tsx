@@ -25,6 +25,8 @@ import { ModerationPage } from '../pages/Content Manager/Profile/HeaderNav/Moder
 import { ProfileGameAdminPage } from '../pages/GameAdmin/Profile/ProfileGameAdminPage';
 import { TeamsGameAdminPage } from '../pages/GameAdmin/Profile/HeaderNav/TeamsGameAdminPage';
 import { RatingGameAdminPage, RatingGameAdminTeamsPage } from '../pages/GameAdmin/Profile/HeaderNav/RatimgGameAdminPage';
+import { MyKnowledgeAnnouncementsPage } from '../pages/Student/HeaderNav/MyKnowledgeAnnouncementsPage';
+import { KnowledgeResponsesPage } from '../pages/Student/HeaderNav/KnowledgeResponsesPage';
 
 export const router = createBrowserRouter([
   {
@@ -180,6 +182,22 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <RatingGameAdminTeamsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/knowledge/my',
+    element: (
+      <ProtectedRoute>
+        <MyKnowledgeAnnouncementsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/knowledge/responses',
+    element: (
+      <ProtectedRoute>
+        <KnowledgeResponsesPage />
       </ProtectedRoute>
     ),
   },

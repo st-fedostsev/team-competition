@@ -210,6 +210,15 @@ export function TeamProfilePage() {
 
   const isCaptain = team.captain_id === currentUser?.id;
 
+  const formatRequestDate = (dateString?: string) => {
+    if (!dateString) return '';
+
+    const [datePart] = dateString.split('T'); // "2026-06-06"
+    const [year, month, day] = datePart.split('-');
+
+    return `${day}.${month}.${year}`;
+  };
+
   return (
     <div className="team-profile-container">
       <HeaderStudent />
@@ -421,11 +430,6 @@ export function TeamProfilePage() {
                               Рейтинг: {user.personal_rating}
                             </p>
                           )}
-                          {request?.created_at !== undefined && (
-                            <p className="team-request-rating">
-                              Заявка отправлена: {request?.created_at}
-                            </p>
-                          )}
                           <p className="team-request-status">
                             Хочет вступить в команду
                           </p>
@@ -433,6 +437,11 @@ export function TeamProfilePage() {
                       </div>
 
                       <div className="team-request-actions">
+                          {request?.created_at && (
+                            <p className="team-request-date">
+                              {formatRequestDate(request.created_at)}
+                            </p>
+                          )}
                         <TeamRequestAcceptButton
                           onClick={() => handleReviewRequest(request.id, 'approved')}
                           disabled={isReviewing}
