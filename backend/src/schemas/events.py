@@ -19,3 +19,7 @@ class EventData(BaseModel):
     format: EventFormat
     created_by: int
     is_official: bool
+
+class EventRangeData(BaseModel):
+    start_date: datetime
+    end_date: datetime

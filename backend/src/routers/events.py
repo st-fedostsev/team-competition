@@ -102,3 +102,31 @@ async def list_events(event_list_data: PagedRequestData, response: Response, cre
         'count': len(events_all),
         'result': result
     }
+
+@router.post(
+    '/list_in_range',
+    summary='Получить список мероприятий в заданный промежуток'
+)
+async def list_in_range(event_range_data: EventRangeData, response: Response, credentials: JwtAuthorizationCredentials = Security(access_security), session: Session = Depends(get_session)):
+    q = select(User).where(User.id == credentials['id'])
+    user = session.exec(q).first()
+    if not user:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Message(msg='Пользователь не найден')
+    
+    q = select(Event).where((Event.status == ModerationStatus.approved) & (Event.date >= event_range_data.start_date) & (Event.date < event_range_data.end_date))
+    events = session.exec(q).all()
+
+    result = list(map(lambda x: EventData(
+            id=x.id,
+            title=x.title,
+            description=x.description,
+            date=x.date,
+            format=x.format,
+            created_by=x.created_by,
+            is_official=x.is_official
+        ), 
+        events
+    ))
+    
+    return result
