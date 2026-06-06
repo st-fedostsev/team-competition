@@ -25,7 +25,7 @@ export const HEADERS_LIST_GAME_ADMIN =[
 ]
 
 export const FEED_TABS = [
-  { label: 'Мероприятия', value: '/events' },
+  { label: 'Мероприятия', value: '/all' },
   { label: 'Челленджи', value: '/challenges' },
   { label: 'Новости', value: '/news' },
 ];
@@ -39,6 +39,11 @@ export const MODERATION_TABS = [
 export const RATING_TABS = [
   { label: 'Студенты', path: '/rating' },
   { label: 'Команды', path: '/rating/teams' },
+];
+
+export const GAME_ADMIN_RATING_TABS = [
+  { label: 'Студенты', path: '/game-admin/rating' },
+  { label: 'Команды', path: '/game-admin/rating/teams' },
 ];
 
 export const TABS = [

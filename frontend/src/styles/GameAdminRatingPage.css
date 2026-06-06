@@ -1,0 +1,486 @@
+.game-admin-rating-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+}
+
+.game-admin-rating-main {
+  width: 912px;
+  margin: 92px auto 0;
+}
+
+.game-admin-rating-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.game-admin-rating-control-row .nav-rating-tabs {
+  min-height: 48px;
+  padding: 4px 8px;
+  gap: 4px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-control-row .nav-rating-tab {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.game-admin-rating-control-row .nav-rating-tab.active {
+  border: none;
+  background: #e2e2e2;
+  font-weight: 400;
+}
+
+.game-admin-rating-settings-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 182px;
+  min-height: 48px;
+  padding: 8px 18px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  background: #fff;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-settings-icon {
+  flex: 0 0 auto;
+}
+
+.game-admin-rating-search {
+  position: relative;
+  width: 100%;
+}
+
+.game-admin-rating-search-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 66px 0 22px;
+  border: 1px solid #d0d0d0;
+  border-radius: 18px;
+  outline: none;
+  background: transparent;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-search-input::placeholder {
+  color: #5e5e5e;
+}
+
+.game-admin-rating-search-button {
+  position: absolute;
+  top: 50%;
+  right: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.game-admin-rating-top-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 0 31px;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.game-admin-rating-top-checkbox input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1.5px solid #000;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-top-checkbox input:checked {
+  border: 5px solid #000;
+  background: #fff;
+}
+
+.game-admin-rating-table {
+  min-height: 544px;
+  margin-top: 24px;
+  padding: 18px 32px;
+  border-radius: 18px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-row {
+  display: grid;
+  align-items: center;
+  min-height: 73px;
+  border-bottom: 1px solid #000;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.game-admin-rating-students-row,
+.game-admin-rating-teams-row {
+  grid-template-columns: 160px 1.4fr 1fr 120px 32px;
+}
+
+.game-admin-rating-header {
+  min-height: 44px;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.game-admin-rating-row > div:first-child,
+.game-admin-rating-row > div:nth-child(4),
+.game-admin-rating-row > div:last-child {
+  text-align: center;
+}
+
+.game-admin-rating-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #000;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .game-admin-rating-main {
+    width: calc(100% - 32px);
+  }
+
+  .game-admin-rating-control-row {
+    gap: 16px;
+  }
+
+  .game-admin-rating-table {
+    overflow-x: auto;
+  }
+
+  .game-admin-rating-row {
+    min-width: 840px;
+  }
+}
+
+.game-admin-rating-settings-button.active {
+  background: #e2e2e2;
+}
+
+.game-admin-rating-settings-modal-overlay {
+  top: 253px;
+  align-items: flex-start;
+  padding-top: 40px;
+  background: #f3f3f3;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-settings-modal {
+  width: 906px;
+  padding: 0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-settings-modal .modal-body {
+  width: 100%;
+  text-align: left;
+}
+
+.game-admin-rating-settings-form {
+  position: relative;
+  display: flex;
+  min-height: 458px;
+  padding: 23px 68px 42px 32px;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-settings-left {
+  width: 348px;
+}
+
+.game-admin-rating-settings-left h2 {
+  margin: 0 0 15px;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.game-admin-rating-settings-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.game-admin-rating-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.game-admin-rating-settings-field input {
+  width: 348px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  outline: none;
+  background: #f6f6f6;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 18px;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-settings-summary {
+  position: absolute;
+  top: 62px;
+  right: 70px;
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.game-admin-rating-settings-summary strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  height: 34px;
+  border-radius: 8px;
+  background: #ffd675;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.game-admin-rating-settings-submit {
+  position: absolute;
+  right: 68px;
+  bottom: 42px;
+  width: 200px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #ffd675;
+  color: #000;
+  font-family: Raleway Variable, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .game-admin-rating-settings-modal {
+    width: calc(100% - 32px);
+  }
+
+  .game-admin-rating-settings-form {
+    padding-right: 32px;
+  }
+
+  .game-admin-rating-settings-summary,
+  .game-admin-rating-settings-submit {
+    right: 32px;
+  }
+}
+
+
+.game-admin-rating-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.game-admin-rating-settings-modal {
+  width: 520px;
+  max-width: calc(100vw - 32px);
+
+  padding: 18px 20px 20px;
+
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e5e5;
+
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+}
+
+.game-admin-rating-settings-title {
+  margin: 0 0 10px;
+
+  font-size: 16px;
+  font-weight: 600;
+  color: #191919;
+}
+
+.game-admin-rating-settings-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.game-admin-rating-settings-fields {
+  width: 200px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-admin-rating-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.game-admin-rating-settings-field span {
+  font-size: 13px;
+  color: #222;
+}
+
+.game-admin-rating-settings-field input {
+  width: 100%;
+  height: 26px;
+
+  padding: 0 8px;
+
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+
+  background: #f7f7f7;
+
+  font-size: 13px;
+  color: #222;
+
+  outline: none;
+  box-sizing: border-box;
+}
+
+.game-admin-rating-settings-field input:focus {
+  border-color: #ffd675;
+  background: #fff;
+}
+
+.game-admin-rating-settings-sum {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 2px;
+
+  font-size: 13px;
+  color: #222;
+}
+
+.game-admin-rating-settings-sum strong {
+  min-width: 46px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 8px;
+
+  border-radius: 7px;
+  background: #ffd675;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: #191919;
+}
+
+.game-admin-rating-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 14px;
+}
+
+.game-admin-rating-settings-confirm {
+  min-width: 115px;
+  height: 28px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #ffd675;
+  color: #191919;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.game-admin-rating-settings-confirm:hover {
+  background: #f3c85f;
+}

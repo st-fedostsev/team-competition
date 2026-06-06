@@ -24,6 +24,7 @@ import { NewsContentManagerPage } from '../pages/Content Manager/Profile/HeaderN
 import { ModerationPage } from '../pages/Content Manager/Profile/HeaderNav/ModerationPage';
 import { ProfileGameAdminPage } from '../pages/GameAdmin/Profile/ProfileGameAdminPage';
 import { TeamsGameAdminPage } from '../pages/GameAdmin/Profile/HeaderNav/TeamsGameAdminPage';
+import { RatingGameAdminPage, RatingGameAdminTeamsPage } from '../pages/GameAdmin/Profile/HeaderNav/RatimgGameAdminPage';
 
 export const router = createBrowserRouter([
   {
@@ -163,6 +164,22 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <ProfileGameAdminPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/game-admin/rating',
+    element: (
+      <ProtectedRoute>
+        <RatingGameAdminPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/game-admin/rating/teams',
+    element: (
+      <ProtectedRoute>
+        <RatingGameAdminTeamsPage />
       </ProtectedRoute>
     ),
   },

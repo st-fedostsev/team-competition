@@ -665,3 +665,94 @@
 .cm-report-modal-title {
   white-space: pre-line;
 }
+
+.cm-moderation-pagination{
+    display: flex;
+  justify-content: flex-end;
+  padding-top: 20px;
+}
+
+.pagination-nav-btn{
+    display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0 0 4px;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  background: #f7f7f7;
+  color: #111;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.pagination-page-input-wrapper{
+    display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 86px;
+  height: 38px;
+  padding: 0 12px;
+
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.pagination-total {
+  font-size: 15px;
+  font-weight: 400;
+  color: #888;
+  white-space: nowrap;
+}
+
+.pagination-page-input {
+  -moz-appearance: textfield;
+}
+
+
+/* Формат — 3-й блок */
+.cm-report-modal-fields .cm-report-modal-field:nth-child(3) .cm-report-modal-field-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 28px;
+  width: fit-content;
+  padding: 6px 14px;
+
+  border-radius: 999px;
+  background: #fff1c7;
+
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Официальное — 4-й блок */
+.cm-report-modal-fields .cm-report-modal-field:nth-child(4) .cm-report-modal-field-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 28px;
+  width: fit-content;
+  padding: 6px 14px;
+
+  border-radius: 999px;
+  background: #f1f1f1;
+
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}

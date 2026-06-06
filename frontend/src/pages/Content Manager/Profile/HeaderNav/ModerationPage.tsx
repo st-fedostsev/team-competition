@@ -470,7 +470,7 @@ export function ModerationPage() {
             <button className="pagination-nav-btn" onClick={goToNextPage} disabled={currentPage === reportsTotalPages}>›</button>
           </div>
         )}
-
+        
         {/* Пагинация для мероприятий */}
         {activeTab === '/events' && eventsTotalPages > 1 && (
           <div className="cm-moderation-pagination">
@@ -585,13 +585,12 @@ export function ModerationPage() {
       {selectedEvent && activeTab === '/events' && (
         <Modal closeModal={closeEventModal}>
           <div className="cm-report-modal-body">
-            <h2 className="cm-report-modal-title">Мероприятие</h2>
+            <h2 className="cm-report-modal-title">
+              {`Мероприятие\n«${selectedEvent.title}»`}
+            </h2>
+            
 
             <div className="cm-report-modal-fields">
-              <div className="cm-report-modal-field">
-                <p className="cm-report-modal-field-title">Название</p>
-                <p className="cm-report-modal-field-text">{selectedEvent.title}</p>
-              </div>
 
               <div className="cm-report-modal-field">
                 <p className="cm-report-modal-field-title">Описание</p>
@@ -610,7 +609,7 @@ export function ModerationPage() {
 
               <div className="cm-report-modal-field">
                 <p className="cm-report-modal-field-title">Официальное</p>
-                <p className="cm-report-modal-field-text">{selectedEvent.is_official ? 'Да' : 'Нет'}</p>
+                <p className="cm-report-modal-field-text">{selectedEvent.is_official ? 'Официальное' : 'Неофициальное'}</p>
               </div>
             </div>
 
