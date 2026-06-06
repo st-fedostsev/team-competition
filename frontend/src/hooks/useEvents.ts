@@ -11,6 +11,7 @@ import { useCurrentUser } from './useAuth';
 export const eventsKeys = {
   all: ['events'] as const,
   list: ['events', 'list'] as const,
+  calendar: ['events', 'calendar'] as const,
 };
 
 // Хук для получения списка мероприятий с пагинацией
@@ -51,13 +52,20 @@ export function useCreateEvent() {
   });
 }
 
-export function useAllEvents() {
+
+export function useCalendarEvents(startDate: string | null, endDate: string | null) {
+  const { data: currentUser } = useCurrentUser();
+  
   return useQuery({
-    queryKey: ['events', 'all'],
+    queryKey: [...eventsKeys.calendar, startDate, endDate],
     queryFn: async () => {
-      const response = await eventsApi.getAllEvents();
-      return response.data;
+      if (!startDate || !endDate) {
+        return [];
+      }
+      const response = await eventsApi.getCalendarEventsList(startDate, endDate);
+      return response.data || [];
     },
-    staleTime: 1000 * 60 * 5,
+    enabled: !!currentUser && !!startDate && !!endDate,
+    staleTime: 1000 * 60 * 5, // 5 минут
   });
 }

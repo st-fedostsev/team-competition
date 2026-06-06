@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HeaderStudent } from '../../../components/Header/HeaderStudent';
-import { useAllEvents } from '../../../hooks/useEvents';
+import { useCalendarEvents } from '../../../hooks/useEvents';
 import { Modal } from '../../../components/ModalWindowComponent';
 import '../../../styles/CalendarPage.css';
 import { DAYS, TIME_SLOTS } from '../../../constants';
@@ -51,15 +51,24 @@ export function CalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<number[]>([]);
 
-  const { data: allEvents, isLoading, isError, error, refetch } = useAllEvents();
+  // Получаем даты текущей недели
+  const weekDates = getWeekDates(weekOffset);
+  
+  // Получаем start_date (понедельник) и end_date (воскресенье) для API
+  const startDate = weekDates[0]?.fullDate || null;
+  const endDate = weekDates[6]?.fullDate || null;
+  
+  // Используем хук для получения мероприятий в диапазоне дат
+  const { data: eventsInRange, isLoading, isError, error, refetch } = useCalendarEvents(startDate, endDate);
 
-  const DESCRIPTION_LIMIT = 248;
-
+  // Группируем мероприятия по датам и часам
   const eventsByDateAndHour: Record<string, Record<number, EventItem[]>> = {};
 
-  if (allEvents) {
-    allEvents.forEach((event) => {
-      const eventDate = new Date(event.date);
+  if (eventsInRange && Array.isArray(eventsInRange)) {
+    eventsInRange.forEach((event) => {
+      // Парсим дату из API (предполагаем формат ISO или уже готовую дату)
+      const eventDate: Date = new Date(event.date);
+      
       const dateKey = eventDate.toISOString().split('T')[0];
       const hour = eventDate.getHours();
       const time = eventDate.toLocaleTimeString([], {
@@ -79,11 +88,11 @@ export function CalendarPage() {
         ...event,
         time,
         hour,
-      });
+      } as EventItem);
     });
   }
 
-  const weekDates = getWeekDates(weekOffset);
+  const DESCRIPTION_LIMIT = 248;
   const currentEvent = selectedEvents[currentEventIndex];
 
   const getEventsAtSlot = (fullDate: string, hour: number) => {
@@ -119,7 +128,6 @@ export function CalendarPage() {
 
   const goToNextEvent = () => {
     setExpandedDescriptions([]);
-
     setCurrentEventIndex((prevIndex) =>
       prevIndex === selectedEvents.length - 1 ? 0 : prevIndex + 1
     );
@@ -127,7 +135,6 @@ export function CalendarPage() {
 
   const goToPrevEvent = () => {
     setExpandedDescriptions([]);
-
     setCurrentEventIndex((prevIndex) =>
       prevIndex === 0 ? selectedEvents.length - 1 : prevIndex - 1
     );
@@ -160,11 +167,15 @@ export function CalendarPage() {
     if (!selectedDate) return 'Мероприятия';
     if (!selectedTimeSlot) return `Мероприятия на ${selectedDate}`;
 
-    const [startRaw, end] = selectedTimeSlot.split('\n');
-    const start = startRaw.replace('-', '');
-
-    return `Мероприятия на ${selectedDate} (${start} - ${end})`;
+    return `Мероприятия на ${selectedDate}`;
   };
+
+  // При изменении недели обновляем данные
+  useEffect(() => {
+    if (startDate && endDate) {
+      refetch();
+    }
+  }, [weekOffset, startDate, endDate, refetch]);
 
   if (isLoading) {
     return (
@@ -206,6 +217,10 @@ export function CalendarPage() {
             >
               ‹
             </button>
+
+            <span className="calendar-week-range">
+              {weekDates[0]?.dateStr} - {weekDates[6]?.dateStr}
+            </span>
 
             <button
               className="calendar-nav-btn"

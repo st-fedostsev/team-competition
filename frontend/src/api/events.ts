@@ -11,7 +11,10 @@ export const eventsApi = {
   getEventsList: (params: EventsListRequest) =>
     apiClient.post<EventsListResponse>('/api/events/list', params),
   
-  // Для календаря (пока заглушка)
-   getAllEvents: () =>
-    apiClient.post<Event[]>('/api/events/list', { offset: 0, limit: 1000 }),
+  // Для календаря 
+  getCalendarEventsList: (startDate: string, endDate: string) =>
+    apiClient.post<Event[]>('/api/events/list_in_range', { 
+      start_date: startDate, 
+      end_date: endDate 
+  }),
 };
