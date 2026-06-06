@@ -1,6 +1,6 @@
 // hooks/useTeam.ts
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { teamApi } from '../api/team';
+import { teamApi, type ReviewRequestData } from '../api/team';
 import { useCurrentUser } from './useAuth';
 import { useAuthStore } from '../stores/authStore';
 
@@ -11,6 +11,7 @@ import type {
   Team,
 } from '../types/team.types';
 import { useNavigate } from 'react-router-dom';
+import type { ApiError } from '../types/error.types';
 
 export const teamKeys = {
   all: ['team'] as const,
@@ -19,6 +20,9 @@ export const teamKeys = {
   leaderboard: ['team', 'leaderboard'] as const,
   search: (query: string, limit: number, offset: number) => 
     ['team', 'search', query, limit, offset] as const,
+  joinRequests: () => [...teamKeys.all, 'join-requests'] as const,
+  myVotes: () => [...teamKeys.all, 'my-votes'] as const,
+  awaitingRequest: () => [...teamKeys.all, 'awaiting-request'] as const, 
 };
 
 // Хук для получения своей команды
@@ -189,3 +193,176 @@ export function useKickMember() {
     },
   });
 }
+
+// Передать капитанство
+export const useTransferCaptain = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: number) => teamApi.transferCaptain(userId),
+    onSuccess: () => {
+      // Инвалидируем данные команды после смены капитана
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: ['my-team'] });
+    },
+  });
+};
+
+// Переименовать команду
+export const useRenameTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newName: string) => teamApi.renameTeam(newName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: ['my-team'] });
+    },
+  });
+};
+
+// Голосование за участника
+export const useVoteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, score }: { userId: number; score: number }) =>
+      teamApi.voteUser(userId, score),
+    onSuccess: () => {
+      // Обновляем данные команды после голосования
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: ['my-team'] });
+    },
+  });
+};
+
+export const useMyVotes = () => {
+  return useQuery({
+    queryKey: ['my-votes'],
+    queryFn: async () => {
+      const response = await teamApi.getMyVotes();
+      return response.data;
+    },
+    staleTime: 1000 * 60, // 1 минута
+  });
+}
+
+// Получить заявки на вступление (только для капитана)
+export const useJoinRequests = () => {
+  const { data: currentUser } = useCurrentUser();
+
+  return useQuery({
+    queryKey: teamKeys.joinRequests(),
+    queryFn: async () => {
+      const response = await teamApi.getJoinRequests();
+      return response.data;
+    },
+    enabled: !!currentUser,
+    staleTime: 1000 * 30,
+  });
+};
+
+
+// Хук для рассмотрения заявки (изменение статуса)
+export const useReviewJoinRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ReviewRequestData) => teamApi.reviewJoinRequest(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['join-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['my-team'] });
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+    },
+  });
+};
+
+// Отправить заявку на вступление в команду
+export const useRequestJoin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (teamId: number) => teamApi.requestJoin(teamId),
+    onSuccess: () => {
+      alert('Заявка на вступление отправлена!');
+      queryClient.invalidateQueries({ queryKey: ['my-team'] });
+    },
+    onError: (error: ApiError) => {
+      const message = error.response?.data?.msg || error.response?.data?.message || 'Ошибка при отправке заявки';
+      alert(message);
+    },
+  });
+};
+
+
+// Хук для отмены заявки на вступление в команду
+export const useCancelJoinRequest = () => {
+  const queryClient = useQueryClient();
+  const { refetch: refetchUser } = useCurrentUser();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await teamApi.cancelJoinRequest();
+      return response.data;
+    },
+    onSuccess: () => {
+      // Инвалидируем связанные запросы
+      queryClient.invalidateQueries({ queryKey: teamKeys.my });
+      queryClient.invalidateQueries({ queryKey: teamKeys.awaitingRequest() });
+      queryClient.invalidateQueries({ queryKey: ['my-team'] });
+      refetchUser();
+      alert('Заявка успешно отменена');
+    },
+    onError: (error: ApiError) => {
+      const message = error.response?.data?.msg || error.response?.data?.message || 'Ошибка при отмене заявки';
+      alert(message);
+    },
+  });
+};
+
+// Хук для получения текущей ожидающей заявки (команда, куда подана заявка)
+export const useAwaitingRequest = () => {
+  const { data: currentUser } = useCurrentUser();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  
+  // Проверяем, есть ли у пользователя team_id (если есть - он уже в команде)
+  const hasTeam = currentUser?.team_id !== null && currentUser?.team_id !== undefined;
+
+  return useQuery({
+    queryKey: teamKeys.awaitingRequest(),
+    queryFn: async () => {
+      const response = await teamApi.getAwaitingRequest();
+      return response.data; // Возвращает JoinRequest или null
+    },
+    enabled: !!accessToken && !hasTeam, // Запрос только если нет команды
+    staleTime: 1000 * 30, // 30 секунд
+    retry: false,
+  });
+};
+
+// Optional: Хук для проверки, есть ли активная заявка (упрощенный вариант)
+export const useHasActiveRequest = () => {
+  const { data: awaitingRequest, isLoading } = useAwaitingRequest();
+  
+  return {
+    hasActiveRequest: !!awaitingRequest,
+    awaitingRequest,
+    isLoading,
+  };
+};
+
+// Optional: Хук для получения информации о команде, куда подана заявка
+export const useRequestedTeam = () => {
+  const { data: awaitingRequest } = useAwaitingRequest();
+  
+  return useQuery({
+    queryKey: ['team', 'requested', awaitingRequest?.team_id],
+    queryFn: async () => {
+      if (!awaitingRequest?.team_id) return null;
+      const response = await teamApi.getTeamById(awaitingRequest.team_id);
+      return response.data;
+    },
+    enabled: !!awaitingRequest?.team_id,
+    staleTime: 1000 * 60,
+  });
+};

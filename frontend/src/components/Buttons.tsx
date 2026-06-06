@@ -192,7 +192,7 @@ export function JoinButton({ onClick, disabled }: JoinButtonProps) {
       disabled={disabled}
     >
     <p className="button-text button-text-small">
-      Вступить
+      Отправить заявку
     </p>
     </button>
   );

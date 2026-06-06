@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { HeaderStudent } from '../../../../components/Header/HeaderStudent';
 import { NavTeam } from '../../../../components/Nav/NavTeam';
-import { useMyTeam } from '../../../../hooks/useTeam';
+import { 
+  useMyTeam, 
+  useRenameTeam, 
+  useTransferCaptain, 
+  useVoteUser,
+  useJoinRequests,
+  useReviewJoinRequest
+} from '../../../../hooks/useTeam';
+import { useUsersByIds } from '../../../../hooks/useUsers';
 import {
   TeamModalCancelButton,
   TeamModalSaveButton,
@@ -10,28 +18,49 @@ import {
   TeamModalCloseButton,
 } from '../../../../components/Buttons';
 import '../../../../styles/TeamProfilePage.css';
-
-type JoinRequest = {
-  id: number;
-  last_name: string;
-  first_name: string;
-  patronymic?: string;
-};
+import type { ApiError } from '../../../../types/error.types';
+import { useCurrentUser } from '../../../../hooks/useAuth';
 
 export function TeamProfilePage() {
-  const { data: team, isLoading, isError, error } = useMyTeam();
+  const { data: team, isLoading, isError, error, refetch } = useMyTeam();
+  const { data: currentUser } = useCurrentUser();
 
   const [isTeamMenuOpen, setIsTeamMenuOpen] = useState(false);
   const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
   const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
-
+  const [isTransferCaptainModalOpen, setIsTransferCaptainModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [teamNameDraft, setTeamNameDraft] = useState('');
-  const [teamNameLocal, setTeamNameLocal] = useState('');
 
   const teamMenuRef = useRef<HTMLDivElement | null>(null);
 
+  const { mutate: renameTeam, isPending: isRenaming } = useRenameTeam();
+  const { mutate: transferCaptain, isPending: isTransferring } = useTransferCaptain();
+  const { mutate: voteUser, isPending: isVoting } = useVoteUser();
+  
+  // Хуки для заявок
+  const { data: joinRequests, refetch: refetchRequests, isLoading: isLoadingRequests } = useJoinRequests();
+  const { mutate: reviewRequest, isPending: isReviewing } = useReviewJoinRequest();
 
-  const joinRequests: JoinRequest[] = [];
+  // Фильтруем заявки: показываем только те, что в статусе 'awaiting'
+  const awaitingRequests = joinRequests?.filter(
+    request => request.status === 'awaiting'
+  ) || [];
+
+  // Получаем ID пользователей из заявок
+  const userIds = awaitingRequests.map(request => request.from_id);
+  
+  // Получаем данные пользователей по их ID
+  const usersQueries = useUsersByIds(userIds);
+  const isLoadingUsers = usersQueries.some(query => query.isLoading);
+  
+  // Создаем мапу пользователей по ID для быстрого доступа
+  const usersMap = new Map();
+  usersQueries.forEach(query => {
+    if (query.data) {
+      usersMap.set(query.data.id, query.data);
+    }
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,22 +79,21 @@ export function TeamProfilePage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (team?.name) {
-      setTeamNameLocal(team.name);
-      setTeamNameDraft(team.name);
-    }
-  }, [team?.name]);
-
   const handleOpenEditNameModal = () => {
     setIsTeamMenuOpen(false);
-    setTeamNameDraft(teamNameLocal || team?.name || '');
+    setTeamNameDraft(team?.name || '');
     setIsEditNameModalOpen(true);
   };
 
   const handleOpenRequestsModal = () => {
     setIsTeamMenuOpen(false);
     setIsRequestsModalOpen(true);
+    refetchRequests();
+  };
+
+  const handleOpenTransferCaptainModal = (userId: number) => {
+    setSelectedUserId(userId);
+    setIsTransferCaptainModalOpen(true);
   };
 
   const handleSaveTeamName = () => {
@@ -76,21 +104,67 @@ export function TeamProfilePage() {
       return;
     }
 
-    
-    console.log('Новое название команды:', trimmedName);
-
-    setTeamNameLocal(trimmedName);
-    setIsEditNameModalOpen(false);
+    renameTeam(trimmedName, {
+      onSuccess: () => {
+        setIsEditNameModalOpen(false);
+        refetch();
+        alert('Название команды успешно изменено!');
+      },
+      onError: (error: ApiError) => {
+        const message = error.response?.data?.msg || error.response?.data?.message || 'Ошибка изменения названия';
+        alert(message);
+      },
+    });
   };
 
-  const handleAcceptRequest = (requestId: number) => {
-   
-    console.log('Принять заявку:', requestId);
+  const handleTransferCaptain = () => {
+    if (!selectedUserId) return;
+
+    transferCaptain(selectedUserId, {
+      onSuccess: () => {
+        setIsTransferCaptainModalOpen(false);
+        setSelectedUserId(null);
+        refetch();
+        alert('Капитанство успешно передано!');
+      },
+      onError: (error: ApiError) => {
+        const message = error.response?.data?.msg || error.response?.data?.message || 'Ошибка передачи капитанства';
+        alert(message);
+      },
+    });
   };
 
-  const handleRejectRequest = (requestId: number) => {
-    
-    console.log('Отклонить заявку:', requestId);
+  const handleVote = (userId: number, score: number) => {
+    voteUser({ userId, score }, {
+      onSuccess: () => {
+        alert(`Оценка ${score} успешно выставлена!`);
+        refetch();
+      },
+      onError: (error: ApiError) => {
+        const message = error.response?.data?.msg || error.response?.data?.message || 'Ошибка при голосовании';
+        alert(message);
+      },
+    });
+  };
+
+  const handleReviewRequest = (requestId: number, newStatus: 'awaiting' | 'approved' | 'rejected') => {
+    reviewRequest({ id: requestId, new_status: newStatus }, {
+      onSuccess: () => {
+        refetchRequests();
+        refetch();
+        if (newStatus === 'approved') {
+          alert('Заявка принята!');
+        } else if (newStatus === 'rejected') {
+          alert('Заявка отклонена');
+        } else if (newStatus === 'awaiting') {
+          alert('Заявка отправлена на рассмотрение');
+        }
+      },
+      onError: (error: ApiError) => {
+        const message = error.response?.data?.msg || error.response?.data?.message || 'Ошибка при обработке заявки';
+        alert(message);
+      },
+    });
   };
 
   if (isLoading) {
@@ -134,67 +208,84 @@ export function TeamProfilePage() {
     );
   }
 
+  const isCaptain = team.captain_id === currentUser?.id;
+
   return (
     <div className="team-profile-container">
       <HeaderStudent />
 
       <div className="team-profile-content">
-
         {/* Карточка команды */}
         <div className="team-card">
           <div className="team-card-left">
             <div className="team-avatar">
               <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-                <defs><clipPath id="avatarClip"><circle cx="28" cy="28" r="26">
-                  </circle></clipPath></defs><g clip-path="url(#avatarClip)"><circle cx="28" cy="22" r="8" stroke="#3B3B3B" stroke-width="1.5"></circle>
-                  <path d="M8 50c0-11 9-20 20-20s20 9 20 20" stroke="#3B3B3B" stroke-width="1.5" stroke-linecap="round"></path></g>
-                  <circle cx="28" cy="28" r="27" stroke="#3B3B3B" stroke-width="1.5"></circle>
-                </svg>
+                <defs>
+                  <clipPath id="avatarClip">
+                    <circle cx="28" cy="28" r="26" />
+                  </clipPath>
+                </defs>
+                <g clipPath="url(#avatarClip)">
+                  <circle cx="28" cy="22" r="8" stroke="#3B3B3B" strokeWidth="1.5" />
+                  <path d="M8 50c0-11 9-20 20-20s20 9 20 20" stroke="#3B3B3B" strokeWidth="1.5" strokeLinecap="round" />
+                </g>
+                <circle cx="28" cy="28" r="27" stroke="#3B3B3B" strokeWidth="1.5" />
+              </svg>
             </div>
 
             <div>
-              <p className="team-name">{teamNameLocal || team.name}</p>
+              <p className="team-name">{team.name}</p>
             </div>
           </div>
 
-          <div className="team-card-right" ref={teamMenuRef}>
-            <button
-              className="team-menu-btn"
-              onClick={() => {
-                setIsTeamMenuOpen(prev => !prev);
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#999">
-                <circle cx="12" cy="5" r="1.5" />
-                <circle cx="12" cy="12" r="1.5" />
-                <circle cx="12" cy="19" r="1.5" />
-              </svg>
-            </button>
+          {/* Троеточие и меню показываются ТОЛЬКО капитану */}
+          {isCaptain && (
+            <div className="team-card-right" ref={teamMenuRef}>
+              <button
+                className="team-menu-btn"
+                onClick={() => {
+                  setIsTeamMenuOpen(prev => !prev);
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#999">
+                  <circle cx="12" cy="5" r="1.5" />
+                  <circle cx="12" cy="12" r="1.5" />
+                  <circle cx="12" cy="19" r="1.5" />
+                </svg>
+              </button>
 
-            {isTeamMenuOpen && (
-              <div className="team-card-dropdown">
-                <button
-                  className="team-card-dropdown-item"
-                  onClick={handleOpenEditNameModal}
-                >
-                  Изменить название команды
-                </button>
+              {isTeamMenuOpen && (
+                <div className="team-card-dropdown">
+                  <button
+                    className="team-card-dropdown-item"
+                    onClick={handleOpenEditNameModal}
+                  >
+                    Изменить название команды
+                  </button>
 
-                <button
-                  className="team-card-dropdown-item"
-                  onClick={handleOpenRequestsModal}
-                >
-                  Посмотреть заявки на вступление
-                </button>
-              </div>
-            )}
-
-            {/* <CheckInButton /> */}
-          </div>
+                  <button
+                    className="team-card-dropdown-item"
+                    onClick={handleOpenRequestsModal}
+                  >
+                    Посмотреть заявки на вступление
+                    {awaitingRequests.length > 0 && (
+                      <span className="requests-badge"> ({awaitingRequests.length})</span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Нижняя часть: участники + рейтинг */}
-        <NavTeam team={team} />
+        <NavTeam 
+          team={team} 
+          isCaptain={isCaptain}
+          onTransferCaptain={handleOpenTransferCaptainModal}
+          onVote={handleVote}
+          isVoting={isVoting}
+        />
       </div>
 
       {/* Модалка изменения названия команды */}
@@ -218,23 +309,62 @@ export function TeamProfilePage() {
               value={teamNameDraft}
               onChange={(event) => setTeamNameDraft(event.target.value)}
               placeholder="Название команды"
+              disabled={isRenaming}
             />
 
-              <div className="team-modal-buttons">
-                <TeamModalCancelButton
-                  onClick={() => setIsEditNameModalOpen(false)}
-                />
+            <div className="team-modal-buttons">
+              <TeamModalCancelButton
+                onClick={() => setIsEditNameModalOpen(false)}
+                disabled={isRenaming}
+              />
 
-                <TeamModalSaveButton
-                  onClick={handleSaveTeamName}
-                />
-              </div>
+              <TeamModalSaveButton
+                onClick={handleSaveTeamName}
+                disabled={isRenaming}
+              />
+            </div>
           </div>
         </div>
       )}
 
-      {/* Модалка заявок на вступление */}
-      {isRequestsModalOpen && (
+      {/* Модалка передачи капитанства */}
+      {isTransferCaptainModalOpen && (
+        <div
+          className="team-modal-backdrop"
+          onClick={() => setIsTransferCaptainModalOpen(false)}
+        >
+          <div
+            className="team-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="team-modal-title">Передать капитанство</p>
+
+            <p className="team-modal-text">
+              Вы уверены, что хотите передать капитанство этому участнику?
+              После передачи вы больше не сможете управлять командой.
+            </p>
+
+            <div className="team-modal-buttons">
+              <TeamModalCancelButton
+                onClick={() => setIsTransferCaptainModalOpen(false)}
+                disabled={isTransferring}
+              />
+
+              <button
+                className="team-modal-save-btn"
+                onClick={handleTransferCaptain}
+                disabled={isTransferring}
+                style={{ background: '#dc2626' }}
+              >
+                {isTransferring ? 'Передача...' : 'Подтвердить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка заявок на вступление - показываем только капитану */}
+      {isRequestsModalOpen && isCaptain && (
         <div
           className="team-modal-backdrop"
           onClick={() => setIsRequestsModalOpen(false)}
@@ -251,49 +381,70 @@ export function TeamProfilePage() {
               />
             </div>
 
-            {joinRequests.length === 0 ? (
+            {isLoadingRequests || isLoadingUsers ? (
+              <div className="team-requests-loading">Загрузка заявок...</div>
+            ) : awaitingRequests.length === 0 ? (
               <div className="team-requests-empty">
                 Заявок на вступление пока нет
               </div>
             ) : (
               <div className="team-requests-list">
-                {joinRequests.map(request => (
-                  <div key={request.id} className="team-request-row">
-                    <div className="team-request-user">
-                      <div className="team-request-avatar">
-                        <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
-                          <circle cx="16" cy="16" r="15" stroke="#ccc" strokeWidth="1.2" />
-                          <circle cx="16" cy="12" r="5" stroke="#ccc" strokeWidth="1.2" />
-                          <path
-                            d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12"
-                            stroke="#ccc"
-                            strokeWidth="1.2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
+                {awaitingRequests.map((request) => {
+                  const user = usersMap.get(request.from_id);
+                  
+                  return (
+                    <div key={request.id} className="team-request-row">
+                      <div className="team-request-user">
+                        <div className="team-request-avatar">
+                          <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
+                            <circle cx="16" cy="16" r="15" stroke="#ccc" strokeWidth="1.2" />
+                            <circle cx="16" cy="12" r="5" stroke="#ccc" strokeWidth="1.2" />
+                            <path
+                              d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12"
+                              stroke="#ccc"
+                              strokeWidth="1.2"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </div>
+
+                        <div>
+                          <p className="team-request-name">
+                            {user ? (
+                              `${user.last_name || ''} ${user.first_name || ''} ${user.patronymic || ''}`.trim() || `Пользователь`
+                            ) : (
+                              `Загрузка...`
+                            )}
+                          </p>
+                          {user?.personal_rating !== undefined && (
+                            <p className="team-request-rating">
+                              Рейтинг: {user.personal_rating}
+                            </p>
+                          )}
+                          {request?.created_at !== undefined && (
+                            <p className="team-request-rating">
+                              Заявка отправлена: {request?.created_at}
+                            </p>
+                          )}
+                          <p className="team-request-status">
+                            Хочет вступить в команду
+                          </p>
+                        </div>
                       </div>
 
-                      <div>
-                        <p className="team-request-name">
-                          {request.last_name} {request.first_name} {request.patronymic || ''}
-                        </p>
-                        <p className="team-request-status">
-                          Хочет вступить в команду
-                        </p>
+                      <div className="team-request-actions">
+                        <TeamRequestAcceptButton
+                          onClick={() => handleReviewRequest(request.id, 'approved')}
+                          disabled={isReviewing}
+                        />
+                        <TeamRequestRejectButton
+                          onClick={() => handleReviewRequest(request.id, 'rejected')}
+                          disabled={isReviewing}
+                        />
                       </div>
                     </div>
-
-                    <div className="team-request-actions">
-                      <TeamRequestAcceptButton
-                        onClick={() => handleAcceptRequest(request.id)}
-                      />
-
-                      <TeamRequestRejectButton
-                        onClick={() => handleRejectRequest(request.id)}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { JoinButton, CreatePlusButton, CreateButton } from './Buttons';
 import { Modal } from './ModalWindowComponent';
-import { useSearchTeams, useJoinTeam, useCreateTeam } from '../hooks/useTeam';
+import { 
+  useSearchTeams, 
+  useCreateTeam, 
+  useRequestJoin,
+  useCancelJoinRequest,
+  useAwaitingRequest,
+  useRequestedTeam
+} from '../hooks/useTeam';
+import { useQueryClient } from '@tanstack/react-query';
+import { teamKeys } from '../hooks/useTeam';
 import '../styles/SearchTeamModal.css';
 
 interface SearchTeamModalProps {
@@ -9,61 +18,97 @@ interface SearchTeamModalProps {
   onSuccess?: () => void;
 }
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 1;
 
 export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps) {
+  const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [teamName, setTeamName] = useState('');
   
+  // Сохраняем значение для поиска отдельно
+  const [searchQuery, setSearchQuery] = useState('');
+  const [shouldSearch, setShouldSearch] = useState(false);
+  
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   
+  // Получаем информацию об ожидающей заявке
+  const { data: awaitingRequest, isLoading: isLoadingRequest, refetch: refetchAwaitingRequest } = useAwaitingRequest();
+  const { data: requestedTeam, refetch: refetchRequestedTeam } = useRequestedTeam();
+  const { mutate: cancelRequest, isPending: isCancelling } = useCancelJoinRequest();
+  
+  // Используем searchQuery для запроса
   const { 
     data, 
     isLoading: isSearching, 
-    refetch 
-  } = useSearchTeams(searchValue, ITEMS_PER_PAGE, offset);
+    refetch: refetchSearch 
+  } = useSearchTeams(searchQuery, ITEMS_PER_PAGE, offset);
   
-  const { mutate: joinTeam, isPending: isJoining } = useJoinTeam();
   const { mutate: createTeam, isPending: isCreating } = useCreateTeam();
+  const { mutate: requestJoin, isPending: isRequesting } = useRequestJoin();
 
-  // Поиск при изменении значения (с debounce)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchValue.trim()) {
-        refetch();
-        setCurrentPage(1);
-      } else {
-        // Если поиск пустой, показываем все команды
-        refetch();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchValue, refetch]);
+  // Функция для полного сброса данных о заявке
+  const resetRequestData = useCallback(() => {
+    // Сбрасываем кеш запросов
+    queryClient.removeQueries({ queryKey: teamKeys.awaitingRequest() });
+    queryClient.removeQueries({ queryKey: ['team', 'requested'] });
+    queryClient.removeQueries({ queryKey: teamKeys.joinRequests() });
+    
+    // Делаем refetch для обновления
+    setTimeout(() => {
+      refetchAwaitingRequest();
+      refetchRequestedTeam();
+    }, 100);
+  }, [queryClient, refetchAwaitingRequest, refetchRequestedTeam]);
 
-  // Загружаем команды при открытии модалки
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  // Выполняем поиск только при нажатии Enter
+  const performSearch = useCallback(() => {
+    setSearchQuery(searchValue);
+    setShouldSearch(true);
+    setCurrentPage(1);
+  }, [searchValue]);
 
-  const handleJoinTeam = (inviteCode: string) => {
-    joinTeam(
-      { secret_code: inviteCode },
-      {
-        onSuccess: () => {
-          onSuccess?.();
-          closeModal();
-        },
-      }
-    );
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      refetch();
-      setCurrentPage(1);
+  // Загружаем команды при открытии модалки (показываем все команды)
+  useEffect(() => {
+    if (!shouldSearch && !searchQuery) {
+      setSearchQuery('');
+      setShouldSearch(true);
     }
+  }, []);
+
+  // При изменении пагинации или поискового запроса обновляем результаты
+  useEffect(() => {
+    if (shouldSearch) {
+      refetchSearch();
+    }
+  }, [offset, searchQuery, refetchSearch, shouldSearch]);
+
+  const handleRequestJoin = (teamId: number) => {
+    requestJoin(teamId, {
+      onSuccess: () => {
+        // После подачи заявки просто обновляем данные
+        refetchAwaitingRequest();
+        refetchRequestedTeam();
+        refetchSearch();
+      },
+    });
+  };
+
+  const handleCancelRequest = () => {
+    cancelRequest(undefined, {
+      onSuccess: () => {
+        // После отмены заявки полностью сбрасываем данные
+        resetRequestData();
+        refetchSearch();
+      },
+    });
   };
 
   const handleCreateTeam = () => {
@@ -73,7 +118,7 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
         {
           onSuccess: () => {
             setIsCreateTeamOpen(false);
-            closeModal();
+            refetchSearch();
             onSuccess?.();
           },
         }
@@ -81,23 +126,27 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
     }
   };
 
-  const teams = data?.result || [];
+  const allTeams = data?.result || [];
   const totalCount = data?.count || 0;
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1);
-      refetch();
     }
   };
 
   const goToPrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(prev => prev - 1);
-      refetch();
     }
   };
+
+  // Проверяем, есть ли активная заявка
+  const hasActiveRequest = !!awaitingRequest && !!requestedTeam;
+
+  // Показываем загрузку
+  const showLoading = (isSearching || isLoadingRequest) && !allTeams.length;
 
   return (
     <>
@@ -110,11 +159,11 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
           <div className="search-team-input-wrapper">
             <input
               type="text"
-              placeholder="Введите название"
+              placeholder="Введите название и нажмите Enter"
               className="search-team-input"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyPress={handleSearchKeyPress}
               disabled={isSearching}
             />
             <span className="search-team-icon">
@@ -126,47 +175,71 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
           </div>
 
           <div className="search-team-list">
-            {isSearching && (
-              <div className="search-team-loading">Поиск команд...</div>
+            {showLoading && (
+              <div className="search-team-loading">Загрузка команд...</div>
             )}
             
-            {!isSearching && teams.length === 0 && searchValue && (
+            {!showLoading && allTeams.length === 0 && searchQuery && (
               <div className="search-team-empty">
                 <p>Команды не найдены</p>
               </div>
             )}
             
-            {!isSearching && teams.length === 0 && !searchValue && (
+            {!showLoading && allTeams.length === 0 && !searchQuery && !shouldSearch && (
               <div className="search-team-empty">
-                <p>Введите название для поиска</p>
+                <p>Введите название и нажмите Enter для поиска</p>
               </div>
             )}
 
-            {teams.map((team) => (
-              <div key={team.id} className="search-team-card">
-                <div className="search-team-card-left">
-                  <div className="search-team-avatar">
-                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                      <circle cx="18" cy="14" r="6" stroke="#999" strokeWidth="1.5" />
-                      <path
-                        d="M6 30c0-6.627 5.373-12 12-12s12 5.373 12 12"
-                        stroke="#999"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
-                  <div className="search-team-info">
-                    <p className="search-team-name">{team.name}</p>
-                    <p className="search-team-members">{team.members?.length || 0} участника</p>
-                  </div>
-                </div>
-                <JoinButton 
-                  onClick={() => handleJoinTeam(team.secret_code)}
-                  disabled={isJoining}
-                />
+            {!showLoading && allTeams.length === 0 && !searchQuery && shouldSearch && (
+              <div className="search-team-empty">
+                <p>Нет доступных команд</p>
               </div>
-            ))}
+            )}
+
+            {allTeams.map((team) => {
+              // Проверяем, есть ли активная заявка для этой команды
+              const isRequestedTeam = hasActiveRequest && requestedTeam && team.id === requestedTeam.id;
+              
+              return (
+                <div key={team.id} className="search-team-card">
+                  <div className="search-team-card-left">
+                    <div className="search-team-avatar">
+                      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <circle cx="18" cy="14" r="6" stroke="#999" strokeWidth="1.5" />
+                        <path
+                          d="M6 30c0-6.627 5.373-12 12-12s12 5.373 12 12"
+                          stroke="#999"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="search-team-info">
+                      <p className="search-team-name">{team.name}</p>
+                      <p className="search-team-members">{team.members?.length || 0} участника</p>
+                    </div>
+                  </div>
+                  
+                  {isRequestedTeam ? (
+                    <button 
+                      className="cancel-request-btn"
+                      onClick={handleCancelRequest}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? 'Отмена...' : 'Отменить заявку'}
+                    </button>
+                  ) : (
+                    <JoinButton 
+                      onClick={() => handleRequestJoin(team.id)}
+                      disabled={isRequesting}
+                    >
+                      Отправить заявку
+                    </JoinButton>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Пагинация */}
@@ -200,7 +273,7 @@ export function SearchTeamModal({ closeModal, onSuccess }: SearchTeamModalProps)
         </div>
       </div>
 
-      {/* Модалка создания команды поверх */}
+      {/* Модалка создания команды */}
       {isCreateTeamOpen && (
         <Modal closeModal={() => setIsCreateTeamOpen(false)}>
           <div className="create-team-body">
