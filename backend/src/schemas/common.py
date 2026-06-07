@@ -11,3 +11,8 @@ class PagedRequestQueryData(BaseModel):
     query: str
     offset: int
     limit: int
+
+class PagedRequestIdData(BaseModel):
+    id: int
+    offset: int
+    limit: int

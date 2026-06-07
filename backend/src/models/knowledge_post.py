@@ -8,6 +8,11 @@ class KnowledgePostType(str, enum.Enum):
     request = 'request'
     offer = 'offer'
 
+class KnowledgePostWorkStatus(str, enum.Enum):
+    awaiting = 'awaiting'
+    in_work = 'in_work'
+    complete = 'complete'
+
 class KnowledgePost(SQLModel, table=True):
     id: int = Field(primary_key=True)
     team_id: int = Field()
@@ -16,3 +21,4 @@ class KnowledgePost(SQLModel, table=True):
     description: str | None = None
     tags: str | None = None
     status: ModerationStatus = Field(default=ModerationStatus.on_moderation, sa_column=Column(Enum(ModerationStatus)))
+    work_status: KnowledgePostWorkStatus = Field(default=KnowledgePostWorkStatus.awaiting, sa_column=Column(Enum(KnowledgePostWorkStatus)))

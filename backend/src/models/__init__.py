@@ -2,7 +2,8 @@ from .achievement import Achievement, AchievementTemplate
 from .challenge_report import ChallengeReport
 from .challenge import Challenge
 from .event import Event, EventFormat
-from .knowledge_post import KnowledgePost, KnowledgePostType
+from .knowledge_post import KnowledgePost, KnowledgePostType, KnowledgePostWorkStatus
+from .knowledge_post_response import KnowledgePostResponse, KnowledgePostResponseStatus
 from .moderation_status import ModerationStatus
 from .rescue_request import RescueRequest, RescueRequestStatus
 from .team import Team, League, LEAGUES_LOCALIZED, get_league_by_partial_name
@@ -22,6 +23,9 @@ __all__ = [
     'EventFormat',
     'KnowledgePost', 
     'KnowledgePostType',
+    'KnowledgePostWorkStatus',
+    'KnowledgePostResponse',
+    'KnowledgePostResponseStatus',
     'ModerationStatus',
     'RescueRequest',
     'RescueRequestStatus',
